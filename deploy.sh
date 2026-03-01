@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e # Detener el script inmediatamente si ocurre algún error crítico
 
 # Imprimir con colores
 GREEN='\033[0;32m'
@@ -17,8 +18,10 @@ echo -e "${GREEN}---> [1/2] Actualizando Backend...${RESET}"
 if [ -d "$APPS_DIR/backend" ]; then
     cd "$APPS_DIR/backend" || exit
     
-    echo "  > Descargando cambios (git pull)..."
-    git pull origin main
+    echo "  > Descargando cambios (forzando la misma versión que GitHub)..."
+    git fetch --all
+    git reset --hard origin/main
+
     
     echo "  > Instalando dependencias (npm install)..."
     npm install
@@ -37,8 +40,10 @@ echo -e "${GREEN}---> [2/2] Actualizando Frontend...${RESET}"
 if [ -d "$APPS_DIR/frontend" ]; then
     cd "$APPS_DIR/frontend" || exit
     
-    echo "  > Descargando cambios (git pull)..."
-    git pull origin main
+    echo "  > Descargando cambios (forzando la misma versión que GitHub)..."
+    git fetch --all
+    git reset --hard origin/main
+
     
     echo "  > Instalando dependencias (npm install)..."
     npm install
