@@ -13,11 +13,15 @@ echo -e "${BLUE}=========================================${RESET}\n"
 
 APPS_DIR="$PWD"
 
+# Configurar directorios seguros para Git (necesario para actualizar el script mismo)
+git config --global --add safe.directory "$APPS_DIR"
+git config --global --add safe.directory "$APPS_DIR/backend"
+git config --global --add safe.directory "$APPS_DIR/frontend"
+
 # ========== 1. BACKEND ==========
 echo -e "${GREEN}---> [1/2] Actualizando Backend...${RESET}"
 if [ -d "$APPS_DIR/backend" ]; then
-    echo "  > Configurando directorio seguro en Git..."
-    git config --global --add safe.directory "$APPS_DIR/backend"
+    cd "$APPS_DIR/backend" || exit
 
     echo "  > Descargando cambios (forzando la misma versión que GitHub)..."
     git fetch --all
@@ -43,9 +47,6 @@ echo -e "${GREEN}---> [2/2] Actualizando Frontend...${RESET}"
 if [ -d "$APPS_DIR/frontend" ]; then
     cd "$APPS_DIR/frontend" || exit
     
-    echo "  > Configurando directorio seguro en Git..."
-    git config --global --add safe.directory "$APPS_DIR/frontend"
-
     echo "  > Descargando cambios (forzando la misma versión que GitHub)..."
     git fetch --all
     git reset --hard origin/main
