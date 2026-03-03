@@ -29,9 +29,9 @@ if [ -d "$APPS_DIR/backend" ]; then
     echo "  > Construyendo aplicación backend (npm run build)..."
     npm run build
     
-    # Aquí puedes cambiar "api" por el nombre de tu proceso en PM2 si es diferente
-    echo "  > Reiniciando servicio en PM2..."
-    pm2 restart api || pm2 restart all
+    # Intentar reiniciar o iniciar el proceso en PM2
+    echo "  > Reiniciando/Iniciando servicio en PM2..."
+    pm2 restart educrm-api || pm2 start dist/main.js --name "educrm-api"
     
     echo -e "  ✅ Backend actualizado.\n"
 else
