@@ -16,15 +16,18 @@ APPS_DIR="$PWD"
 # ========== 1. BACKEND ==========
 echo -e "${GREEN}---> [1/2] Actualizando Backend...${RESET}"
 if [ -d "$APPS_DIR/backend" ]; then
-    cd "$APPS_DIR/backend" || exit
-    
+    echo "  > Configurando directorio seguro en Git..."
+    git config --global --add safe.directory "$APPS_DIR/backend"
+
     echo "  > Descargando cambios (forzando la misma versión que GitHub)..."
     git fetch --all
     git reset --hard origin/main
-
     
     echo "  > Instalando dependencias (npm install)..."
     npm install
+    
+    echo "  > Construyendo aplicación backend (npm run build)..."
+    npm run build
     
     # Aquí puedes cambiar "api" por el nombre de tu proceso en PM2 si es diferente
     echo "  > Reiniciando servicio en PM2..."
@@ -40,6 +43,9 @@ echo -e "${GREEN}---> [2/2] Actualizando Frontend...${RESET}"
 if [ -d "$APPS_DIR/frontend" ]; then
     cd "$APPS_DIR/frontend" || exit
     
+    echo "  > Configurando directorio seguro en Git..."
+    git config --global --add safe.directory "$APPS_DIR/frontend"
+
     echo "  > Descargando cambios (forzando la misma versión que GitHub)..."
     git fetch --all
     git reset --hard origin/main
