@@ -7,15 +7,11 @@ import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
-  app.setGlobalPrefix('api');
 
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
 
-  // Logger detallado  // Establecer prefijo global para alinear con Nginx
-  app.setGlobalPrefix('api');
-
-  // Habilitar validación global VPS (después de body-parsers)
+  // Logger detallado para depuración en el VPS (después de body-parsers)
   app.use((req: any, res: any, next: any) => {
     console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl || req.url}`);
     if (req.method === 'POST' || req.method === 'PATCH') {
