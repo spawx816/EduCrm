@@ -1,0 +1,356 @@
+"use strict";
+var __decorate = (this && this.__decorate) || function (decorators, target, key, desc) {
+    var c = arguments.length, r = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r = Reflect.decorate(decorators, target, key, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
+    return c > 3 && r && Object.defineProperty(target, key, r), r;
+};
+var __metadata = (this && this.__metadata) || function (k, v) {
+    if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
+};
+var __param = (this && this.__param) || function (paramIndex, decorator) {
+    return function (target, key) { decorator(target, key, paramIndex); }
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.BillingService = void 0;
+const common_1 = require("@nestjs/common");
+const pg_1 = require("pg");
+const database_module_1 = require("../database/database.module");
+let BillingService = class BillingService {
+    constructor(pool) {
+        this.pool = pool;
+    }
+    async getInvoices(filters) {
+        let query = `
+            SELECT i.*, s.first_name, s.last_name, 
+                   STRING_AGG(id.description, ', ') as concepts
+            FROM invoices i
+            JOIN students s ON i.student_id = s.id
+            LEFT JOIN invoice_details id ON i.id = id.invoice_id
+            WHERE 1=1
+        `;
+        const params = [];
+        if (filters.studentId) {
+            params.push(filters.studentId);
+            query += ` AND i.student_id = $${params.length}`;
+        }
+        if (filters.status && filters.status !== 'ALL') {
+            params.push(filters.status);
+            query += ` AND i.status = $${params.length}`;
+        }
+        if (filters.search) {
+            params.push(`%${filters.search}%`);
+            query += ` AND (s.first_name ILIKE $${params.length} OR s.last_name ILIKE $${params.length} OR i.invoice_number ILIKE $${params.length})`;
+        }
+        if (filters.startDate) {
+            params.push(filters.startDate);
+            query += ` AND i.created_at >= $${params.length}`;
+        }
+        if (filters.endDate) {
+            params.push(filters.endDate);
+            query += ` AND i.created_at <= $${params.length}`;
+        }
+        query += ` GROUP BY i.id, s.id ORDER BY i.created_at DESC`;
+        const res = await this.pool.query(query, params);
+        return res.rows;
+    }
+    async getInvoiceById(id) {
+        const invoiceRes = await this.pool.query(`SELECT i.*, s.first_name, s.last_name, s.email, s.phone 
+             FROM invoices i 
+             JOIN students s ON i.student_id = s.id 
+             WHERE i.id = $1`, [id]);
+        if (invoiceRes.rows.length === 0)
+            return null;
+        const detailsRes = await this.pool.query(`SELECT * FROM invoice_details WHERE invoice_id = $1`, [id]);
+        const paymentsRes = await this.pool.query(`SELECT * FROM invoice_payments WHERE invoice_id = $1 ORDER BY created_at DESC`, [id]);
+        return {
+            ...invoiceRes.rows[0],
+            details: detailsRes.rows,
+            payments: paymentsRes.rows
+        };
+    }
+    async getInvoiceItems(invoiceId) {
+        const res = await this.pool.query('SELECT * FROM invoice_details WHERE invoice_id = $1', [invoiceId]);
+        return res.rows;
+    }
+    async createInvoice(data) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            const invoiceNumber = `INV-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`;
+            const subtotal = data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+            const totalDiscount = data.items.reduce((sum, item) => sum + (item.discount || 0), 0);
+            const totalAmount = subtotal - totalDiscount;
+            const dueDate = data.dueDate || null;
+            const invoiceRes = await client.query(`INSERT INTO invoices (student_id, invoice_number, total_amount, due_date, scholarship_id, discount_amount, created_by) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`, [data.studentId, invoiceNumber, totalAmount, dueDate, data.scholarshipId, totalDiscount, data.createdBy || null]);
+            const invoiceId = invoiceRes.rows[0].id;
+            for (const item of data.items) {
+                const discount = item.discount || 0;
+                const subtotal = (item.quantity * item.unitPrice) - discount;
+                const isRealItem = item.itemId && !item.itemId.includes('ENROLL-') && !item.itemId.includes('MOD-');
+                const dbItemId = isRealItem ? item.itemId : null;
+                await client.query(`INSERT INTO invoice_details (invoice_id, item_id, description, quantity, unit_price, discount, subtotal) 
+                     VALUES ($1, $2, $3, $4, $5, $6, $7)`, [invoiceId, dbItemId, item.description, item.quantity, item.unitPrice, discount, subtotal]);
+                if (dbItemId) {
+                    const itemCheck = await client.query('SELECT is_inventory FROM billing_items WHERE id = $1', [dbItemId]);
+                    if (itemCheck.rows[0]?.is_inventory) {
+                        await client.query(`INSERT INTO inventory_movements (item_id, type, quantity, reference_type, reference_id, notes)
+                             VALUES ($1, 'OUT', $2, 'INVOICE', $3, $4)`, [dbItemId, item.quantity, invoiceId, `Venta en factura ${invoiceNumber}`]);
+                        await client.query('UPDATE billing_items SET stock_quantity = stock_quantity - $1 WHERE id = $2', [item.quantity, dbItemId]);
+                    }
+                }
+            }
+            await client.query('COMMIT');
+            return invoiceRes.rows[0];
+        }
+        catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        }
+        finally {
+            client.release();
+        }
+    }
+    async getPayments(invoiceId) {
+        const res = await this.pool.query('SELECT * FROM invoice_payments WHERE invoice_id = $1 ORDER BY created_at DESC', [invoiceId]);
+        return res.rows;
+    }
+    async registerPayment(data) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            const invoiceRes = await client.query('SELECT total_amount, paid_amount FROM invoices WHERE id = $1', [data.invoiceId]);
+            if (invoiceRes.rows.length === 0)
+                throw new Error('Invoice not found');
+            const newPaidAmount = parseFloat(invoiceRes.rows[0].paid_amount) + data.amount;
+            const totalAmount = parseFloat(invoiceRes.rows[0].total_amount);
+            const status = newPaidAmount >= totalAmount ? 'PAID' : 'PARTIAL';
+            await client.query('INSERT INTO invoice_payments (invoice_id, amount, payment_method, reference) VALUES ($1, $2, $3, $4)', [data.invoiceId, data.amount, data.paymentMethod, data.reference]);
+            const updatedInvoice = await client.query('UPDATE invoices SET paid_amount = $1, status = $2 WHERE id = $3 RETURNING *', [newPaidAmount, status, data.invoiceId]);
+            await client.query('COMMIT');
+            return updatedInvoice.rows[0];
+        }
+        catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        }
+        finally {
+            client.release();
+        }
+    }
+    async getBillingItems() {
+        const res = await this.pool.query('SELECT * FROM billing_items WHERE is_active = true ORDER BY name ASC');
+        return res.rows;
+    }
+    async createBillingItem(data) {
+        const res = await this.pool.query('INSERT INTO billing_items (name, description, price) VALUES ($1, $2, $3) RETURNING *', [data.name, data.description, data.price]);
+        return res.rows[0];
+    }
+    async voidInvoice(id) {
+        const res = await this.pool.query("UPDATE invoices SET status = 'VOIDED' WHERE id = $1 AND status != 'PAID' RETURNING *", [id]);
+        return res.rows[0];
+    }
+    async getInvoiceSuggestions(studentId) {
+        const enrollmentRes = await this.pool.query(`SELECT e.cohort_id, c.program_id, p.enrollment_price, p.name as program_name, p.billing_day,
+                    s.id as scholarship_id, s.name as scholarship_name, s.type as scholarship_type, s.value as scholarship_value
+             FROM enrollments e 
+             JOIN academic_cohorts c ON e.cohort_id = c.id 
+             JOIN academic_programs p ON c.program_id = p.id
+             LEFT JOIN scholarships s ON e.scholarship_id = s.id
+             WHERE e.student_id = $1 AND e.status = 'ACTIVE' 
+             LIMIT 1`, [studentId]);
+        if (enrollmentRes.rows.length === 0)
+            return { suggestedModule: null, addons: [], enrollmentFee: null };
+        const { cohort_id, program_id, enrollment_price, program_name, billing_day, scholarship_id, scholarship_name, scholarship_type, scholarship_value } = enrollmentRes.rows[0];
+        const calculateDiscount = (basePrice) => {
+            if (!scholarship_id)
+                return 0;
+            if (scholarship_type === 'PERCENTAGE') {
+                return (basePrice * scholarship_value) / 100;
+            }
+            return Math.min(basePrice, scholarship_value);
+        };
+        const today = new Date();
+        const suggestedDueDate = new Date(today.getFullYear(), today.getMonth(), billing_day || 5);
+        if (today.getDate() >= (billing_day || 5)) {
+            suggestedDueDate.setMonth(suggestedDueDate.getMonth() + 1);
+        }
+        const formattedSuggestedDueDate = suggestedDueDate.toISOString().split('T')[0];
+        const invoicedEnrollmentRes = await this.pool.query(`SELECT i.status, i.paid_amount, i.total_amount 
+             FROM invoice_details id
+             JOIN invoices i ON id.invoice_id = i.id
+             WHERE i.student_id = $1 AND id.description ILIKE $2 AND i.status != 'VOIDED'`, [studentId, `%Inscripción%${program_name}%`]);
+        const isEnrollmentInvoiced = invoicedEnrollmentRes.rows.length > 0;
+        const isEnrollmentPaid = isEnrollmentInvoiced && (invoicedEnrollmentRes.rows[0].status === 'PAID' ||
+            parseFloat(invoicedEnrollmentRes.rows[0].paid_amount) >= parseFloat(invoicedEnrollmentRes.rows[0].total_amount));
+        if (!isEnrollmentInvoiced && parseFloat(enrollment_price) > 0) {
+            const finalEnrollmentPrice = parseFloat(enrollment_price) || 0;
+            const enrollmentDiscount = calculateDiscount(finalEnrollmentPrice);
+            return {
+                suggestedModule: null,
+                addons: [],
+                enrollmentFee: {
+                    name: `Inscripción - ${program_name}`,
+                    price: finalEnrollmentPrice,
+                    discount: enrollmentDiscount
+                },
+                scholarship: scholarship_id ? { id: scholarship_id, name: scholarship_name } : null,
+                isEnrollmentPaid: false,
+                isEnrollmentInvoiced: false,
+                suggestedDueDate: formattedSuggestedDueDate
+            };
+        }
+        if (!isEnrollmentPaid && isEnrollmentInvoiced) {
+            return {
+                suggestedModule: null,
+                addons: [],
+                enrollmentFee: null,
+                isEnrollmentPaid: false,
+                isEnrollmentInvoiced: true,
+                error: 'Debe pagar el cargo de inscripción antes de facturar módulos.',
+                suggestedDueDate: formattedSuggestedDueDate
+            };
+        }
+        const modulesRes = await this.pool.query(`SELECT m.* 
+             FROM academic_modules m 
+             WHERE m.program_id = $1 AND m.deleted_at IS NULL 
+             ORDER BY m.order_index ASC`, [program_id]);
+        const modules = modulesRes.rows;
+        if (modules.length === 0) {
+            return {
+                suggestedModule: null,
+                addons: [],
+                enrollmentFee: null,
+                isEnrollmentPaid,
+                isEnrollmentInvoiced,
+                suggestedDueDate: formattedSuggestedDueDate
+            };
+        }
+        const invoicedModulesRes = await this.pool.query(`SELECT id.description 
+             FROM invoice_details id
+             JOIN invoices i ON id.invoice_id = i.id
+             WHERE i.student_id = $1 AND i.status != 'VOIDED' AND id.item_id IS NULL AND id.description NOT ILIKE '%Inscripción%'`, [studentId]);
+        const invoicedNames = invoicedModulesRes.rows.map(r => r.description.toLowerCase());
+        const suggestedModuleData = modules.find(m => !invoicedNames.some(name => name.includes(m.name.toLowerCase())));
+        if (!suggestedModuleData) {
+            return {
+                suggestedModule: null,
+                addons: [],
+                enrollmentFee: null,
+                isModuleInvoiced: true,
+                isEnrollmentPaid,
+                isEnrollmentInvoiced,
+                suggestedDueDate: formattedSuggestedDueDate
+            };
+        }
+        const addonsRes = await this.pool.query(`SELECT bi.* 
+             FROM academic_module_addons ama
+             JOIN billing_items bi ON ama.item_id = bi.id
+             WHERE ama.module_id = $1`, [suggestedModuleData.id]);
+        const finalModulePrice = parseFloat(suggestedModuleData.price) || 0;
+        const moduleDiscount = calculateDiscount(finalModulePrice);
+        return {
+            suggestedModule: {
+                id: suggestedModuleData.id,
+                name: suggestedModuleData.name,
+                price: finalModulePrice,
+                discount: moduleDiscount
+            },
+            addons: addonsRes.rows,
+            enrollmentFee: null,
+            scholarship: scholarship_id ? { id: scholarship_id, name: scholarship_name } : null,
+            totalDiscount: 0,
+            isModuleInvoiced: false,
+            isEnrollmentPaid,
+            isEnrollmentInvoiced,
+            suggestedDueDate: formattedSuggestedDueDate
+        };
+    }
+    async getScholarships() {
+        const res = await this.pool.query('SELECT * FROM scholarships ORDER BY name ASC');
+        return res.rows;
+    }
+    async createScholarship(data) {
+        const res = await this.pool.query('INSERT INTO scholarships (name, description, type, value) VALUES ($1, $2, $3, $4) RETURNING *', [data.name, data.description, data.type, data.value]);
+        return res.rows[0];
+    }
+    async getInstructorPayments(teacherId) {
+        const query = teacherId
+            ? 'SELECT ip.*, u.first_name, u.last_name FROM instructor_payments ip JOIN users u ON ip.teacher_id = u.id WHERE ip.teacher_id = $1 ORDER BY ip.payment_date DESC'
+            : 'SELECT ip.*, u.first_name, u.last_name FROM instructor_payments ip JOIN users u ON ip.teacher_id = u.id ORDER BY ip.payment_date DESC';
+        const res = await this.pool.query(query, teacherId ? [teacherId] : []);
+        return res.rows;
+    }
+    async registerInstructorPayment(data) {
+        const res = await this.pool.query(`INSERT INTO instructor_payments (teacher_id, amount, payment_method, reference_number, notes)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`, [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes]);
+        return res.rows[0];
+    }
+    async getInventoryMovements(itemId) {
+        const query = itemId
+            ? 'SELECT im.*, bi.name as item_name FROM inventory_movements im JOIN billing_items bi ON im.item_id = bi.id WHERE im.item_id = $1 ORDER BY im.created_at DESC'
+            : 'SELECT im.*, bi.name as item_name FROM inventory_movements im JOIN billing_items bi ON im.item_id = bi.id ORDER BY im.created_at DESC';
+        const res = await this.pool.query(query, itemId ? [itemId] : []);
+        return res.rows;
+    }
+    async adjustStock(data) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query(`INSERT INTO inventory_movements (item_id, type, quantity, reference_type, notes)
+                 VALUES ($1, $2, $3, 'MANUAL_ADJUSTMENT', $4)`, [data.itemId, data.type, data.quantity, data.notes]);
+            const factor = data.type === 'IN' ? 1 : -1;
+            const res = await client.query('UPDATE billing_items SET stock_quantity = stock_quantity + $1 WHERE id = $2 RETURNING *', [data.quantity * factor, data.itemId]);
+            await client.query('COMMIT');
+            return res.rows[0];
+        }
+        catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        }
+        finally {
+            client.release();
+        }
+    }
+    async getExpenseCategories() {
+        const res = await this.pool.query('SELECT * FROM expense_categories ORDER BY name ASC');
+        return res.rows;
+    }
+    async getExpenses(filters) {
+        let query = 'SELECT e.*, c.name as category_name FROM expenses e JOIN expense_categories c ON e.category_id = c.id WHERE 1=1';
+        const params = [];
+        if (filters.categoryId) {
+            params.push(filters.categoryId);
+            query += ` AND e.category_id = $${params.length}`;
+        }
+        if (filters.startDate) {
+            params.push(filters.startDate);
+            query += ` AND e.expense_date >= $${params.length}`;
+        }
+        if (filters.endDate) {
+            params.push(filters.endDate);
+            query += ` AND e.expense_date <= $${params.length}`;
+        }
+        query += ' ORDER BY e.expense_date DESC';
+        const res = await this.pool.query(query, params);
+        return res.rows;
+    }
+    async createExpense(data) {
+        const expenseDate = data.expenseDate || null;
+        const res = await this.pool.query(`INSERT INTO expenses (category_id, amount, expense_date, description, payment_method, reference_number)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`, [data.categoryId, data.amount, expenseDate, data.description, data.paymentMethod, data.referenceNumber]);
+        return res.rows[0];
+    }
+    async deleteExpense(id) {
+        const res = await this.pool.query('DELETE FROM expenses WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0];
+    }
+};
+exports.BillingService = BillingService;
+exports.BillingService = BillingService = __decorate([
+    (0, common_1.Injectable)(),
+    __param(0, (0, common_1.Inject)(database_module_1.PG_POOL)),
+    __metadata("design:paramtypes", [pg_1.Pool])
+], BillingService);
+//# sourceMappingURL=billing.service.js.map

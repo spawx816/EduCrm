@@ -1,0 +1,2 @@
+[dotenv@17.2.3] injecting env (4) from .env -- tip: ⚙️  specify custom .env file path with { path: '/custom/path/.env' }
+dd51f448-1391-4101-aeb1-38c9913cf298|roberto@example.com

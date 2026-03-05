@@ -1,0 +1,63 @@
+{
+  "users": [
+    {
+      "id": "d4fcc1b4-02f0-424b-81fe-405dfa3a2d43",
+      "email": "maestro@educrm.com",
+      "role_id": "d27826c3-913e-4efd-8036-631529a8f2e8"
+    },
+    {
+      "id": "d8a8e0f6-7554-4c9f-9f2b-1b0f27624394",
+      "email": "nuevoadmin@educrm.com",
+      "role_id": "45081e2b-01f8-4706-824b-826c470d5537"
+    },
+    {
+      "id": "4b316b7f-ce86-4394-9578-d169483683ff",
+      "email": "noxus1412@gmail.com",
+      "role_id": "ae2c4872-1d61-4bcc-95b4-d828dbca681f"
+    },
+    {
+      "id": "99777da0-1dd1-44b6-8eec-6af6976b961c",
+      "email": "noxus12@gmail.com",
+      "role_id": "c8491def-81dc-445b-9115-fa7d20e888c1"
+    },
+    {
+      "id": "f06669ff-405f-4869-b31e-af77eb0e1ff9",
+      "email": "admin@educrm.com",
+      "role_id": "d27826c3-913e-4efd-8036-631529a8f2e8"
+    }
+  ],
+  "roles": [
+    {
+      "id": "45081e2b-01f8-4706-824b-826c470d5537",
+      "name": "admin",
+      "display_name": "Administrador",
+      "is_system": true,
+      "created_at": "2026-02-27T03:01:55.394Z",
+      "updated_at": "2026-02-27T03:01:55.394Z"
+    },
+    {
+      "id": "c8491def-81dc-445b-9115-fa7d20e888c1",
+      "name": "director",
+      "display_name": "Director",
+      "is_system": true,
+      "created_at": "2026-02-27T03:01:55.394Z",
+      "updated_at": "2026-02-27T03:01:55.394Z"
+    },
+    {
+      "id": "d27826c3-913e-4efd-8036-631529a8f2e8",
+      "name": "docente",
+      "display_name": "Docente",
+      "is_system": true,
+      "created_at": "2026-02-27T03:01:55.394Z",
+      "updated_at": "2026-02-27T03:01:55.394Z"
+    },
+    {
+      "id": "ae2c4872-1d61-4bcc-95b4-d828dbca681f",
+      "name": "comercial",
+      "display_name": "Asesor Comercial",
+      "is_system": true,
+      "created_at": "2026-02-27T03:01:55.394Z",
+      "updated_at": "2026-02-27T03:01:55.394Z"
+    }
+  ]
+}

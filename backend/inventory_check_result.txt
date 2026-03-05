@@ -1,0 +1,20 @@
+--- Checking Tables ---
+FOUND: academic_module_addons
+Columns:
+ - id (uuid)
+ - module_id (uuid)
+ - item_id (uuid)
+ - created_at (timestamp with time zone)
+-----------------------
+FOUND: billing_items
+Columns:
+ - price (numeric)
+ - created_at (timestamp with time zone)
+ - updated_at (timestamp with time zone)
+ - id (uuid)
+ - is_active (boolean)
+ - name (character varying)
+ - description (text)
+-----------------------
+NOT FOUND: inventory_transactions
+-----------------------
