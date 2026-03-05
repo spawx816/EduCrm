@@ -51,7 +51,7 @@ if [ -d "$APPS_DIR/backend" ]; then
     
     # Intentar reiniciar o iniciar el proceso en PM2
     echo "  > Reiniciando/Iniciando servicio en PM2..."
-    pm2 restart educrm-api || PORT=3012 pm2 start dist/main.js --name "educrm-api"
+    pm2 restart educrm-api || PORT=3000 pm2 start dist/main.js --name "educrm-api"
     
     echo -e "  ✅ Backend actualizado.\n"
 else
