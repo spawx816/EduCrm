@@ -13,10 +13,24 @@ echo -e "${BLUE}=========================================${RESET}\n"
 
 APPS_DIR="$PWD"
 
-# Configurar directorios seguros para Git (necesario para actualizar el script mismo)
+# Configurar directorios seguros para Git
 git config --global --add safe.directory "$APPS_DIR"
 git config --global --add safe.directory "$APPS_DIR/backend"
 git config --global --add safe.directory "$APPS_DIR/frontend"
+
+HARD_RESET=false
+if [ "$1" == "--hard" ]; then
+    HARD_RESET=true
+    echo -e "${YELLOW}⚠️ MODO HARD ACTIVADO: Se eliminarán node_modules y dist para una limpieza total.${RESET}"
+fi
+
+# Function to clean directories
+clean_dir() {
+    if [ "$HARD_RESET" = true ]; then
+        echo "  > [HARD] Eliminando node_modules, package-lock.json y dist..."
+        rm -rf node_modules package-lock.json dist
+    fi
+}
 
 # ========== 1. BACKEND ==========
 echo -e "${GREEN}---> [1/2] Actualizando Backend...${RESET}"
@@ -26,6 +40,8 @@ if [ -d "$APPS_DIR/backend" ]; then
     echo "  > Descargando cambios (forzando la misma versión que GitHub)..."
     git fetch --all
     git reset --hard origin/main
+    
+    clean_dir
     
     echo "  > Instalando dependencias (npm install)..."
     npm install
@@ -51,6 +67,7 @@ if [ -d "$APPS_DIR/frontend" ]; then
     git fetch --all
     git reset --hard origin/main
 
+    clean_dir
     
     echo "  > Instalando dependencias (npm install)..."
     npm install
