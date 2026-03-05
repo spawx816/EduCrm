@@ -18,6 +18,10 @@ git config --global --add safe.directory "$APPS_DIR"
 git config --global --add safe.directory "$APPS_DIR/backend"
 git config --global --add safe.directory "$APPS_DIR/frontend"
 
+# Asegurar que los submódulos (backend/frontend) estén descargados e inicializados
+echo "  > Inicializando submódulos si están vacíos..."
+git submodule update --init --recursive
+
 HARD_RESET=false
 if [ "$1" == "--hard" ]; then
     HARD_RESET=true
