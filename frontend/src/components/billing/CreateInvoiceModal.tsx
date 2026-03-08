@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useStudents } from '../../hooks/useStudents.ts';
 import { useBillingItems, useCreateInvoice, useInvoiceSuggestions } from '../../hooks/useBilling.ts';
-import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, Ticket } from 'lucide-react';
+import { X, Plus, Trash2, Check, Sparkles, AlertTriangle, Ticket, Search } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -10,6 +10,8 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
     const createInvoice = useCreateInvoice();
 
     const [studentId, setStudentId] = useState('');
+    const [studentSearch, setStudentSearch] = useState('');
+    const [showStudentDropdown, setShowStudentDropdown] = useState(false);
     const [dueDate, setDueDate] = useState('');
     const [selectedItems, setSelectedItems] = useState<{ itemId: string; description: string; quantity: number; unitPrice: number; discount?: number; moduleId?: string; enrollmentId?: string }[]>([]);
     const [notes, setNotes] = useState('');
@@ -20,11 +22,23 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
     useEffect(() => {
         if (isOpen) {
             setStudentId('');
+            setStudentSearch('');
+            setShowStudentDropdown(false);
             setDueDate('');
             setSelectedItems([]);
             setNotes('');
         }
     }, [isOpen]);
+
+    const filteredStudents = Array.isArray(students)
+        ? students.filter((s: any) =>
+            `${s.first_name} ${s.last_name}`.toLowerCase().includes(studentSearch.toLowerCase())
+        )
+        : [];
+
+    const selectedStudent = Array.isArray(students)
+        ? students.find((s: any) => s.id === studentId)
+        : null;
 
     // Auto-fill due date when suggestions change
     useEffect(() => {
@@ -187,19 +201,55 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
 
                 <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-8 space-y-8">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div>
+                        <div className="relative">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Estudiante</label>
-                            <select
-                                value={studentId}
-                                onChange={(e) => setStudentId(e.target.value)}
-                                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:ring-1 focus:ring-blue-500/50 outline-none transition-all"
-                                required
-                            >
-                                <option value="">Seleccionar Estudiante...</option>
-                                {Array.isArray(students) && students.map((s: any) => (
-                                    <option key={s.id} value={s.id}>{s.first_name} {s.last_name}</option>
-                                ))}
-                            </select>
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none" />
+                                <input
+                                    type="text"
+                                    placeholder={selectedStudent ? `${selectedStudent.first_name} ${selectedStudent.last_name}` : 'Buscar estudiante...'}
+                                    value={studentSearch}
+                                    onChange={(e) => {
+                                        setStudentSearch(e.target.value);
+                                        setStudentId('');
+                                        setShowStudentDropdown(true);
+                                    }}
+                                    onFocus={() => setShowStudentDropdown(true)}
+                                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-10 pr-4 py-3 text-white focus:ring-1 focus:ring-blue-500/50 outline-none transition-all placeholder:text-slate-500"
+                                    required={!studentId}
+                                />
+                                {studentId && !studentSearch && (
+                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full uppercase tracking-widest">
+                                        Seleccionado
+                                    </span>
+                                )}
+                            </div>
+                            {showStudentDropdown && studentSearch.length > 0 && (
+                                <div className="absolute z-50 top-full mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-h-52 overflow-y-auto custom-scrollbar">
+                                    {filteredStudents.length === 0 ? (
+                                        <p className="px-4 py-3 text-xs text-slate-500 italic">No se encontraron estudiantes.</p>
+                                    ) : (
+                                        filteredStudents.map((s: any) => (
+                                            <button
+                                                key={s.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    setStudentId(s.id);
+                                                    setStudentSearch('');
+                                                    setShowStudentDropdown(false);
+                                                }}
+                                                className="w-full text-left px-4 py-2.5 hover:bg-slate-800 transition-colors text-sm text-white flex items-center justify-between group"
+                                            >
+                                                <span className="font-medium">{s.first_name} {s.last_name}</span>
+                                                <span className="text-[9px] font-black text-slate-500 group-hover:text-blue-400 uppercase tracking-widest">{s.matricula}</span>
+                                            </button>
+                                        ))
+                                    )}
+                                </div>
+                            )}
+                            {showStudentDropdown && studentSearch.length > 0 && (
+                                <div className="fixed inset-0 z-40" onClick={() => setShowStudentDropdown(false)} />
+                            )}
                         </div>
                         <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Fecha de Vencimiento</label>
