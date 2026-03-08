@@ -225,13 +225,20 @@ export class AcademicService {
     try {
       await client.query('BEGIN');
       for (const record of records) {
-        await client.query(
-          `INSERT INTO attendance (student_id, cohort_id, module_id, date, status, remarks)
-           VALUES ($1, $2, $3, $4, $5, $6)
-           ON CONFLICT (student_id, cohort_id, date, module_id) 
-           DO UPDATE SET status = EXCLUDED.status, remarks = EXCLUDED.remarks, updated_at = NOW()`,
-          [record.student_id, cohort_id, module_id, date, record.status, record.remarks]
+        // Try UPDATE first; if no row matched, INSERT
+        const updateRes = await client.query(
+          `UPDATE attendance 
+           SET status = $1, remarks = $2, updated_at = NOW()
+           WHERE student_id = $3 AND cohort_id = $4 AND date = $5 AND module_id = $6`,
+          [record.status, record.remarks || '', record.student_id, cohort_id, date, module_id]
         );
+        if (updateRes.rowCount === 0) {
+          await client.query(
+            `INSERT INTO attendance (student_id, cohort_id, module_id, date, status, remarks)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [record.student_id, cohort_id, module_id, date, record.status, record.remarks || '']
+          );
+        }
       }
       await client.query('COMMIT');
       return { success: true, count: records.length };
