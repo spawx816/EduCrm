@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from '@tanstack/react-query';
 import apiClient from '../lib/api-client';
-import { useState, createContext, useContext } from 'react';
+import { useState, createContext, useContext, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
 interface PortalContextType {
@@ -29,10 +29,47 @@ export function PortalProvider({ children }: { children: ReactNode }) {
         }
     });
 
-    const logout = () => {
+    const logout = useCallback(() => {
         localStorage.removeItem('portal_student');
         setStudent(null);
-    };
+    }, []);
+
+    // Idle Timeout Logic (Auto-logout)
+    useEffect(() => {
+        if (!student) return; // Only track activity if logged in
+
+        // 2 Hours (7200000 ms)
+        const INACTIVITY_LIMIT_MS = 7200000;
+
+        let timeoutId: number;
+
+        const resetTimer = () => {
+            clearTimeout(timeoutId);
+            timeoutId = window.setTimeout(() => {
+                console.log("Logged out from portal due to inactivity");
+                logout();
+            }, INACTIVITY_LIMIT_MS);
+        };
+
+        // Event listeners for user activity
+        const events = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+
+        const setupActivityListeners = () => {
+            events.forEach(event => window.addEventListener(event, resetTimer));
+            resetTimer(); // initialize the timer
+        };
+
+        const cleanupActivityListeners = () => {
+            events.forEach(event => window.removeEventListener(event, resetTimer));
+            clearTimeout(timeoutId);
+        };
+
+        setupActivityListeners();
+
+        return () => {
+            cleanupActivityListeners();
+        };
+    }, [student, logout]);
 
     return (
         <PortalContext.Provider value={{ student, login, logout, isAuthenticated: !!student }}>

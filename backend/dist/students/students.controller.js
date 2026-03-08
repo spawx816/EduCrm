@@ -29,6 +29,9 @@ let StudentsController = class StudentsController {
     async create(data) {
         return this.studentsService.create(data);
     }
+    async update(id, data) {
+        return this.studentsService.update(id, data);
+    }
     async convertLead(leadId) {
         return this.studentsService.convertLead(leadId);
     }
@@ -96,6 +99,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], StudentsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], StudentsController.prototype, "update", null);
 __decorate([
     (0, common_1.Post)('convert/:leadId'),
     __param(0, (0, common_1.Param)('leadId')),

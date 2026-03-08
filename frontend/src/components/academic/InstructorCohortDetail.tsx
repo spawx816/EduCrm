@@ -38,6 +38,7 @@ export function InstructorCohortDetail({ cohort, onBack }: InstructorCohortDetai
                     cohortId={cohort.id}
                     programId={cohort.program_id}
                     initialModuleId={selectedModuleId}
+                    availableModules={modules}
                 />
             </div>
         );
@@ -53,6 +54,7 @@ export function InstructorCohortDetail({ cohort, onBack }: InstructorCohortDetai
                     cohortId={cohort.id}
                     programId={cohort.program_id}
                     initialModuleId={selectedModuleId}
+                    availableModules={modules}
                 />
             </div>
         );

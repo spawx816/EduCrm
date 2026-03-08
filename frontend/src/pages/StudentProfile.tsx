@@ -4,9 +4,10 @@ import { useInvoices } from '../hooks/useBilling';
 import {
     Mail, Phone, Calendar, BadgeCheck, Receipt,
     ArrowLeft, TrendingUp, Users, GraduationCap, BarChart3, Ticket, FolderKey,
-    Camera, Loader2
+    Camera, Loader2, Edit
 } from 'lucide-react';
 import { EnrollStudentModal } from '../components/students/EnrollStudentModal';
+import { EditStudentModal } from '../components/students/EditStudentModal';
 import { StudentAcademicHistory } from '../components/students/StudentAcademicHistory';
 import { StudentAttachments } from '../components/students/StudentAttachments';
 import { toast } from 'react-hot-toast';
@@ -18,6 +19,7 @@ interface StudentProfileProps {
 
 export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
     const [showEnrollModal, setShowEnrollModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
     const [activeTab, setActiveTab] = useState<'academic' | 'billing' | 'docs'>('academic');
     const { data: student, isLoading: loadingStudent } = useStudent(studentId);
     const { data: invoices, isLoading: loadingInvoices } = useInvoices({ studentId });
@@ -114,6 +116,13 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                                     <span className="inline-flex px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase tracking-widest">
                                         {student.status}
                                     </span>
+                                    <button
+                                        onClick={() => setShowEditModal(true)}
+                                        className="inline-flex items-center space-x-2 px-3 py-1 bg-slate-800 text-slate-300 text-[10px] font-bold rounded-full border border-slate-700 hover:bg-slate-700 hover:text-white transition-all uppercase tracking-widest"
+                                    >
+                                        <Edit className="w-3 h-3" />
+                                        <span>Editar Perfil</span>
+                                    </button>
                                 </div>
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-slate-400 mt-4">
@@ -213,6 +222,14 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                                 studentId={student.id}
                                 studentName={`${student.first_name} ${student.last_name}`}
                                 onClose={() => setShowEnrollModal(false)}
+                            />
+                        )}
+
+                        {showEditModal && (
+                            <EditStudentModal
+                                student={student}
+                                isOpen={showEditModal}
+                                onClose={() => setShowEditModal(false)}
                             />
                         )}
 

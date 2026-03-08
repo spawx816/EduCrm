@@ -36,6 +36,20 @@ export function useCreateStudent() {
     });
 }
 
+export function useUpdateStudent() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, ...data }: { id: string } & any) => {
+            const { data: res } = await apiClient.patch(`/students/${id}`, data);
+            return res;
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['students'] });
+            queryClient.invalidateQueries({ queryKey: ['students', variables.id] });
+        },
+    });
+}
+
 export function useConvertLead() {
     const queryClient = useQueryClient();
     return useMutation({

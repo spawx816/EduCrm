@@ -20,7 +20,7 @@ export class StatsService {
             // ... (queries stay the same)
             // ... I need to replace the whole block because I messed up the names in the first attempt
             // Total Revenue (Last 30 days)
-            this.pool.query("SELECT SUM(amount) as total FROM payments WHERE payment_date > NOW() - INTERVAL '30 days'"),
+            this.pool.query("SELECT SUM(amount) as total FROM invoice_payments WHERE created_at > NOW() - INTERVAL '30 days'"),
             // New Leads (Last 7 days)
             this.pool.query("SELECT COUNT(*) as total FROM leads WHERE created_at > NOW() - INTERVAL '7 days' AND deleted_at IS NULL"),
             // Total Active Students
@@ -51,6 +51,7 @@ export class StatsService {
         ]);
 
         const totalRevenue = parseFloat(revenueRes.rows[0].total || 0);
+
         const totalExpenses = parseFloat(opExpensesRes.rows[0].total || 0) + parseFloat(payrollRes.rows[0].total || 0);
 
         return {

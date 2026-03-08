@@ -36,6 +36,9 @@ export declare class BillingService {
         name: string;
         description?: string;
         price: number;
+        is_inventory?: boolean;
+        stock_quantity?: number;
+        min_stock?: number;
     }): Promise<any>;
     voidInvoice(id: string): Promise<any>;
     getInvoiceSuggestions(studentId: string): Promise<{

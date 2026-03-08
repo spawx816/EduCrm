@@ -5,6 +5,7 @@ export declare class StudentsController {
     findAll(search?: string, status?: string, sede_id?: string): Promise<any[]>;
     findOne(id: string): Promise<any>;
     create(data: any): Promise<any>;
+    update(id: string, data: any): Promise<any>;
     convertLead(leadId: string): Promise<any>;
     enroll(data: any): Promise<any>;
     getFullHistory(id: string): Promise<any[]>;

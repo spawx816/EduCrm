@@ -192,14 +192,29 @@ export class BillingService {
     }
 
     async getBillingItems() {
-        const res = await this.pool.query('SELECT * FROM billing_items WHERE is_active = true ORDER BY name ASC');
+        const res = await this.pool.query('SELECT * FROM billing_items WHERE is_active = true ORDER BY is_inventory DESC, name ASC');
         return res.rows;
     }
 
-    async createBillingItem(data: { name: string; description?: string; price: number }) {
+    async createBillingItem(data: {
+        name: string;
+        description?: string;
+        price: number;
+        is_inventory?: boolean;
+        stock_quantity?: number;
+        min_stock?: number;
+    }) {
         const res = await this.pool.query(
-            'INSERT INTO billing_items (name, description, price) VALUES ($1, $2, $3) RETURNING *',
-            [data.name, data.description, data.price]
+            `INSERT INTO billing_items (name, description, price, is_inventory, stock_quantity, min_stock) 
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [
+                data.name,
+                data.description,
+                data.price,
+                data.is_inventory || false,
+                data.stock_quantity || 0,
+                data.min_stock || 0
+            ]
         );
         return res.rows[0];
     }

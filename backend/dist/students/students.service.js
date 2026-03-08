@@ -136,6 +136,47 @@ let StudentsService = class StudentsService {
             throw error;
         }
     }
+    async update(id, data) {
+        try {
+            const res = await this.pool.query(`UPDATE students 
+         SET first_name = COALESCE($1, first_name),
+             last_name = COALESCE($2, last_name),
+             email = COALESCE($3, email),
+             document_type = COALESCE($4, document_type),
+             document_id = COALESCE($5, document_id),
+             phone = COALESCE($6, phone),
+             address = COALESCE($7, address),
+             status = COALESCE($8, status),
+             sede_id = COALESCE($9, sede_id),
+             updated_at = NOW()
+         WHERE id = $10 AND deleted_at IS NULL
+         RETURNING *`, [
+                data.first_name,
+                data.last_name,
+                data.email,
+                data.document_type,
+                data.document_id,
+                data.phone,
+                data.address,
+                data.status,
+                data.sede_id,
+                id
+            ]);
+            if (res.rows.length === 0) {
+                throw new common_1.NotFoundException('Student not found');
+            }
+            return res.rows[0];
+        }
+        catch (error) {
+            if (error.code === '23505' && error.constraint === 'students_document_id_key') {
+                throw new common_1.BadRequestException('Ya existe un estudiante con ese número de Cédula o Pasaporte.');
+            }
+            if (error.code === '23505' && error.constraint === 'students_email_key') {
+                throw new common_1.BadRequestException('Ya existe un estudiante con ese correo electrónico.');
+            }
+            throw error;
+        }
+    }
     async enroll(data) {
         const { studentId, cohortId, scholarshipId, status = 'ACTIVE' } = data;
         const cohortRes = await this.pool.query('SELECT program_id FROM academic_cohorts WHERE id = $1', [cohortId]);

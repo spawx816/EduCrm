@@ -8,9 +8,10 @@ interface GradesManagerProps {
     programId: string;
     onBack?: () => void;
     initialModuleId?: string;
+    availableModules?: any[];
 }
 
-export function GradesManager({ cohortId, programId, onBack, initialModuleId }: GradesManagerProps) {
+export function GradesManager({ cohortId, programId, onBack, initialModuleId, availableModules }: GradesManagerProps) {
     const [selectedModuleId, setSelectedModuleId] = useState<string>(initialModuleId || '');
     const [selectedGradeType, setSelectedGradeType] = useState<string>('');
     const [scores, setScores] = useState<Record<string, { value: number; remarks: string }>>({});
@@ -18,7 +19,9 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId }: 
     const [newTypeName, setNewTypeName] = useState('');
 
     const { data: students, isLoading: loadingStudents } = useCohortStudents(cohortId);
-    const { data: modules, isLoading: loadingModules } = useCohortModules(cohortId);
+    const { data: cohortModules, isLoading: loadingModules } = useCohortModules(cohortId);
+
+    const modules = availableModules || cohortModules;
     const { data: gradeTypes } = useGradeTypes(programId, selectedModuleId);
     useGrades(cohortId, selectedModuleId);
 

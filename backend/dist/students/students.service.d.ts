@@ -24,6 +24,17 @@ export declare class StudentsService {
         phone?: string;
         address?: string;
     }): Promise<any>;
+    update(id: string, data: {
+        first_name?: string;
+        last_name?: string;
+        email?: string;
+        document_type?: string;
+        document_id?: string;
+        phone?: string;
+        address?: string;
+        status?: string;
+        sede_id?: string;
+    }): Promise<any>;
     enroll(data: {
         studentId: string;
         cohortId: string;

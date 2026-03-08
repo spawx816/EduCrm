@@ -1,63 +1,61 @@
-{
-  "users": [
-    {
-      "id": "d4fcc1b4-02f0-424b-81fe-405dfa3a2d43",
-      "email": "maestro@educrm.com",
-      "role_id": "d27826c3-913e-4efd-8036-631529a8f2e8"
-    },
-    {
-      "id": "d8a8e0f6-7554-4c9f-9f2b-1b0f27624394",
-      "email": "nuevoadmin@educrm.com",
-      "role_id": "45081e2b-01f8-4706-824b-826c470d5537"
-    },
-    {
-      "id": "4b316b7f-ce86-4394-9578-d169483683ff",
-      "email": "noxus1412@gmail.com",
-      "role_id": "ae2c4872-1d61-4bcc-95b4-d828dbca681f"
-    },
-    {
-      "id": "99777da0-1dd1-44b6-8eec-6af6976b961c",
-      "email": "noxus12@gmail.com",
-      "role_id": "c8491def-81dc-445b-9115-fa7d20e888c1"
-    },
-    {
-      "id": "f06669ff-405f-4869-b31e-af77eb0e1ff9",
-      "email": "admin@educrm.com",
-      "role_id": "d27826c3-913e-4efd-8036-631529a8f2e8"
-    }
-  ],
-  "roles": [
-    {
-      "id": "45081e2b-01f8-4706-824b-826c470d5537",
-      "name": "admin",
-      "display_name": "Administrador",
-      "is_system": true,
-      "created_at": "2026-02-27T03:01:55.394Z",
-      "updated_at": "2026-02-27T03:01:55.394Z"
-    },
-    {
-      "id": "c8491def-81dc-445b-9115-fa7d20e888c1",
-      "name": "director",
-      "display_name": "Director",
-      "is_system": true,
-      "created_at": "2026-02-27T03:01:55.394Z",
-      "updated_at": "2026-02-27T03:01:55.394Z"
-    },
-    {
-      "id": "d27826c3-913e-4efd-8036-631529a8f2e8",
-      "name": "docente",
-      "display_name": "Docente",
-      "is_system": true,
-      "created_at": "2026-02-27T03:01:55.394Z",
-      "updated_at": "2026-02-27T03:01:55.394Z"
-    },
-    {
-      "id": "ae2c4872-1d61-4bcc-95b4-d828dbca681f",
-      "name": "comercial",
-      "display_name": "Asesor Comercial",
-      "is_system": true,
-      "created_at": "2026-02-27T03:01:55.394Z",
-      "updated_at": "2026-02-27T03:01:55.394Z"
+[sudo] password for deploy:             "74.208.192.253"
+          ],
+          "addressUsed": "74.208.192.253"
+        }
+      ]
     }
   ]
 }
+2026-03-08 01:43:36,285:DEBUG:acme.client:Storing nonce: R3oC_4g1J_wqQOcbg6OPGHKGejB6oNWhhsSmB8PgB9pOvYs0hJg
+2026-03-08 01:43:36,285:INFO:certbot._internal.auth_handler:http-01 challenge for www.enaa.com.do
+2026-03-08 01:43:36,285:DEBUG:certbot._internal.display.obj:Notifying user: 
+Certbot failed to authenticate some domains (authenticator: nginx). The Certificate Authority reported these problems:
+  Domain: www.enaa.com.do
+  Type:   dns
+  Detail: DNS problem: NXDOMAIN looking up A for www.enaa.com.do - check that a DNS record exists for this domain; DNS problem: NXDOMAIN looking up AAAA for www.enaa.com.do - check that a DNS record exists for this domain
+
+Hint: The Certificate Authority failed to verify the temporary nginx configuration changes made by Certbot. Ensure the listed domains point to this nginx server and that it is accessible from the internet.
+
+2026-03-08 01:43:36,286:DEBUG:certbot._internal.error_handler:Encountered exception:
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/certbot/_internal/auth_handler.py", line 108, in handle_authorizations
+    self._poll_authorizations(authzrs, max_retries, max_time_mins, best_effort)
+  File "/usr/lib/python3/dist-packages/certbot/_internal/auth_handler.py", line 212, in _poll_authorizations
+    raise errors.AuthorizationError('Some challenges have failed.')
+certbot.errors.AuthorizationError: Some challenges have failed.
+
+2026-03-08 01:43:36,287:DEBUG:certbot._internal.error_handler:Calling registered functions
+2026-03-08 01:43:36,287:INFO:certbot._internal.auth_handler:Cleaning up challenges
+2026-03-08 01:43:37,390:DEBUG:certbot._internal.log:Exiting abnormally:
+Traceback (most recent call last):
+  File "/usr/bin/certbot", line 33, in <module>
+    sys.exit(load_entry_point('certbot==2.9.0', 'console_scripts', 'certbot')())
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/main.py", line 19, in main
+    return internal_main.main(cli_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/_internal/main.py", line 1894, in main
+    return config.func(config, plugins)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/_internal/main.py", line 1450, in run
+    new_lineage = _get_and_save_cert(le_client, config, domains,
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/_internal/main.py", line 143, in _get_and_save_cert
+    lineage = le_client.obtain_and_enroll_certificate(domains, certname)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/_internal/client.py", line 517, in obtain_and_enroll_certificate
+    cert, chain, key, _ = self.obtain_certificate(domains)
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/_internal/client.py", line 428, in obtain_certificate
+    orderr = self._get_order_and_authorizations(csr.data, self.config.allow_subset_of_names)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/_internal/client.py", line 496, in _get_order_and_authorizations
+    authzr = self.auth_handler.handle_authorizations(orderr, self.config, best_effort)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/certbot/_internal/auth_handler.py", line 108, in handle_authorizations
+    self._poll_authorizations(authzrs, max_retries, max_time_mins, best_effort)
+  File "/usr/lib/python3/dist-packages/certbot/_internal/auth_handler.py", line 212, in _poll_authorizations
+    raise errors.AuthorizationError('Some challenges have failed.')
+certbot.errors.AuthorizationError: Some challenges have failed.
+2026-03-08 01:43:37,393:ERROR:certbot._internal.log:Some challenges have failed.
+

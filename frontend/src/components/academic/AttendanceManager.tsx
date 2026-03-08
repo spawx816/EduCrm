@@ -8,15 +8,18 @@ interface AttendanceManagerProps {
     programId?: string;
     onBack?: () => void;
     initialModuleId?: string;
+    availableModules?: any[];
 }
 
-export function AttendanceManager({ cohortId, onBack, initialModuleId }: AttendanceManagerProps) {
+export function AttendanceManager({ cohortId, onBack, initialModuleId, availableModules }: AttendanceManagerProps) {
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedModuleId, setSelectedModuleId] = useState<string>(initialModuleId || '');
     const [records, setRecords] = useState<Record<string, { status: string; remarks: string }>>({});
 
     const { data: students, isLoading: loadingStudents } = useCohortStudents(cohortId);
-    const { data: modules, isLoading: loadingModules } = useCohortModules(cohortId);
+    const { data: cohortModules, isLoading: loadingModules } = useCohortModules(cohortId);
+
+    const modules = availableModules || cohortModules;
     useAttendance(cohortId, selectedModuleId, selectedDate);
     const registerMutation = useRegisterAttendance();
 

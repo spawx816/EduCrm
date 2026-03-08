@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, NotFoundException, Query, UseInterceptors, UploadedFile, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, NotFoundException, Query, UseInterceptors, UploadedFile, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StudentsService } from './students.service';
 
@@ -23,6 +23,11 @@ export class StudentsController {
   @Post()
   async create(@Body() data: any) {
     return this.studentsService.create(data);
+  }
+
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() data: any) {
+    return this.studentsService.update(id, data);
   }
 
   @Post('convert/:leadId')

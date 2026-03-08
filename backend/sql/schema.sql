@@ -81,6 +81,9 @@ CREATE TABLE IF NOT EXISTS leads (
     sede_id UUID REFERENCES sedes(id),
     tags TEXT[],
     notes TEXT,
+    document_type VARCHAR(20) DEFAULT 'CEDULA',
+    document_id VARCHAR(50),
+    address TEXT,
     converted_at TIMESTAMPTZ,
     student_id UUID,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -123,6 +126,11 @@ CREATE TABLE IF NOT EXISTS students (
     phone VARCHAR(20),
     sede_id UUID REFERENCES sedes(id),
     status VARCHAR(20) DEFAULT 'ACTIVE',
+    matricula VARCHAR(20) UNIQUE,
+    document_type VARCHAR(20) DEFAULT 'CEDULA',
+    document_id VARCHAR(50) UNIQUE,
+    address TEXT,
+    avatar_url TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     deleted_at TIMESTAMPTZ
@@ -160,6 +168,9 @@ CREATE TABLE IF NOT EXISTS invoices (
     total_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     paid_amount DECIMAL(12,2) NOT NULL DEFAULT 0,
     status VARCHAR(20) DEFAULT 'PENDING',
+    scholarship_id UUID,
+    discount_amount DECIMAL(12,2) DEFAULT 0,
+    created_by UUID REFERENCES users(id),
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -173,6 +184,7 @@ CREATE TABLE IF NOT EXISTS invoice_details (
     description TEXT NOT NULL,
     quantity INTEGER NOT NULL DEFAULT 1,
     unit_price DECIMAL(12,2) NOT NULL,
+    discount DECIMAL(12,2) DEFAULT 0,
     subtotal DECIMAL(12,2) NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

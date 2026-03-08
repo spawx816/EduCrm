@@ -22,7 +22,7 @@ let StatsService = class StatsService {
     }
     async getDashboardStats() {
         const [revenueRes, leadsRes, studentsRes, pendingInvoicesRes, leadsByStageRes, programsRes, opExpensesRes, payrollRes] = await Promise.all([
-            this.pool.query("SELECT SUM(amount) as total FROM payments WHERE payment_date > NOW() - INTERVAL '30 days'"),
+            this.pool.query("SELECT SUM(amount) as total FROM invoice_payments WHERE created_at > NOW() - INTERVAL '30 days'"),
             this.pool.query("SELECT COUNT(*) as total FROM leads WHERE created_at > NOW() - INTERVAL '7 days' AND deleted_at IS NULL"),
             this.pool.query("SELECT COUNT(*) as total FROM students WHERE deleted_at IS NULL"),
             this.pool.query("SELECT SUM(total_amount - paid_amount) as total FROM invoices WHERE status != 'PAID'"),
