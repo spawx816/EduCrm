@@ -84,7 +84,7 @@ export class BillingService {
     async createInvoice(data: {
         studentId: string;
         dueDate: string;
-        items: { itemId?: string; description: string; quantity: number; unitPrice: number; discount?: number }[];
+        items: { itemId?: string; description: string; quantity: number; unitPrice: number; discount?: number; moduleId?: string; enrollmentId?: string }[];
         scholarshipId?: string;
         createdBy?: string;
     }) {
@@ -117,9 +117,9 @@ export class BillingService {
                 const dbItemId = isRealItem ? item.itemId : null;
 
                 await client.query(
-                    `INSERT INTO invoice_details (invoice_id, item_id, description, quantity, unit_price, discount, subtotal) 
-                     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-                    [invoiceId, dbItemId, item.description, item.quantity, item.unitPrice, discount, subtotal]
+                    `INSERT INTO invoice_details (invoice_id, item_id, description, quantity, unit_price, discount, subtotal, module_id, enrollment_id) 
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                    [invoiceId, dbItemId, item.description, item.quantity, item.unitPrice, discount, subtotal, item.moduleId || null, item.enrollmentId || null]
                 );
 
                 // If it's an inventory item, record movement
@@ -229,154 +229,142 @@ export class BillingService {
 
     // Smart Suggestions
     async getInvoiceSuggestions(studentId: string) {
-        const enrollmentRes = await this.pool.query(
-            `SELECT e.cohort_id, c.program_id, p.enrollment_price, p.name as program_name, p.billing_day,
-                    s.id as scholarship_id, s.name as scholarship_name, s.type as scholarship_type, s.value as scholarship_value
+        const enrollmentsRes = await this.pool.query(
+            `SELECT e.id as enrollment_id, e.cohort_id, e.status as enrollment_status, c.program_id, c.requires_enrollment, p.enrollment_price, p.name as program_name, p.billing_day,
+                    s.id as scholarship_id, s.name as scholarship_name, s.type as scholarship_type, s.value as scholarship_value,
+                    s.applies_to_enrollment, s.applies_to_monthly
              FROM enrollments e 
              JOIN academic_cohorts c ON e.cohort_id = c.id 
              JOIN academic_programs p ON c.program_id = p.id
              LEFT JOIN scholarships s ON e.scholarship_id = s.id
-             WHERE e.student_id = $1 AND e.status = 'ACTIVE' 
-             LIMIT 1`,
+             WHERE e.student_id = $1 AND e.status IN ('ACTIVE', 'PENDING')`,
             [studentId]
         );
 
-        if (enrollmentRes.rows.length === 0) return { suggestedModule: null, addons: [], enrollmentFee: null };
-        const {
-            cohort_id, program_id, enrollment_price, program_name, billing_day,
-            scholarship_id, scholarship_name, scholarship_type, scholarship_value
-        } = enrollmentRes.rows[0];
-
-        const calculateDiscount = (basePrice: number) => {
-            if (!scholarship_id) return 0;
-            if (scholarship_type === 'PERCENTAGE') {
-                return (basePrice * scholarship_value) / 100;
-            }
-            return Math.min(basePrice, scholarship_value);
-        };
+        if (enrollmentsRes.rows.length === 0) return { enrollmentSuggestions: [], suggestedDueDate: null };
 
         const today = new Date();
-        const suggestedDueDate = new Date(today.getFullYear(), today.getMonth(), billing_day || 5);
-        if (today.getDate() >= (billing_day || 5)) {
+        const firstEnrollment = enrollmentsRes.rows[0];
+        const billingDay = firstEnrollment.billing_day || 5;
+        const suggestedDueDate = new Date(today.getFullYear(), today.getMonth(), billingDay);
+        if (today.getDate() >= billingDay) {
             suggestedDueDate.setMonth(suggestedDueDate.getMonth() + 1);
         }
         const formattedSuggestedDueDate = suggestedDueDate.toISOString().split('T')[0];
 
-        const invoicedEnrollmentRes = await this.pool.query(
-            `SELECT i.status, i.paid_amount, i.total_amount 
-             FROM invoice_details id
-             JOIN invoices i ON id.invoice_id = i.id
-             WHERE i.student_id = $1 AND id.description ILIKE $2 AND i.status != 'VOIDED'`,
-            [studentId, `%Inscripción%${program_name}%`]
-        );
+        const enrollmentSuggestions = [];
 
-        const isEnrollmentInvoiced = invoicedEnrollmentRes.rows.length > 0;
-        const isEnrollmentPaid = isEnrollmentInvoiced && (
-            invoicedEnrollmentRes.rows[0].status === 'PAID' ||
-            parseFloat(invoicedEnrollmentRes.rows[0].paid_amount) >= parseFloat(invoicedEnrollmentRes.rows[0].total_amount)
-        );
+        for (const enrollment of enrollmentsRes.rows) {
+            const {
+                enrollment_id, cohort_id, program_id, enrollment_price, program_name,
+                scholarship_id, scholarship_name, scholarship_type, scholarship_value,
+                requires_enrollment, applies_to_enrollment, applies_to_monthly
+            } = enrollment;
 
-        if (!isEnrollmentInvoiced && parseFloat(enrollment_price) > 0) {
-            const finalEnrollmentPrice = parseFloat(enrollment_price) || 0;
-            const enrollmentDiscount = calculateDiscount(finalEnrollmentPrice);
+            const calculateDiscount = (basePrice: number, itemType: 'ENROLLMENT' | 'MONTHLY') => {
+                if (!scholarship_id) return 0;
+                if (itemType === 'ENROLLMENT' && !applies_to_enrollment) return 0;
+                if (itemType === 'MONTHLY' && !applies_to_monthly) return 0;
 
-            return {
-                suggestedModule: null,
+                if (scholarship_type === 'PERCENTAGE') {
+                    return (basePrice * scholarship_value) / 100;
+                }
+                return Math.min(basePrice, scholarship_value);
+            };
+
+            const invoicedEnrollmentRes = await this.pool.query(
+                `SELECT i.status, i.paid_amount, i.total_amount 
+                 FROM invoice_details id
+                 JOIN invoices i ON id.invoice_id = i.id
+                 WHERE i.student_id = $1 AND i.status != 'VOIDED'
+                 AND (id.enrollment_id = $2 OR (id.enrollment_id IS NULL AND id.description ILIKE $3))`,
+                [studentId, enrollment_id, `%Inscripción%${program_name}%`]
+            );
+
+            const isEnrollmentInvoiced = invoicedEnrollmentRes.rows.length > 0;
+            const isEnrollmentPaid = !requires_enrollment || (isEnrollmentInvoiced && (
+                invoicedEnrollmentRes.rows[0].status === 'PAID' ||
+                parseFloat(invoicedEnrollmentRes.rows[0].paid_amount) >= parseFloat(invoicedEnrollmentRes.rows[0].total_amount)
+            ));
+
+            const allModulesRes = await this.pool.query(
+                `SELECT id, name, price, order_index 
+                 FROM academic_modules 
+                 WHERE program_id = $1 AND deleted_at IS NULL 
+                 ORDER BY order_index ASC, name ASC`,
+                [program_id]
+            );
+
+            const invoicedModulesRes = await this.pool.query(
+                `SELECT id.description, id.module_id
+                 FROM invoice_details id
+                 JOIN invoices i ON id.invoice_id = i.id
+                 WHERE i.student_id = $1 AND i.status != 'VOIDED' AND id.item_id IS NULL AND id.description NOT ILIKE '%Inscripción%'
+                 AND (id.enrollment_id = $2 OR (id.enrollment_id IS NULL AND id.description ILIKE $3))`,
+                [studentId, enrollment_id, `%${program_name}%`]
+            );
+            const invoicedModules = invoicedModulesRes.rows;
+
+            const uninvoicedModules = allModulesRes.rows.filter(m => {
+                return !invoicedModules.some(inv => {
+                    if (inv.module_id === m.id) return true;
+                    const invDesc = inv.description.toLowerCase().trim();
+                    const mName = m.name.toLowerCase().trim();
+                    return invDesc.includes(mName) || mName.includes(invDesc);
+                });
+            }).map(m => {
+                const finalModulePrice = parseFloat(m.price) || 0;
+                const moduleDiscount = calculateDiscount(finalModulePrice, 'MONTHLY');
+                return {
+                    id: m.id,
+                    name: m.name,
+                    price: finalModulePrice,
+                    discount: moduleDiscount
+                };
+            });
+
+            let currentSuggestion: any = {
+                enrollmentId: enrollment_id,
+                programName: program_name,
+                enrollmentFee: null,
+                suggestedModule: uninvoicedModules.length > 0 ? uninvoicedModules[0] : null,
+                uninvoicedModules: uninvoicedModules,
                 addons: [],
-                enrollmentFee: {
+                allModules: allModulesRes.rows,
+                isEnrollmentPaid,
+                isEnrollmentInvoiced,
+                scholarship: scholarship_id ? { id: scholarship_id, name: scholarship_name } : null
+            };
+
+            if (!isEnrollmentInvoiced && parseFloat(enrollment_price) > 0 && requires_enrollment) {
+                const finalEnrollmentPrice = parseFloat(enrollment_price) || 0;
+                const enrollmentDiscount = calculateDiscount(finalEnrollmentPrice, 'ENROLLMENT');
+
+                currentSuggestion.enrollmentFee = {
                     name: `Inscripción - ${program_name}`,
                     price: finalEnrollmentPrice,
                     discount: enrollmentDiscount
-                },
-                scholarship: scholarship_id ? { id: scholarship_id, name: scholarship_name } : null,
-                isEnrollmentPaid: false,
-                isEnrollmentInvoiced: false,
-                suggestedDueDate: formattedSuggestedDueDate
-            };
+                };
+            } else if (isEnrollmentPaid) {
+                if (currentSuggestion.suggestedModule) {
+                    const addonsRes = await this.pool.query(
+                        `SELECT bi.* 
+                         FROM academic_module_addons ama
+                         JOIN billing_items bi ON ama.item_id = bi.id
+                         WHERE ama.module_id = $1`,
+                        [currentSuggestion.suggestedModule.id]
+                    );
+                    currentSuggestion.addons = addonsRes.rows;
+                }
+            } else if (isEnrollmentInvoiced && !isEnrollmentPaid) {
+                currentSuggestion.error = `Debe pagar la inscripción de ${program_name} antes de facturar módulos.`;
+            }
+
+            enrollmentSuggestions.push(currentSuggestion);
         }
-
-        if (!isEnrollmentPaid && isEnrollmentInvoiced) {
-            return {
-                suggestedModule: null,
-                addons: [],
-                enrollmentFee: null,
-                isEnrollmentPaid: false,
-                isEnrollmentInvoiced: true,
-                error: 'Debe pagar el cargo de inscripción antes de facturar módulos.',
-                suggestedDueDate: formattedSuggestedDueDate
-            };
-        }
-
-        const modulesRes = await this.pool.query(
-            `SELECT m.* 
-             FROM academic_modules m 
-             WHERE m.program_id = $1 AND m.deleted_at IS NULL 
-             ORDER BY m.order_index ASC`,
-            [program_id]
-        );
-
-        const modules = modulesRes.rows;
-        if (modules.length === 0) {
-            return {
-                suggestedModule: null,
-                addons: [],
-                enrollmentFee: null,
-                isEnrollmentPaid,
-                isEnrollmentInvoiced,
-                suggestedDueDate: formattedSuggestedDueDate
-            };
-        }
-
-        const invoicedModulesRes = await this.pool.query(
-            `SELECT id.description 
-             FROM invoice_details id
-             JOIN invoices i ON id.invoice_id = i.id
-             WHERE i.student_id = $1 AND i.status != 'VOIDED' AND id.item_id IS NULL AND id.description NOT ILIKE '%Inscripción%'`,
-            [studentId]
-        );
-        const invoicedNames = invoicedModulesRes.rows.map(r => r.description.toLowerCase());
-
-        const suggestedModuleData = modules.find(m =>
-            !invoicedNames.some(name => name.includes(m.name.toLowerCase()))
-        );
-
-        if (!suggestedModuleData) {
-            return {
-                suggestedModule: null,
-                addons: [],
-                enrollmentFee: null,
-                isModuleInvoiced: true,
-                isEnrollmentPaid,
-                isEnrollmentInvoiced,
-                suggestedDueDate: formattedSuggestedDueDate
-            };
-        }
-
-        const addonsRes = await this.pool.query(
-            `SELECT bi.* 
-             FROM academic_module_addons ama
-             JOIN billing_items bi ON ama.item_id = bi.id
-             WHERE ama.module_id = $1`,
-            [suggestedModuleData.id]
-        );
-
-        const finalModulePrice = parseFloat(suggestedModuleData.price) || 0;
-        const moduleDiscount = calculateDiscount(finalModulePrice);
 
         return {
-            suggestedModule: {
-                id: suggestedModuleData.id,
-                name: suggestedModuleData.name,
-                price: finalModulePrice,
-                discount: moduleDiscount
-            },
-            addons: addonsRes.rows,
-            enrollmentFee: null,
-            scholarship: scholarship_id ? { id: scholarship_id, name: scholarship_name } : null,
-            totalDiscount: 0,
-            isModuleInvoiced: false,
-            isEnrollmentPaid,
-            isEnrollmentInvoiced,
+            enrollmentSuggestions,
             suggestedDueDate: formattedSuggestedDueDate
         };
     }
@@ -387,13 +375,33 @@ export class BillingService {
         return res.rows;
     }
 
-    async createScholarship(data: { name: string; description: string; type: 'PERCENTAGE' | 'FIXED'; value: number }) {
+    async createScholarship(data: {
+        name: string;
+        description: string;
+        type: 'PERCENTAGE' | 'FIXED';
+        value: number;
+        applies_to_enrollment?: boolean;
+        applies_to_monthly?: boolean;
+    }) {
         const res = await this.pool.query(
-            'INSERT INTO scholarships (name, description, type, value) VALUES ($1, $2, $3, $4) RETURNING *',
-            [data.name, data.description, data.type, data.value]
+            'INSERT INTO scholarships (name, description, type, value, applies_to_enrollment, applies_to_monthly) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [
+                data.name,
+                data.description,
+                data.type,
+                data.value,
+                data.applies_to_enrollment ?? true,
+                data.applies_to_monthly ?? true
+            ]
         );
         return res.rows[0];
     }
+
+    async deleteScholarship(id: string) {
+        const res = await this.pool.query('DELETE FROM scholarships WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0];
+    }
+
 
     // Instructor Payroll
     async getInstructorPayments(teacherId?: string) {

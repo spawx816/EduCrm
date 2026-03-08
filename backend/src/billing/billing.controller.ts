@@ -25,6 +25,11 @@ export class BillingController {
         return this.billingService.createScholarship(data);
     }
 
+    @Delete('scholarships/:id')
+    async deleteScholarship(@Param('id') id: string) {
+        return this.billingService.deleteScholarship(id);
+    }
+
     @Post('items')
     async createItem(@Body() data: { name: string; description?: string; price: number }) {
         return this.billingService.createBillingItem(data);

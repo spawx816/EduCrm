@@ -30,6 +30,9 @@ let BillingController = class BillingController {
     async createScholarship(data) {
         return this.billingService.createScholarship(data);
     }
+    async deleteScholarship(id) {
+        return this.billingService.deleteScholarship(id);
+    }
     async createItem(data) {
         return this.billingService.createBillingItem(data);
     }
@@ -120,6 +123,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], BillingController.prototype, "createScholarship", null);
+__decorate([
+    (0, common_1.Delete)('scholarships/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "deleteScholarship", null);
 __decorate([
     (0, common_1.Post)('items'),
     __param(0, (0, common_1.Body)()),

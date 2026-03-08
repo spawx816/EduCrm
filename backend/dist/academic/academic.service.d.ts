@@ -27,12 +27,14 @@ export declare class AcademicService {
         name: string;
         start_date: Date | string;
         end_date?: Date | string;
+        requires_enrollment?: boolean;
     }): Promise<any>;
     updateCohort(id: string, data: {
         name?: string;
         start_date?: Date | string;
         end_date?: Date | string;
         is_active?: boolean;
+        requires_enrollment?: boolean;
     }): Promise<any>;
     deleteCohort(id: string): Promise<any>;
     findModulesByProgram(programId: string): Promise<any[]>;

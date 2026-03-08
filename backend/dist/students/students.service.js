@@ -159,7 +159,7 @@ let StudentsService = class StudentsService {
                 data.phone,
                 data.address,
                 data.status,
-                data.sede_id,
+                data.sede_id || null,
                 id
             ]);
             if (res.rows.length === 0) {
@@ -242,7 +242,7 @@ let StudentsService = class StudentsService {
        LEFT JOIN academic_cohort_modules cm ON g.cohort_id = cm.cohort_id AND g.module_id = cm.module_id
        LEFT JOIN users u ON cm.teacher_id = u.id
        WHERE g.student_id = $1 
-       ORDER BY g.created_at DESC`, [studentId]);
+       ORDER BY m.order_index ASC, m.name ASC, g.created_at DESC`, [studentId]);
         return res.rows;
     }
     async getFullHistory(studentId) {
@@ -270,7 +270,7 @@ let StudentsService = class StudentsService {
                ) ex_data) as exams
                FROM academic_modules am
                WHERE am.program_id = c.program_id
-               ORDER BY am.order_index ASC
+               ORDER BY am.order_index ASC, am.name ASC
            ) m_data
        ) as modules
        FROM enrollments e

@@ -76,7 +76,7 @@ let AcademicService = class AcademicService {
         const { program_id, name } = data;
         const start_date = data.start_date || null;
         const end_date = data.end_date || null;
-        const res = await this.pool.query('INSERT INTO academic_cohorts (program_id, name, start_date, end_date) VALUES ($1, $2, $3, $4) RETURNING *', [program_id, name, start_date, end_date]);
+        const res = await this.pool.query('INSERT INTO academic_cohorts (program_id, name, start_date, end_date, requires_enrollment) VALUES ($1, $2, $3, $4, $5) RETURNING *', [program_id, name, start_date, end_date, data.requires_enrollment ?? true]);
         return res.rows[0];
     }
     async updateCohort(id, data) {
@@ -88,9 +88,10 @@ let AcademicService = class AcademicService {
            start_date = COALESCE($2, start_date), 
            end_date = COALESCE($3, end_date), 
            is_active = COALESCE($4, is_active),
+           requires_enrollment = COALESCE($5, requires_enrollment),
            updated_at = NOW() 
-       WHERE id = $5 AND deleted_at IS NULL 
-       RETURNING *`, [name, start_date, end_date, is_active, id]);
+       WHERE id = $6 AND deleted_at IS NULL 
+       RETURNING *`, [name, start_date, end_date, is_active, data.requires_enrollment, id]);
         if (res.rows.length === 0)
             throw new common_1.NotFoundException('Cohort not found');
         return res.rows[0];

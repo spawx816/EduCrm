@@ -74,19 +74,19 @@ export class AcademicService {
     return res.rows;
   }
 
-  async createCohort(data: { program_id: string; name: string; start_date: Date | string; end_date?: Date | string }) {
+  async createCohort(data: { program_id: string; name: string; start_date: Date | string; end_date?: Date | string; requires_enrollment?: boolean }) {
     const { program_id, name } = data;
     const start_date = data.start_date || null;
     const end_date = data.end_date || null;
 
     const res = await this.pool.query(
-      'INSERT INTO academic_cohorts (program_id, name, start_date, end_date) VALUES ($1, $2, $3, $4) RETURNING *',
-      [program_id, name, start_date, end_date]
+      'INSERT INTO academic_cohorts (program_id, name, start_date, end_date, requires_enrollment) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+      [program_id, name, start_date, end_date, data.requires_enrollment ?? true]
     );
     return res.rows[0];
   }
 
-  async updateCohort(id: string, data: { name?: string; start_date?: Date | string; end_date?: Date | string; is_active?: boolean }) {
+  async updateCohort(id: string, data: { name?: string; start_date?: Date | string; end_date?: Date | string; is_active?: boolean; requires_enrollment?: boolean }) {
     const { name, is_active } = data;
     const start_date = data.start_date === '' ? null : (data.start_date || undefined);
     const end_date = data.end_date === '' ? null : (data.end_date || undefined);
@@ -97,10 +97,11 @@ export class AcademicService {
            start_date = COALESCE($2, start_date), 
            end_date = COALESCE($3, end_date), 
            is_active = COALESCE($4, is_active),
+           requires_enrollment = COALESCE($5, requires_enrollment),
            updated_at = NOW() 
-       WHERE id = $5 AND deleted_at IS NULL 
+       WHERE id = $6 AND deleted_at IS NULL 
        RETURNING *`,
-      [name, start_date, end_date, is_active, id]
+      [name, start_date, end_date, is_active, data.requires_enrollment, id]
     );
     if (res.rows.length === 0) throw new NotFoundException('Cohort not found');
     return res.rows[0];
