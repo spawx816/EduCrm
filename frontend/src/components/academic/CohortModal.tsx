@@ -21,7 +21,8 @@ export function CohortModal({ isOpen, onClose, cohort, defaultProgramId }: Cohor
         name: '',
         start_date: '',
         end_date: '',
-        is_active: true
+        is_active: true,
+        requires_enrollment: true
     });
 
     useEffect(() => {
@@ -31,7 +32,8 @@ export function CohortModal({ isOpen, onClose, cohort, defaultProgramId }: Cohor
                 name: cohort.name,
                 start_date: cohort.start_date ? new Date(cohort.start_date).toISOString().split('T')[0] : '',
                 end_date: cohort.end_date ? new Date(cohort.end_date).toISOString().split('T')[0] : '',
-                is_active: cohort.is_active
+                is_active: cohort.is_active,
+                requires_enrollment: cohort.requires_enrollment ?? true
             });
         } else {
             setFormData({
@@ -39,7 +41,8 @@ export function CohortModal({ isOpen, onClose, cohort, defaultProgramId }: Cohor
                 name: '',
                 start_date: new Date().toISOString().split('T')[0],
                 end_date: '',
-                is_active: true
+                is_active: true,
+                requires_enrollment: true
             });
         }
     }, [cohort, isOpen, defaultProgramId]);
@@ -146,6 +149,21 @@ export function CohortModal({ isOpen, onClose, cohort, defaultProgramId }: Cohor
                                 <Calendar className="w-5 h-5 text-slate-600 absolute left-4 top-1/2 -translate-y-1/2" />
                             </div>
                         </div>
+                    </div>
+
+                    <div className="flex items-center space-x-4 px-1">
+                        <label className="flex items-center space-x-3 cursor-pointer group">
+                            <input
+                                type="checkbox"
+                                checked={formData.requires_enrollment}
+                                onChange={e => setFormData({ ...formData, requires_enrollment: e.target.checked })}
+                                className="w-5 h-5 rounded-lg border-slate-800 bg-slate-950 text-emerald-600 focus:ring-emerald-500/50 transition-all cursor-pointer"
+                            />
+                            <div className="flex flex-col">
+                                <span className="text-[10px] uppercase font-black text-slate-500 tracking-widest group-hover:text-slate-300 transition-colors">Cobrar Inscripción</span>
+                                <span className="text-[8px] text-slate-600 font-bold">Si se desactiva, no se sugerirá el cargo de inscripción al facturar alumnos de este grupo.</span>
+                            </div>
+                        </label>
                     </div>
 
                     <div className="flex space-x-4 pt-4">

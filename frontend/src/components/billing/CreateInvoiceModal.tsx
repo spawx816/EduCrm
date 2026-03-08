@@ -11,7 +11,7 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
 
     const [studentId, setStudentId] = useState('');
     const [dueDate, setDueDate] = useState('');
-    const [selectedItems, setSelectedItems] = useState<{ itemId: string; description: string; quantity: number; unitPrice: number; discount?: number }[]>([]);
+    const [selectedItems, setSelectedItems] = useState<{ itemId: string; description: string; quantity: number; unitPrice: number; discount?: number; moduleId?: string; enrollmentId?: string }[]>([]);
     const [notes, setNotes] = useState('');
 
     const { data: suggestions } = useInvoiceSuggestions(studentId);
@@ -50,56 +50,84 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
         }]);
     };
 
+    const handleToggleSuggestedItem = (type: 'ENROLL' | 'MOD' | 'ADDON', data: any, enrollSeg: any) => {
+        const itemId = type === 'ENROLL' ? 'ENROLL-' + enrollSeg.enrollmentId :
+            type === 'MOD' ? 'MOD-' + data.id :
+                data.id;
+
+        const exists = selectedItems.find(i => i.itemId === itemId && i.enrollmentId === enrollSeg.enrollmentId);
+
+        if (exists) {
+            setSelectedItems(selectedItems.filter(i => !(i.itemId === itemId && i.enrollmentId === enrollSeg.enrollmentId)));
+        } else {
+            const newItem: any = {
+                itemId,
+                description: type === 'ENROLL' ? data.name : `${data.name} (${enrollSeg.programName})`,
+                quantity: 1,
+                unitPrice: parseFloat(data.price),
+                discount: parseFloat(data.discount) || 0,
+                enrollmentId: enrollSeg.enrollmentId
+            };
+            if (type === 'MOD') newItem.moduleId = data.id;
+            setSelectedItems([...selectedItems, newItem]);
+        }
+    };
+
     const handleApplySuggestion = () => {
-        if (!suggestions) return;
+        if (!suggestions?.enrollmentSuggestions) return;
 
         const newItems = [...selectedItems];
         let addedCount = 0;
 
-        // Add enrollment fee if suggested and not already present
-        if (suggestions.enrollmentFee) {
-            const enrollmentId = 'ENROLL-' + studentId;
-            if (!newItems.find(i => i.itemId === enrollmentId)) {
-                newItems.push({
-                    itemId: enrollmentId,
-                    description: suggestions.enrollmentFee.name,
-                    quantity: 1,
-                    unitPrice: parseFloat(suggestions.enrollmentFee.price),
-                    discount: parseFloat(suggestions.enrollmentFee.discount) || 0
-                });
-                addedCount++;
-            }
-        }
-
-        // Add module if suggested and not already present
-        if (suggestions.suggestedModule) {
-            const moduleId = 'MOD-' + suggestions.suggestedModule.id;
-            if (!newItems.find(i => i.itemId === moduleId)) {
-                newItems.push({
-                    itemId: moduleId,
-                    description: suggestions.suggestedModule.name,
-                    quantity: 1,
-                    unitPrice: parseFloat(suggestions.suggestedModule.price),
-                    discount: parseFloat(suggestions.suggestedModule.discount) || 0
-                });
-                addedCount++;
-            }
-        }
-
-        // Add addons (if any)
-        if (suggestions.addons) {
-            suggestions.addons.forEach((addon: any) => {
-                if (!newItems.find(i => i.itemId === addon.id)) {
+        suggestions.enrollmentSuggestions.forEach((enrollSeg: any) => {
+            // Add enrollment fee
+            if (enrollSeg.enrollmentFee) {
+                const enrollmentId = 'ENROLL-' + enrollSeg.enrollmentId;
+                if (!newItems.find(i => i.itemId === enrollmentId)) {
                     newItems.push({
-                        itemId: addon.id,
-                        description: addon.name,
+                        itemId: enrollmentId,
+                        enrollmentId: enrollSeg.enrollmentId,
+                        description: enrollSeg.enrollmentFee.name,
                         quantity: 1,
-                        unitPrice: parseFloat(addon.price)
+                        unitPrice: parseFloat(enrollSeg.enrollmentFee.price),
+                        discount: parseFloat(enrollSeg.enrollmentFee.discount) || 0
                     });
                     addedCount++;
                 }
-            });
-        }
+            }
+
+            // Add module
+            if (enrollSeg.suggestedModule) {
+                const moduleId = 'MOD-' + enrollSeg.suggestedModule.id;
+                if (!newItems.find(i => i.itemId === moduleId && i.enrollmentId === enrollSeg.enrollmentId)) {
+                    newItems.push({
+                        itemId: moduleId,
+                        moduleId: enrollSeg.suggestedModule.id,
+                        enrollmentId: enrollSeg.enrollmentId,
+                        description: `${enrollSeg.suggestedModule.name} (${enrollSeg.programName})`,
+                        quantity: 1,
+                        unitPrice: parseFloat(enrollSeg.suggestedModule.price),
+                        discount: parseFloat(enrollSeg.suggestedModule.discount) || 0
+                    });
+                    addedCount++;
+                }
+            }
+
+            // Add addons
+            if (enrollSeg.addons) {
+                enrollSeg.addons.forEach((addon: any) => {
+                    if (!newItems.find(i => i.itemId === addon.id)) {
+                        newItems.push({
+                            itemId: addon.id,
+                            description: `${addon.name} (${enrollSeg.programName})`,
+                            quantity: 1,
+                            unitPrice: parseFloat(addon.price)
+                        });
+                        addedCount++;
+                    }
+                });
+            }
+        });
 
         if (addedCount > 0) {
             setSelectedItems(newItems);
@@ -186,87 +214,111 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
                     </div>
 
                     {/* Smart Suggestions Section */}
-                    {studentId && suggestions && (
+                    {studentId && suggestions?.enrollmentSuggestions?.length > 0 && (
                         <div className="bg-indigo-600/5 border border-indigo-500/20 rounded-2xl p-4 animate-in fade-in zoom-in duration-300">
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-2 text-indigo-400">
                                     <Sparkles className="w-4 h-4 fill-current" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Sugerencias Inteligentes</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Sugerencias por Programa Académico</span>
                                 </div>
-                                {(!suggestions.error || suggestions.enrollmentFee) && (
-                                    <button
-                                        type="button"
-                                        onClick={handleApplySuggestion}
-                                        className="text-[10px] font-black text-indigo-500 hover:text-white px-3 py-1 bg-indigo-500/10 hover:bg-indigo-600 rounded-lg transition-all border border-indigo-500/20"
-                                    >
-                                        Aplicar Todo
-                                    </button>
-                                )}
+                                <button
+                                    type="button"
+                                    onClick={handleApplySuggestion}
+                                    className="text-[10px] font-black text-indigo-500 hover:text-white px-3 py-1 bg-indigo-500/10 hover:bg-indigo-600 rounded-lg transition-all border border-indigo-500/20"
+                                >
+                                    Aplicar Todo
+                                </button>
                             </div>
 
-                            {suggestions.error && !suggestions.enrollmentFee && (
-                                <div className="mb-4 p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start space-x-3">
-                                    <AlertTriangle className="w-4 h-4 text-rose-500 mt-0.5" />
-                                    <div>
-                                        <p className="text-xs font-bold text-rose-200">Acción Requerida</p>
-                                        <p className="text-[10px] text-rose-400/80 leading-relaxed mt-0.5">{suggestions.error}</p>
-                                    </div>
-                                </div>
-                            )}
+                            <div className="space-y-4">
+                                {suggestions.enrollmentSuggestions.map((enrollSeg: any) => (
+                                    <div key={enrollSeg.enrollmentId} className="space-y-2 border-l-2 border-indigo-500/20 pl-4">
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{enrollSeg.programName}</p>
 
-                            <div className="flex flex-wrap gap-2">
-                                {suggestions.isEnrollmentPaid && (
-                                    <div className="px-3 py-1.5 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-[11px] text-emerald-400 flex items-center space-x-2">
-                                        <Check className="w-3 h-3" />
-                                        <span className="font-bold">Inscripción Pagada</span>
-                                    </div>
-                                )}
-                                {suggestions.enrollmentFee && (
-                                    <div className={`px-3 py-1.5 rounded-xl border text-[11px] flex items-center space-x-2 transition-all ${selectedItems.some(i => i.itemId === 'ENROLL-' + studentId)
-                                        ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-200 opacity-60'
-                                        : 'bg-indigo-600/10 border-indigo-500/30 text-white'
-                                        }`}>
-                                        <Ticket className="w-3 h-3 text-indigo-400" />
-                                        <span>{suggestions.enrollmentFee.name}: </span>
-                                        <span className="font-bold text-indigo-300">RD${parseFloat(suggestions.enrollmentFee.price).toLocaleString()}</span>
-                                        {suggestions.enrollmentFee.discount > 0 && (
-                                            <span className="text-[10px] text-emerald-400 font-black ml-1">(-${parseFloat(suggestions.enrollmentFee.discount).toLocaleString()})</span>
+                                            {/* Extra: Manual Module Selection per Program */}
+                                            {enrollSeg.allModules?.length > 0 && (
+                                                <select
+                                                    className="bg-slate-950 border border-slate-800 rounded px-2 py-0.5 text-[8px] font-black uppercase text-indigo-400 outline-none"
+                                                    onChange={(e) => {
+                                                        const modId = e.target.value;
+                                                        if (!modId) return;
+                                                        const m = enrollSeg.allModules.find((xm: any) => xm.id === modId);
+                                                        if (m) handleToggleSuggestedItem('MOD', m, enrollSeg);
+                                                        e.target.value = '';
+                                                    }}
+                                                >
+                                                    <option value="">+ Seleccionar Módulo...</option>
+                                                    {enrollSeg.allModules.map((m: any) => (
+                                                        <option key={m.id} value={m.id}>{m.name}</option>
+                                                    ))}
+                                                </select>
+                                            )}
+                                        </div>
+
+                                        {enrollSeg.error && !enrollSeg.enrollmentFee && (
+                                            <div className="p-2 bg-rose-500/10 border border-rose-500/20 rounded-xl flex items-start space-x-2">
+                                                <AlertTriangle className="w-3 h-3 text-rose-500 mt-0.5" />
+                                                <p className="text-[9px] text-rose-400 font-bold">{enrollSeg.error}</p>
+                                            </div>
                                         )}
-                                    </div>
-                                )}
-                                {suggestions.suggestedModule && (
-                                    <div className={`px-3 py-1.5 rounded-xl border text-[11px] flex items-center space-x-2 transition-all ${selectedItems.some(i => i.itemId === 'MOD-' + suggestions.suggestedModule.id)
-                                        ? 'bg-emerald-600/20 border-emerald-500/50 text-emerald-100 opacity-60'
-                                        : 'bg-slate-950 border-slate-800 text-white'
-                                        }`}>
-                                        <Check className="w-3 h-3 text-emerald-500" />
-                                        <span>{suggestions.suggestedModule.name}: </span>
-                                        <span className="font-bold text-emerald-400">RD${parseFloat(suggestions.suggestedModule.price).toLocaleString()}</span>
-                                        {suggestions.suggestedModule.discount > 0 && (
-                                            <span className="text-[10px] text-emerald-400 font-black ml-1">(-${parseFloat(suggestions.suggestedModule.discount).toLocaleString()})</span>
-                                        )}
-                                    </div>
-                                )}
-                                {suggestions.isModuleInvoiced && !suggestions.suggestedModule && (
-                                    <div className="px-3 py-1.5 bg-rose-500/10 rounded-xl border border-rose-500/30 text-[11px] text-rose-300 flex items-center space-x-2">
-                                        <AlertTriangle className="w-3 h-3" />
-                                        <span>Módulo Actual Ya Facturado</span>
-                                    </div>
-                                )}
-                                {suggestions.addons?.map((addon: any) => (
-                                    <div key={addon.id} className={`px-3 py-1.5 rounded-xl border text-[11px] flex items-center space-x-2 transition-all ${selectedItems.some(i => i.itemId === addon.id)
-                                        ? 'bg-indigo-600/20 border-indigo-500/50 text-indigo-100 opacity-60'
-                                        : 'bg-slate-950 border-slate-800 text-white'
-                                        } ${addon.is_inventory && addon.stock_quantity <= 0 ? 'opacity-40 grayscale' : ''}`}>
-                                        <Plus className="w-3 h-3 text-indigo-500" />
-                                        <span>{addon.name}: </span>
-                                        <span className="font-bold text-indigo-400">RD${parseFloat(addon.price).toLocaleString()}</span>
-                                        {addon.is_inventory && (
-                                            <span className={`ml-1 px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${addon.stock_quantity <= addon.min_stock ? 'bg-amber-500/20 text-amber-500' : 'bg-slate-800 text-slate-400'
-                                                }`}>
-                                                Stock: {addon.stock_quantity}
-                                            </span>
-                                        )}
+
+                                        <div className="flex flex-wrap gap-2">
+                                            {enrollSeg.isEnrollmentPaid && (
+                                                <div className="px-2 py-1 bg-emerald-500/10 rounded-lg border border-emerald-500/20 text-[9px] text-emerald-400 flex items-center space-x-1">
+                                                    <Check className="w-2 h-2" />
+                                                    <span className="font-bold uppercase tracking-tighter">Inscripción Pago</span>
+                                                </div>
+                                            )}
+                                            {enrollSeg.enrollmentFee && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleToggleSuggestedItem('ENROLL', enrollSeg.enrollmentFee, enrollSeg)}
+                                                    className={`px-2 py-1 rounded-lg border text-[9px] flex items-center space-x-1 transition-all ${selectedItems.some(i => i.itemId === 'ENROLL-' + enrollSeg.enrollmentId)
+                                                        ? 'bg-indigo-600 text-white border-indigo-500'
+                                                        : 'bg-indigo-600/10 border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/20'
+                                                        }`}>
+                                                    <Ticket className="w-2 h-2" />
+                                                    <span className="font-bold">Inscripción: RD${parseFloat(enrollSeg.enrollmentFee.price).toLocaleString()}</span>
+                                                </button>
+                                            )}
+                                            {enrollSeg.uninvoicedModules?.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                    {enrollSeg.uninvoicedModules.map((mod: any) => (
+                                                        <button
+                                                            key={mod.id}
+                                                            type="button"
+                                                            onClick={() => handleToggleSuggestedItem('MOD', mod, enrollSeg)}
+                                                            className={`px-3 py-1.5 rounded-xl border text-[10px] flex items-center space-x-2 transition-all shadow-sm ${selectedItems.some(i => i.itemId === 'MOD-' + mod.id && i.enrollmentId === enrollSeg.enrollmentId)
+                                                                ? 'bg-emerald-600 text-white border-emerald-500 shadow-emerald-500/20'
+                                                                : 'bg-slate-950 border-slate-800 text-emerald-400 hover:border-emerald-500/50 hover:bg-emerald-500/5'
+                                                                }`}>
+                                                            <Check className="w-3 h-3" />
+                                                            <span className="font-bold uppercase tracking-tight">{mod.name}</span>
+                                                            <span className="opacity-60 font-black">RD${parseFloat(mod.price).toLocaleString()}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {enrollSeg.addons?.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 mt-2">
+                                                    <p className="w-full text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1 italic">Complementos sugeridos:</p>
+                                                    {enrollSeg.addons.map((addon: any) => (
+                                                        <button
+                                                            key={addon.id}
+                                                            type="button"
+                                                            onClick={() => handleToggleSuggestedItem('ADDON', addon, enrollSeg)}
+                                                            className={`px-3 py-1.5 rounded-xl border text-[10px] flex items-center space-x-2 transition-all ${selectedItems.some(i => i.itemId === addon.id)
+                                                                ? 'bg-indigo-600 text-white border-indigo-500 shadow-indigo-500/20'
+                                                                : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-indigo-500/50'
+                                                                }`}>
+                                                            <Plus className="w-3 h-3" />
+                                                            <span className="font-bold uppercase">{addon.name}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>

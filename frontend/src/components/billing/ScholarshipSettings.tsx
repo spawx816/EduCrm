@@ -1,19 +1,33 @@
 import { useState } from 'react';
-import { useScholarships, useCreateScholarship } from '../../hooks/useBilling.ts';
+import { useScholarships, useCreateScholarship, useDeleteScholarship } from '../../hooks/useBilling.ts';
 import { Ticket, Plus, Trash2, Percent, DollarSign, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 export function ScholarshipSettings() {
     const { data: scholarships, isLoading } = useScholarships();
     const createScholarship = useCreateScholarship();
+    const deleteScholarship = useDeleteScholarship();
 
     const [isAdding, setIsAdding] = useState(false);
     const [formData, setFormData] = useState({
         name: '',
         description: '',
         type: 'PERCENTAGE' as 'PERCENTAGE' | 'FIXED',
-        value: 0
+        value: 0,
+        applies_to_enrollment: true,
+        applies_to_monthly: true
     });
+
+    const handleDelete = async (id: string, name: string) => {
+        if (!window.confirm(`¿Estás seguro de que deseas eliminar la beca "${name}"?`)) return;
+
+        try {
+            await deleteScholarship.mutateAsync(id);
+            toast.success('Beca eliminada correctamente');
+        } catch (error) {
+            toast.error('Error al eliminar la beca. Es posible que esté siendo utilizada.');
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -21,7 +35,14 @@ export function ScholarshipSettings() {
             await createScholarship.mutateAsync(formData);
             toast.success('Beca creada correctamente');
             setIsAdding(false);
-            setFormData({ name: '', description: '', type: 'PERCENTAGE', value: 0 });
+            setFormData({
+                name: '',
+                description: '',
+                type: 'PERCENTAGE',
+                value: 0,
+                applies_to_enrollment: true,
+                applies_to_monthly: true
+            });
         } catch (error) {
             toast.error('Error al crear la beca');
         }
@@ -97,20 +118,42 @@ export function ScholarshipSettings() {
                                     </button>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Valor</label>
-                                <div className="relative">
-                                    <input
-                                        type="number"
-                                        required
-                                        min="0"
-                                        value={formData.value}
-                                        onChange={e => setFormData({ ...formData, value: parseFloat(e.target.value) })}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
-                                    />
-                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 font-bold">
-                                        {formData.type === 'PERCENTAGE' ? '%' : 'USD'}
-                                    </span>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 px-1">Valor</label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            required
+                                            min="0"
+                                            value={formData.value}
+                                            onChange={e => setFormData({ ...formData, value: parseFloat(e.target.value) })}
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:ring-2 focus:ring-blue-500/50 outline-none transition-all"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 font-bold">
+                                            {formData.type === 'PERCENTAGE' ? '%' : 'USD'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="flex items-center space-x-4 pt-6">
+                                    <label className="flex items-center space-x-2 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.applies_to_enrollment}
+                                            onChange={e => setFormData({ ...formData, applies_to_enrollment: e.target.checked })}
+                                            className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-blue-600 focus:ring-blue-500/50"
+                                        />
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Inscripción</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2 cursor-pointer group">
+                                        <input
+                                            type="checkbox"
+                                            checked={formData.applies_to_monthly}
+                                            onChange={e => setFormData({ ...formData, applies_to_monthly: e.target.checked })}
+                                            className="w-4 h-4 rounded border-slate-800 bg-slate-950 text-emerald-600 focus:ring-emerald-500/50"
+                                        />
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest group-hover:text-slate-300 transition-colors">Mensualidad</span>
+                                    </label>
                                 </div>
                             </div>
                         </div>
@@ -146,8 +189,18 @@ export function ScholarshipSettings() {
                             <Ticket className="w-20 h-20 -rotate-12" />
                         </div>
                         <div className="flex items-start justify-between mb-4">
-                            <div className={`p-2 rounded-lg ${s.type === 'PERCENTAGE' ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
-                                {s.type === 'PERCENTAGE' ? <Percent className="w-5 h-5" /> : <DollarSign className="w-5 h-5" />}
+                            <div className="flex space-x-2">
+                                <div className={`p-2 rounded-lg ${s.type === 'PERCENTAGE' ? 'bg-blue-500/20 text-blue-400' : 'bg-emerald-500/20 text-emerald-400'}`}>
+                                    {s.type === 'PERCENTAGE' ? <Percent className="w-5 h-5" /> : <DollarSign className="w-5 h-5" />}
+                                </div>
+                                <div className="flex flex-col space-y-1">
+                                    <span className={`px-2 py-0.5 rounded-[4px] text-[7px] font-black uppercase tracking-widest ${s.applies_to_enrollment ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-slate-800 text-slate-600 opacity-50'}`}>
+                                        Inscripción
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded-[4px] text-[7px] font-black uppercase tracking-widest ${s.applies_to_monthly ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-600 opacity-50'}`}>
+                                        Mensualidad
+                                    </span>
+                                </div>
                             </div>
                             <span className={`px-2 py-1 rounded text-[8px] font-black uppercase tracking-tighter ${s.is_active ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-rose-500/10 text-rose-500'}`}>
                                 {s.is_active ? 'Activa' : 'Inactiva'}
@@ -163,7 +216,10 @@ export function ScholarshipSettings() {
                                     {s.type === 'PERCENTAGE' ? `${s.value}%` : `$${parseFloat(s.value).toLocaleString()}`}
                                 </p>
                             </div>
-                            <button className="p-2 text-slate-600 hover:text-rose-500 transition-colors">
+                            <button
+                                onClick={() => handleDelete(s.id, s.name)}
+                                className="p-2 text-slate-600 hover:text-rose-500 transition-colors"
+                            >
                                 <Trash2 className="w-4 h-4" />
                             </button>
                         </div>

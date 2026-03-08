@@ -4,6 +4,7 @@ import { useCreateStudent, useEnrollStudent } from '../../hooks/useStudents';
 import { usePrograms, useCohorts } from '../../hooks/useAcademic';
 import { useScholarships } from '../../hooks/useBilling';
 import { toast } from 'react-hot-toast';
+import { validateEmail } from '../../lib/validation';
 
 interface RegisterStudentModalProps {
     isOpen: boolean;
@@ -71,6 +72,13 @@ export function RegisterStudentModal({ isOpen, onClose, initialData, onSuccess }
             toast.error('Por favor, completa los campos requeridos (*)');
             return;
         }
+
+        const emailValidation = validateEmail(formData.email);
+        if (!emailValidation.isValid) {
+            toast.error(emailValidation.message || 'Correo inválido');
+            return;
+        }
+
         setStep(2);
     };
 

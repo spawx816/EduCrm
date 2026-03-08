@@ -80,6 +80,7 @@ export interface Cohort {
     start_date: string;
     end_date?: string;
     is_active: boolean;
+    requires_enrollment?: boolean;
 }
 
 export interface Student {

@@ -10,6 +10,15 @@ export function PortalMain() {
     const { profile, invoices, academic, attendance, grades } = usePortalData(student?.id);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('DASHBOARD');
+    const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
+
+    // Set initial enrollment
+    if (!selectedEnrollmentId && academic.data?.length > 0) {
+        setSelectedEnrollmentId(academic.data[0].id);
+    }
+
+    const currentEnrollment = academic.data?.find((e: any) => e.id === selectedEnrollmentId) || academic.data?.[0];
+    const currentCohortId = currentEnrollment?.cohort_id;
 
     if (profile.isLoading || academic.isLoading) return (
         <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center text-blue-500 font-black animate-pulse uppercase tracking-[0.3em]">
@@ -18,21 +27,29 @@ export function PortalMain() {
         </div>
     );
 
-    const gradesByModule = (grades.data || []).reduce((acc: any, g: any) => {
+    // Filter grades by current cohort
+    const filteredGrades = (grades.data || []).filter((g: any) => g.cohort_id === currentCohortId);
+
+    const gradesByModule = Object.entries(filteredGrades.reduce((acc: any, g: any) => {
         const moduleName = g.module_name || 'General / Otros';
-        if (!acc[moduleName]) acc[moduleName] = { grades: [], teacher: '' };
+        if (!acc[moduleName]) acc[moduleName] = { grades: [], teacher: '', order_index: g.order_index || 0 };
         acc[moduleName].grades.push(g);
         if (g.teacher_first_name && !acc[moduleName].teacher) {
             acc[moduleName].teacher = `${g.teacher_first_name} ${g.teacher_last_name}`;
         }
         return acc;
-    }, {});
+    }, {} as any))
+        .sort(([, a]: any, [, b]: any) => (a.order_index || 0) - (b.order_index || 0))
+        .reduce((acc: any, [key, value]: any) => {
+            acc[key] = value;
+            return acc;
+        }, {});
 
-    const avgGrade = grades.data?.length
-        ? (grades.data.reduce((acc: number, g: any) => acc + Number(g.value), 0) / grades.data.length).toFixed(1)
+    const avgGrade = filteredGrades.length
+        ? (filteredGrades.reduce((acc: number, g: any) => acc + Number(g.value), 0) / filteredGrades.length).toFixed(1)
         : '0.0';
 
-    const attendanceRecords = attendance.data || [];
+    const attendanceRecords = (attendance.data || []).filter((a: any) => a.cohort_id === currentCohortId);
     const presentCount = attendanceRecords.filter((a: any) => a.status === 'PRESENT').length;
     const lateCount = attendanceRecords.filter((a: any) => a.status === 'LATE').length;
     const attendancePct = attendanceRecords.length
@@ -88,6 +105,30 @@ export function PortalMain() {
             <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
                 {viewMode === 'DASHBOARD' ? (
                     <>
+                        {/* Section: Program Selector (if multiple) */}
+                        {academic.data?.length > 1 && (
+                            <div className="bg-[#0f172a]/80 border border-slate-800 p-4 rounded-3xl flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <div className="w-8 h-8 bg-indigo-600/20 rounded-xl flex items-center justify-center text-indigo-400">
+                                        <GraduationCap className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Programa Seleccionado</p>
+                                        <p className="text-xs font-bold text-white uppercase tracking-tight">{currentEnrollment?.program_name}</p>
+                                    </div>
+                                </div>
+                                <select
+                                    value={selectedEnrollmentId || ''}
+                                    onChange={(e) => setSelectedEnrollmentId(e.target.value)}
+                                    className="bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-[10px] font-black uppercase tracking-widest text-indigo-400 focus:ring-1 focus:ring-indigo-500/50 outline-none"
+                                >
+                                    {academic.data.map((e: any) => (
+                                        <option key={e.id} value={e.id}>{e.program_name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         {/* Section: Quick Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-7 rounded-[2rem] relative overflow-hidden group hover:-translate-y-1 hover:border-blue-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
@@ -129,7 +170,7 @@ export function PortalMain() {
                                     </p>
                                     <h3 className="text-2xl font-black text-emerald-400 h-[40px] flex items-center tracking-tight">ACTIVO</h3>
                                     <div className="mt-2 text-[10px] text-slate-400 font-bold uppercase tracking-wider truncate">
-                                        {academic.data?.[0]?.program_name || 'Sin programas'}
+                                        {currentEnrollment?.program_name || 'Sin programas'}
                                     </div>
                                 </div>
                             </div>
@@ -206,7 +247,7 @@ export function PortalMain() {
                                     </h3>
                                     <div className="bg-slate-900/40 border border-slate-800 rounded-[2rem] overflow-hidden shadow-xl shadow-black/20">
                                         <div className="divide-y divide-slate-800/50">
-                                            {attendance.data?.map((row: any) => (
+                                            {attendanceRecords.map((row: any) => (
                                                 <div key={row.id} className="p-6 flex items-center justify-between hover:bg-slate-800/40 transition-all group">
                                                     <div className="flex items-center space-x-5">
                                                         <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-400 group-hover:scale-110 group-hover:bg-indigo-500/20 transition-all duration-300">
@@ -293,7 +334,7 @@ export function PortalMain() {
                         </div>
                     </>
                 ) : (
-                    <StudentExams studentId={student?.id} cohortId={academic.data?.[0]?.cohort_id} />
+                    <StudentExams studentId={student?.id} cohortId={currentCohortId} />
                 )}
             </main>
 

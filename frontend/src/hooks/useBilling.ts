@@ -217,3 +217,15 @@ export function useDeleteExpense() {
         },
     });
 }
+export function useDeleteScholarship() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const res = await apiClient.delete(`/billing/scholarships/${id}`);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['scholarships'] });
+        },
+    });
+}

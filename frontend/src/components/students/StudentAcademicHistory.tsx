@@ -31,7 +31,7 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
     return (
         <div className="space-y-8 animate-in fade-in duration-700">
             {history.map((enrollment: any) => (
-                <div key={enrollment.id} className="space-y-6">
+                <div key={enrollment.id} className="space-y-6 pt-12 first:pt-0 border-t border-slate-800/50 first:border-0">
                     {/* Enrollment Header */}
                     <div className="flex items-center space-x-4">
                         <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/5">

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import apiClient, { getStaticUrl } from '../lib/api-client';
 import { Send, GraduationCap, CheckCircle2 } from 'lucide-react';
+import { validateEmail } from '../lib/validation';
 
 export function PublicLeadForm() {
     const [searchParams] = useSearchParams();
@@ -28,6 +29,13 @@ export function PublicLeadForm() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const emailValidation = validateEmail(formData.email);
+        if (!emailValidation.isValid) {
+            toast.error(emailValidation.message || 'Correo inválido');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             await apiClient.post('/leads/public', {

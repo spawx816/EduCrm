@@ -3,6 +3,7 @@ import { X, User, Mail, Phone, MapPin, IdCard, Save } from 'lucide-react';
 import { useUpdateStudent } from '../../hooks/useStudents';
 import { useSedes } from '../../hooks/useAcademic';
 import { toast } from 'react-hot-toast';
+import { validateEmail } from '../../lib/validation';
 
 interface EditStudentModalProps {
     isOpen: boolean;
@@ -48,6 +49,13 @@ export function EditStudentModal({ isOpen, onClose, student }: EditStudentModalP
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        const emailValidation = validateEmail(formData.email);
+        if (!emailValidation.isValid) {
+            toast.error(emailValidation.message || 'Correo inválido');
+            return;
+        }
+
         setIsSubmitting(true);
         try {
             await updateStudent.mutateAsync({
