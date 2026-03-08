@@ -324,7 +324,7 @@ export class ExamsService {
 
     async getStudentAttempts(studentId: string) {
         const res = await this.pool.query(
-            `SELECT at.*, e.title as exam_title, am.name as module_name
+            `SELECT at.*, e.title as exam_title, am.name as module_name, ea.cohort_id, am.order_index
        FROM exam_attempts at
        JOIN exam_assignments ea ON at.assignment_id = ea.id
        JOIN exams e ON ea.exam_id = e.id

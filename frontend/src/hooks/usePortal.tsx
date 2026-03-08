@@ -132,5 +132,14 @@ export function usePortalData(studentId?: string) {
         enabled: !!studentId
     });
 
-    return { profile, invoices, academic, attendance, grades };
+    const exams = useQuery({
+        queryKey: ['portal', 'exams', studentId],
+        queryFn: async () => {
+            const { data } = await apiClient.get(`/exams/student/${studentId}/attempts`);
+            return data;
+        },
+        enabled: !!studentId
+    });
+
+    return { profile, invoices, academic, attendance, grades, exams };
 }

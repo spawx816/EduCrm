@@ -1,0 +1,201 @@
+  file: [32m'parse_target.c'[39m,
+  line: [32m'1066'[39m,
+  routine: [32m'checkInsertTargets'[39m
+}
+[31m[Nest] 64700  - [39m03/08/2026, 10:55:40 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column "match_text" of relation "exam_options" does not exist
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg[24m/lib/client.js:624:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at ExamsService.addQuestion [90m(/home/deploy/apps/EduCrm/backend/[39msrc/exams/exams.service.ts:95:21[90m)[39m
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
+  length: [33m135[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'58'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_target.c'[39m,
+  line: [32m'1066'[39m,
+  routine: [32m'checkInsertTargets'[39m
+}
+[31m[Nest] 64700  - [39m03/08/2026, 10:55:41 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column "match_text" of relation "exam_options" does not exist
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg[24m/lib/client.js:624:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at ExamsService.addQuestion [90m(/home/deploy/apps/EduCrm/backend/[39msrc/exams/exams.service.ts:95:21[90m)[39m
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
+  length: [33m135[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'58'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_target.c'[39m,
+  line: [32m'1066'[39m,
+  routine: [32m'checkInsertTargets'[39m
+}
+[31m[Nest] 64700  - [39m03/08/2026, 10:56:13 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column "match_text" of relation "exam_options" does not exist
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg[24m/lib/client.js:624:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at ExamsService.addQuestion [90m(/home/deploy/apps/EduCrm/backend/[39msrc/exams/exams.service.ts:95:21[90m)[39m
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
+  length: [33m135[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'58'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_target.c'[39m,
+  line: [32m'1066'[39m,
+  routine: [32m'checkInsertTargets'[39m
+}
+[31m[Nest] 64700  - [39m03/08/2026, 10:56:47 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column "match_text" of relation "exam_options" does not exist
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg[24m/lib/client.js:624:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at ExamsService.addQuestion [90m(/home/deploy/apps/EduCrm/backend/[39msrc/exams/exams.service.ts:95:21[90m)[39m
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
+  length: [33m135[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42703'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [32m'58'[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'parse_target.c'[39m,
+  line: [32m'1066'[39m,
+  routine: [32m'checkInsertTargets'[39m
+}
+--- OUT LOG ---
+[2026-03-08T22:32:24.328Z] GET /leads
+[2026-03-08T22:32:24.334Z] GET /leads
+[2026-03-08T22:33:24.330Z] GET /leads
+[2026-03-08T22:33:24.332Z] GET /leads
+[2026-03-08T22:34:24.319Z] GET /leads
+[2026-03-08T22:34:24.320Z] GET /leads
+[2026-03-08T22:35:24.326Z] GET /leads
+[2026-03-08T22:35:24.330Z] GET /leads
+[2026-03-08T22:36:24.334Z] GET /leads
+[2026-03-08T22:36:24.337Z] GET /leads
+[2026-03-08T22:37:24.335Z] GET /leads
+[2026-03-08T22:37:24.336Z] GET /leads
+[2026-03-08T22:38:24.338Z] GET /leads
+[2026-03-08T22:38:24.342Z] GET /leads
+[2026-03-08T22:39:24.349Z] GET /leads
+[2026-03-08T22:39:24.350Z] GET /leads
+[2026-03-08T22:40:24.343Z] GET /leads
+[2026-03-08T22:40:24.346Z] GET /leads
+[2026-03-08T22:41:24.325Z] GET /leads
+[2026-03-08T22:41:24.330Z] GET /leads
+[2026-03-08T22:42:24.318Z] GET /leads
+[2026-03-08T22:42:24.327Z] GET /leads
+[2026-03-08T22:43:24.312Z] GET /leads
+[2026-03-08T22:43:24.318Z] GET /leads
+[2026-03-08T22:44:24.332Z] GET /leads
+[2026-03-08T22:44:24.336Z] GET /leads
+[2026-03-08T22:45:24.335Z] GET /leads
+[2026-03-08T22:45:24.345Z] GET /leads
+[2026-03-08T22:46:24.313Z] GET /leads
+[2026-03-08T22:46:24.314Z] GET /leads
+[2026-03-08T22:47:24.345Z] GET /leads
+[2026-03-08T22:47:24.352Z] GET /leads
+[2026-03-08T22:48:24.342Z] GET /leads
+[2026-03-08T22:48:24.346Z] GET /leads
+[2026-03-08T22:49:24.329Z] GET /leads
+[2026-03-08T22:49:24.329Z] GET /leads
+[2026-03-08T22:50:24.355Z] GET /leads
+[2026-03-08T22:51:22.034Z] GET /leads
+[2026-03-08T22:51:28.019Z] GET /academic/programs
+[2026-03-08T22:51:28.103Z] GET /billing/scholarships
+[2026-03-08T22:51:28.175Z] GET /leads
+[2026-03-08T22:51:28.178Z] GET /academic/cohorts?programId=
+[2026-03-08T22:51:30.335Z] GET /settings
+[2026-03-08T22:51:46.365Z] POST /auth/login
+Body: {"email":"admin@educrm.com","password":"password123"}
+[2026-03-08T22:51:46.611Z] GET /stats/dashboard
+[2026-03-08T22:51:46.639Z] GET /leads
+[2026-03-08T22:51:46.643Z] GET /settings
+[2026-03-08T22:51:46.869Z] GET /uploads/settings/c457aa08-e2d8-4d55-9dad-b50cf9898112.png
+[2026-03-08T22:51:48.847Z] GET /billing/scholarships
+[2026-03-08T22:51:48.847Z] GET /academic/programs
+[2026-03-08T22:51:48.857Z] GET /academic/cohorts?programId=
+[2026-03-08T22:51:48.863Z] GET /leads
+[2026-03-08T22:51:56.242Z] GET /integrations/keys
+[2026-03-08T22:51:58.209Z] GET /billing/expenses/categories
+[2026-03-08T22:51:58.212Z] GET /billing/expenses?categoryId=&startDate=&endDate=
+[2026-03-08T22:52:00.011Z] GET /academic/programs
+[2026-03-08T22:52:00.720Z] GET /billing/invoices?status=ALL&search=&startDate=&endDate=
+[2026-03-08T22:52:00.721Z] GET /billing/items
+[2026-03-08T22:52:00.841Z] GET /billing/items
+[2026-03-08T22:52:00.848Z] GET /students
+[2026-03-08T22:52:01.770Z] GET /academic/programs
+[2026-03-08T22:52:02.850Z] GET /academic/cohorts?programId=3deb445e-6209-45f2-ac46-9a2f3819dd77
+[2026-03-08T22:52:02.943Z] GET /academic/programs
+[2026-03-08T22:52:05.879Z] GET /academic/cohorts/b24f8a95-80db-4cb5-9800-3f4cced2b40d/modules
+[2026-03-08T22:52:07.333Z] GET /exams/module/5755e35b-e104-40e5-9fc8-e15ef8cca775
+[2026-03-08T22:52:07.335Z] GET /exams/cohort/b24f8a95-80db-4cb5-9800-3f4cced2b40d/assignments
+[2026-03-08T22:52:10.949Z] GET /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b
+[2026-03-08T22:52:16.577Z] GET /leads
+[2026-03-08T22:52:33.826Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
+Body: {"text":"1231","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"123","is_correct":true},{"text":"123","is_correct":false}]}
+[2026-03-08T22:52:46.591Z] GET /leads
+[2026-03-08T22:53:16.741Z] GET /leads
+[2026-03-08T22:53:46.744Z] GET /leads
+[2026-03-08T22:54:17.448Z] GET /leads
+[2026-03-08T22:54:47.915Z] GET /leads
+[2026-03-08T22:55:17.435Z] GET /leads
+[2026-03-08T22:55:40.629Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
+Body: {"text":"1231","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"123","is_correct":true},{"text":"123","is_correct":false}]}
+[2026-03-08T22:55:41.260Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
+Body: {"text":"1231","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"123","is_correct":true},{"text":"123","is_correct":false}]}
+[2026-03-08T22:55:44.947Z] GET /leads
+[2026-03-08T22:55:44.950Z] GET /stats/dashboard
+[2026-03-08T22:55:45.046Z] GET /settings
+[2026-03-08T22:55:45.073Z] GET /settings
+[2026-03-08T22:55:45.403Z] GET /uploads/settings/c457aa08-e2d8-4d55-9dad-b50cf9898112.png
+[2026-03-08T22:55:46.616Z] GET /academic/programs
+[2026-03-08T22:55:52.354Z] GET /academic/cohorts?programId=3deb445e-6209-45f2-ac46-9a2f3819dd77
+[2026-03-08T22:55:52.462Z] GET /academic/programs
+[2026-03-08T22:55:53.956Z] GET /academic/cohorts/b24f8a95-80db-4cb5-9800-3f4cced2b40d/modules
+[2026-03-08T22:55:55.218Z] GET /exams/module/5755e35b-e104-40e5-9fc8-e15ef8cca775
+[2026-03-08T22:55:55.286Z] GET /exams/cohort/b24f8a95-80db-4cb5-9800-3f4cced2b40d/assignments
+[2026-03-08T22:56:03.177Z] GET /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b
+[2026-03-08T22:56:13.560Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
+Body: {"text":"12","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"1","is_correct":true},{"text":"13","is_correct":false}]}
+[2026-03-08T22:56:14.917Z] GET /leads
+[2026-03-08T22:56:45.064Z] GET /leads
+[2026-03-08T22:56:47.890Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
+Body: {"text":"122134","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"1","is_correct":true},{"text":"13","is_correct":false},{"text":"123","is_correct":false}]}
+[2026-03-08T22:57:15.465Z] GET /leads

@@ -1,0 +1,510 @@
+import { Injectable, Inject } from '@nestjs/common';
+import { Pool } from 'pg';
+import { PG_POOL } from '../database/database.module';
+
+@Injectable()
+export class BillingService {
+    constructor(@Inject(PG_POOL) private pool: Pool) { }
+
+    async getInvoices(filters: { studentId?: string; search?: string; status?: string; startDate?: string; endDate?: string }) {
+        let query = `
+            SELECT i.*, s.first_name, s.last_name, 
+                   STRING_AGG(id.description, ', ') as concepts
+            FROM invoices i
+            JOIN students s ON i.student_id = s.id
+            LEFT JOIN invoice_details id ON i.id = id.invoice_id
+            WHERE 1=1
+        `;
+        const params: any[] = [];
+
+        if (filters.studentId) {
+            params.push(filters.studentId);
+            query += ` AND i.student_id = $${params.length}`;
+        }
+
+        if (filters.status && filters.status !== 'ALL') {
+            params.push(filters.status);
+            query += ` AND i.status = $${params.length}`;
+        }
+
+        if (filters.search) {
+            params.push(`%${filters.search}%`);
+            query += ` AND (s.first_name ILIKE $${params.length} OR s.last_name ILIKE $${params.length} OR i.invoice_number ILIKE $${params.length})`;
+        }
+
+        if (filters.startDate) {
+            params.push(filters.startDate);
+            query += ` AND i.created_at >= $${params.length}`;
+        }
+
+        if (filters.endDate) {
+            params.push(filters.endDate);
+            query += ` AND i.created_at <= $${params.length}`;
+        }
+
+        query += ` GROUP BY i.id, s.id ORDER BY i.created_at DESC`;
+
+        const res = await this.pool.query(query, params);
+        return res.rows;
+    }
+
+    async getInvoiceById(id: string) {
+        const invoiceRes = await this.pool.query(
+            `SELECT i.*, s.first_name, s.last_name, s.email, s.phone 
+             FROM invoices i 
+             JOIN students s ON i.student_id = s.id 
+             WHERE i.id = $1`,
+            [id]
+        );
+
+        if (invoiceRes.rows.length === 0) return null;
+
+        const detailsRes = await this.pool.query(
+            `SELECT * FROM invoice_details WHERE invoice_id = $1`,
+            [id]
+        );
+
+        const paymentsRes = await this.pool.query(
+            `SELECT * FROM invoice_payments WHERE invoice_id = $1 ORDER BY created_at DESC`,
+            [id]
+        );
+
+        return {
+            ...invoiceRes.rows[0],
+            details: detailsRes.rows,
+            payments: paymentsRes.rows
+        };
+    }
+
+    async getInvoiceItems(invoiceId: string) {
+        const res = await this.pool.query('SELECT * FROM invoice_details WHERE invoice_id = $1', [invoiceId]);
+        return res.rows;
+    }
+
+    async createInvoice(data: {
+        studentId: string;
+        dueDate: string;
+        items: { itemId?: string; description: string; quantity: number; unitPrice: number; discount?: number; moduleId?: string; enrollmentId?: string }[];
+        scholarshipId?: string;
+        createdBy?: string;
+    }) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const invoiceNumber = `INV-${Date.now().toString().slice(-6)}${Math.floor(Math.random() * 100)}`;
+            const subtotal = data.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+            const totalDiscount = data.items.reduce((sum, item) => sum + (item.discount || 0), 0);
+            const totalAmount = subtotal - totalDiscount;
+
+            const dueDate = data.dueDate || null;
+
+            const invoiceRes = await client.query(
+                `INSERT INTO invoices (student_id, invoice_number, total_amount, due_date, scholarship_id, discount_amount, created_by) 
+                 VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+                [data.studentId, invoiceNumber, totalAmount, dueDate, data.scholarshipId, totalDiscount, data.createdBy || null]
+            );
+
+            const invoiceId = invoiceRes.rows[0].id;
+
+            for (const item of data.items) {
+                const discount = item.discount || 0;
+                const subtotal = (item.quantity * item.unitPrice) - discount;
+
+                // Sanitize itemId: if it has prefixes like ENROLL- or MOD-, it's a pseudo-ID from suggestions
+                // and should be stored as NULL in item_id column (which is a UUID type)
+                const isRealItem = item.itemId && !item.itemId.includes('ENROLL-') && !item.itemId.includes('MOD-');
+                const dbItemId = isRealItem ? item.itemId : null;
+
+                await client.query(
+                    `INSERT INTO invoice_details (invoice_id, item_id, description, quantity, unit_price, discount, subtotal, module_id, enrollment_id) 
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+                    [invoiceId, dbItemId, item.description, item.quantity, item.unitPrice, discount, subtotal, item.moduleId || null, item.enrollmentId || null]
+                );
+
+                // If it's an inventory item, record movement
+                if (dbItemId) {
+                    const itemCheck = await client.query('SELECT is_inventory FROM billing_items WHERE id = $1', [dbItemId]);
+                    if (itemCheck.rows[0]?.is_inventory) {
+                        await client.query(
+                            `INSERT INTO inventory_movements (item_id, type, quantity, reference_type, reference_id, notes)
+                             VALUES ($1, 'OUT', $2, 'INVOICE', $3, $4)`,
+                            [dbItemId, item.quantity, invoiceId, `Venta en factura ${invoiceNumber}`]
+                        );
+                        await client.query(
+                            'UPDATE billing_items SET stock_quantity = stock_quantity - $1 WHERE id = $2',
+                            [item.quantity, dbItemId]
+                        );
+                    }
+                }
+            }
+
+            await client.query('COMMIT');
+            return invoiceRes.rows[0];
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async getPayments(invoiceId: string) {
+        const res = await this.pool.query('SELECT * FROM invoice_payments WHERE invoice_id = $1 ORDER BY created_at DESC', [invoiceId]);
+        return res.rows;
+    }
+
+    async registerPayment(data: {
+        invoiceId: string;
+        amount: number;
+        paymentMethod: string;
+        reference?: string;
+    }) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const invoiceRes = await client.query('SELECT total_amount, paid_amount FROM invoices WHERE id = $1', [data.invoiceId]);
+            if (invoiceRes.rows.length === 0) throw new Error('Invoice not found');
+
+            const newPaidAmount = parseFloat(invoiceRes.rows[0].paid_amount) + data.amount;
+            const totalAmount = parseFloat(invoiceRes.rows[0].total_amount);
+            const status = newPaidAmount >= totalAmount ? 'PAID' : 'PARTIAL';
+
+            await client.query(
+                'INSERT INTO invoice_payments (invoice_id, amount, payment_method, reference) VALUES ($1, $2, $3, $4)',
+                [data.invoiceId, data.amount, data.paymentMethod, data.reference]
+            );
+
+            const updatedInvoice = await client.query(
+                'UPDATE invoices SET paid_amount = $1, status = $2 WHERE id = $3 RETURNING *',
+                [newPaidAmount, status, data.invoiceId]
+            );
+
+            await client.query('COMMIT');
+            return updatedInvoice.rows[0];
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async getBillingItems() {
+        const res = await this.pool.query('SELECT * FROM billing_items WHERE is_active = true ORDER BY is_inventory DESC, name ASC');
+        return res.rows;
+    }
+
+    async createBillingItem(data: {
+        name: string;
+        description?: string;
+        price: number;
+        is_inventory?: boolean;
+        stock_quantity?: number;
+        min_stock?: number;
+    }) {
+        const res = await this.pool.query(
+            `INSERT INTO billing_items (name, description, price, is_inventory, stock_quantity, min_stock) 
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [
+                data.name,
+                data.description,
+                data.price,
+                data.is_inventory || false,
+                data.stock_quantity || 0,
+                data.min_stock || 0
+            ]
+        );
+        return res.rows[0];
+    }
+
+    async voidInvoice(id: string) {
+        const res = await this.pool.query(
+            "UPDATE invoices SET status = 'VOIDED' WHERE id = $1 AND status != 'PAID' RETURNING *",
+            [id]
+        );
+        return res.rows[0];
+    }
+
+    // Smart Suggestions
+    async getInvoiceSuggestions(studentId: string) {
+        const enrollmentsRes = await this.pool.query(
+            `SELECT e.id as enrollment_id, e.cohort_id, c.program_id, c.requires_enrollment, p.enrollment_price, p.name as program_name, p.billing_day,
+                    s.id as scholarship_id, s.name as scholarship_name, s.type as scholarship_type, s.value as scholarship_value,
+                    s.applies_to_enrollment, s.applies_to_monthly
+             FROM enrollments e 
+             JOIN academic_cohorts c ON e.cohort_id = c.id 
+             JOIN academic_programs p ON c.program_id = p.id
+             LEFT JOIN scholarships s ON e.scholarship_id = s.id
+             WHERE e.student_id = $1 AND e.status = 'ACTIVE'`,
+            [studentId]
+        );
+
+        if (enrollmentsRes.rows.length === 0) return { enrollmentSuggestions: [], suggestedDueDate: null };
+
+        const today = new Date();
+        const firstEnrollment = enrollmentsRes.rows[0];
+        const billingDay = firstEnrollment.billing_day || 5;
+        const suggestedDueDate = new Date(today.getFullYear(), today.getMonth(), billingDay);
+        if (today.getDate() >= billingDay) {
+            suggestedDueDate.setMonth(suggestedDueDate.getMonth() + 1);
+        }
+        const formattedSuggestedDueDate = suggestedDueDate.toISOString().split('T')[0];
+
+        const enrollmentSuggestions = [];
+
+        for (const enrollment of enrollmentsRes.rows) {
+            const {
+                enrollment_id, cohort_id, program_id, enrollment_price, program_name,
+                scholarship_id, scholarship_name, scholarship_type, scholarship_value,
+                requires_enrollment, applies_to_enrollment, applies_to_monthly
+            } = enrollment;
+
+            const calculateDiscount = (basePrice: number, itemType: 'ENROLLMENT' | 'MONTHLY') => {
+                if (!scholarship_id) return 0;
+                if (itemType === 'ENROLLMENT' && !applies_to_enrollment) return 0;
+                if (itemType === 'MONTHLY' && !applies_to_monthly) return 0;
+
+                if (scholarship_type === 'PERCENTAGE') {
+                    return (basePrice * scholarship_value) / 100;
+                }
+                return Math.min(basePrice, scholarship_value);
+            };
+
+            const invoicedEnrollmentRes = await this.pool.query(
+                `SELECT i.status, i.paid_amount, i.total_amount 
+                 FROM invoice_details id
+                 JOIN invoices i ON id.invoice_id = i.id
+                 WHERE i.student_id = $1 AND i.status != 'VOIDED'
+                 AND (id.enrollment_id = $2 OR (id.enrollment_id IS NULL AND id.description ILIKE $3))`,
+                [studentId, enrollment_id, `%Inscripción%${program_name}%`]
+            );
+
+            const isEnrollmentInvoiced = invoicedEnrollmentRes.rows.length > 0;
+            const isEnrollmentPaid = !requires_enrollment || (isEnrollmentInvoiced && (
+                invoicedEnrollmentRes.rows[0].status === 'PAID' ||
+                parseFloat(invoicedEnrollmentRes.rows[0].paid_amount) >= parseFloat(invoicedEnrollmentRes.rows[0].total_amount)
+            ));
+
+            const allModulesRes = await this.pool.query(
+                `SELECT id, name, price, order_index 
+                 FROM academic_modules 
+                 WHERE program_id = $1 AND deleted_at IS NULL 
+                 ORDER BY order_index ASC, name ASC`,
+                [program_id]
+            );
+
+            let currentSuggestion: any = {
+                enrollmentId: enrollment_id,
+                programName: program_name,
+                enrollmentFee: null,
+                suggestedModule: null,
+                addons: [],
+                allModules: allModulesRes.rows,
+                isEnrollmentPaid,
+                isEnrollmentInvoiced,
+                scholarship: scholarship_id ? { id: scholarship_id, name: scholarship_name } : null
+            };
+
+            if (!isEnrollmentInvoiced && parseFloat(enrollment_price) > 0 && requires_enrollment) {
+                const finalEnrollmentPrice = parseFloat(enrollment_price) || 0;
+                const enrollmentDiscount = calculateDiscount(finalEnrollmentPrice, 'ENROLLMENT');
+
+                currentSuggestion.enrollmentFee = {
+                    name: `Inscripción - ${program_name}`,
+                    price: finalEnrollmentPrice,
+                    discount: enrollmentDiscount
+                };
+            } else if (isEnrollmentPaid) {
+                const modulesRes = await this.pool.query(
+                    `SELECT m.* 
+                     FROM academic_modules m 
+                     WHERE m.program_id = $1 AND m.deleted_at IS NULL 
+                     ORDER BY m.order_index ASC`,
+                    [program_id]
+                );
+
+                const modules = modulesRes.rows;
+                if (modules.length > 0) {
+                    const invoicedModulesRes = await this.pool.query(
+                        `SELECT id.description, id.module_id
+                         FROM invoice_details id
+                         JOIN invoices i ON id.invoice_id = i.id
+                         WHERE i.student_id = $1 AND i.status != 'VOIDED' AND id.item_id IS NULL AND id.description NOT ILIKE '%Inscripción%'
+                         AND (id.enrollment_id = $2 OR (id.enrollment_id IS NULL AND id.description ILIKE $3))`,
+                        [studentId, enrollment_id, `%${program_name}%`]
+                    );
+                    const invoicedModules = invoicedModulesRes.rows;
+
+                    const suggestedModuleData = modules.find(m => {
+                        // Match by ID if available, otherwise by name
+                        const isAlreadyInvoiced = invoicedModules.some(inv => {
+                            if (inv.module_id === m.id) return true;
+                            const invDesc = inv.description.toLowerCase().trim();
+                            const mName = m.name.toLowerCase().trim();
+                            return invDesc.includes(mName) || mName.includes(invDesc);
+                        });
+                        return !isAlreadyInvoiced;
+                    });
+
+                    if (suggestedModuleData) {
+                        const addonsRes = await this.pool.query(
+                            `SELECT bi.* 
+                             FROM academic_module_addons ama
+                             JOIN billing_items bi ON ama.item_id = bi.id
+                             WHERE ama.module_id = $1`,
+                            [suggestedModuleData.id]
+                        );
+
+                        const finalModulePrice = parseFloat(suggestedModuleData.price) || 0;
+                        const moduleDiscount = calculateDiscount(finalModulePrice, 'MONTHLY');
+
+                        currentSuggestion.suggestedModule = {
+                            id: suggestedModuleData.id,
+                            name: suggestedModuleData.name,
+                            price: finalModulePrice,
+                            discount: moduleDiscount
+                        };
+                        currentSuggestion.addons = addonsRes.rows;
+                    }
+                }
+            } else if (isEnrollmentInvoiced && !isEnrollmentPaid) {
+                currentSuggestion.error = `Debe pagar la inscripción de ${program_name} antes de facturar módulos.`;
+            }
+
+            enrollmentSuggestions.push(currentSuggestion);
+        }
+
+        return {
+            enrollmentSuggestions,
+            suggestedDueDate: formattedSuggestedDueDate
+        };
+    }
+
+    // Scholarship Management
+    async getScholarships() {
+        const res = await this.pool.query('SELECT * FROM scholarships ORDER BY name ASC');
+        return res.rows;
+    }
+
+    async createScholarship(data: {
+        name: string;
+        description: string;
+        type: 'PERCENTAGE' | 'FIXED';
+        value: number;
+        applies_to_enrollment?: boolean;
+        applies_to_monthly?: boolean;
+    }) {
+        const res = await this.pool.query(
+            'INSERT INTO scholarships (name, description, type, value, applies_to_enrollment, applies_to_monthly) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [
+                data.name,
+                data.description,
+                data.type,
+                data.value,
+                data.applies_to_enrollment ?? true,
+                data.applies_to_monthly ?? true
+            ]
+        );
+        return res.rows[0];
+    }
+
+    async deleteScholarship(id: string) {
+        const res = await this.pool.query('DELETE FROM scholarships WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0];
+    }
+
+
+    // Instructor Payroll
+    async getInstructorPayments(teacherId?: string) {
+        const query = teacherId
+            ? 'SELECT ip.*, u.first_name, u.last_name FROM instructor_payments ip JOIN users u ON ip.teacher_id = u.id WHERE ip.teacher_id = $1 ORDER BY ip.payment_date DESC'
+            : 'SELECT ip.*, u.first_name, u.last_name FROM instructor_payments ip JOIN users u ON ip.teacher_id = u.id ORDER BY ip.payment_date DESC';
+        const res = await this.pool.query(query, teacherId ? [teacherId] : []);
+        return res.rows;
+    }
+
+    async registerInstructorPayment(data: any) {
+        const res = await this.pool.query(
+            `INSERT INTO instructor_payments (teacher_id, amount, payment_method, reference_number, notes)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes]
+        );
+        return res.rows[0];
+    }
+
+    // Inventory
+    async getInventoryMovements(itemId?: string) {
+        const query = itemId
+            ? 'SELECT im.*, bi.name as item_name FROM inventory_movements im JOIN billing_items bi ON im.item_id = bi.id WHERE im.item_id = $1 ORDER BY im.created_at DESC'
+            : 'SELECT im.*, bi.name as item_name FROM inventory_movements im JOIN billing_items bi ON im.item_id = bi.id ORDER BY im.created_at DESC';
+        const res = await this.pool.query(query, itemId ? [itemId] : []);
+        return res.rows;
+    }
+
+    async adjustStock(data: any) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query(
+                `INSERT INTO inventory_movements (item_id, type, quantity, reference_type, notes)
+                 VALUES ($1, $2, $3, 'MANUAL_ADJUSTMENT', $4)`,
+                [data.itemId, data.type, data.quantity, data.notes]
+            );
+            const factor = data.type === 'IN' ? 1 : -1;
+            const res = await client.query(
+                'UPDATE billing_items SET stock_quantity = stock_quantity + $1 WHERE id = $2 RETURNING *',
+                [data.quantity * factor, data.itemId]
+            );
+            await client.query('COMMIT');
+            return res.rows[0];
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    // Expenses
+    async getExpenseCategories() {
+        const res = await this.pool.query('SELECT * FROM expense_categories ORDER BY name ASC');
+        return res.rows;
+    }
+
+    async getExpenses(filters: { categoryId?: string; startDate?: string; endDate?: string }) {
+        let query = 'SELECT e.*, c.name as category_name FROM expenses e JOIN expense_categories c ON e.category_id = c.id WHERE 1=1';
+        const params = [];
+        if (filters.categoryId) {
+            params.push(filters.categoryId);
+            query += ` AND e.category_id = $${params.length}`;
+        }
+        if (filters.startDate) {
+            params.push(filters.startDate);
+            query += ` AND e.expense_date >= $${params.length}`;
+        }
+        if (filters.endDate) {
+            params.push(filters.endDate);
+            query += ` AND e.expense_date <= $${params.length}`;
+        }
+        query += ' ORDER BY e.expense_date DESC';
+        const res = await this.pool.query(query, params);
+        return res.rows;
+    }
+
+    async createExpense(data: any) {
+        const expenseDate = data.expenseDate || null;
+        const res = await this.pool.query(
+            `INSERT INTO expenses (category_id, amount, expense_date, description, payment_method, reference_number)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [data.categoryId, data.amount, expenseDate, data.description, data.paymentMethod, data.referenceNumber]
+        );
+        return res.rows[0];
+    }
+
+    async deleteExpense(id: string) {
+        const res = await this.pool.query('DELETE FROM expenses WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0];
+    }
+}

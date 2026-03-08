@@ -7,7 +7,7 @@ type ViewMode = 'DASHBOARD' | 'EXAMS';
 
 export function PortalMain() {
     const { student, logout } = usePortalAuth();
-    const { profile, invoices, academic, attendance, grades } = usePortalData(student?.id);
+    const { profile, invoices, academic, attendance, grades, exams } = usePortalData(student?.id);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('DASHBOARD');
     const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
@@ -30,7 +30,22 @@ export function PortalMain() {
     // Filter grades by current cohort
     const filteredGrades = (grades.data || []).filter((g: any) => g.cohort_id === currentCohortId);
 
-    const gradesByModule = Object.entries(filteredGrades.reduce((acc: any, g: any) => {
+    // Merge exams into grades view
+    const filteredExams = (exams.data || [])
+        .filter((ex: any) => ex.cohort_id === currentCohortId && ex.status === 'COMPLETED')
+        .map((ex: any) => ({
+            id: `exam-${ex.id}`,
+            value: ex.score,
+            module_name: ex.module_name,
+            grade_type_name: `Examen: ${ex.exam_title}`,
+            created_at: ex.completed_at,
+            order_index: ex.order_index,
+            is_exam: true
+        }));
+
+    const allScores = [...filteredGrades, ...filteredExams];
+
+    const gradesByModule = Object.entries(allScores.reduce((acc: any, g: any) => {
         const moduleName = g.module_name || 'General / Otros';
         if (!acc[moduleName]) acc[moduleName] = { grades: [], teacher: '', order_index: g.order_index || 0 };
         acc[moduleName].grades.push(g);
@@ -45,8 +60,8 @@ export function PortalMain() {
             return acc;
         }, {});
 
-    const avgGrade = filteredGrades.length
-        ? (filteredGrades.reduce((acc: number, g: any) => acc + Number(g.value), 0) / filteredGrades.length).toFixed(1)
+    const avgGrade = allScores.length
+        ? (allScores.reduce((acc: number, g: any) => acc + Number(g.value), 0) / allScores.length).toFixed(1)
         : '0.0';
 
     const attendanceRecords = (attendance.data || []).filter((a: any) => a.cohort_id === currentCohortId);

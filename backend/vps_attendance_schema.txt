@@ -1,0 +1,23 @@
+                            Table "public.attendance"
+   Column   |           Type           | Collation | Nullable |      Default      
+------------+--------------------------+-----------+----------+-------------------
+ id         | uuid                     |           | not null | gen_random_uuid()
+ student_id | uuid                     |           |          | 
+ cohort_id  | uuid                     |           |          | 
+ date       | date                     |           | not null | CURRENT_DATE
+ status     | character varying(20)    |           | not null | 
+ remarks    | text                     |           |          | 
+ created_at | timestamp with time zone |           |          | now()
+ updated_at | timestamp with time zone |           |          | now()
+ module_id  | uuid                     |           |          | 
+Indexes:
+    "attendance_pkey" PRIMARY KEY, btree (id)
+    "attendance_student_cohort_date_module_key" UNIQUE CONSTRAINT, btree (student_id, cohort_id, date, module_id)
+    "idx_attendance_cohort_id" btree (cohort_id)
+    "idx_attendance_date" btree (date)
+    "idx_attendance_module_id" btree (module_id)
+Foreign-key constraints:
+    "attendance_cohort_id_fkey" FOREIGN KEY (cohort_id) REFERENCES academic_cohorts(id)
+    "attendance_module_id_fkey" FOREIGN KEY (module_id) REFERENCES academic_modules(id) ON DELETE CASCADE
+    "attendance_student_id_fkey" FOREIGN KEY (student_id) REFERENCES students(id)
+
