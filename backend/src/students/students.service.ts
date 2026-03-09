@@ -246,7 +246,7 @@ export class StudentsService {
   // PORTAL METHODS
   async loginPortal(matricula: string, email: string) {
     const res = await this.pool.query(
-      'SELECT id, matricula, first_name, last_name, email FROM students WHERE matricula = $1 AND email = $2 AND deleted_at IS NULL',
+      'SELECT id, matricula, first_name, last_name, email FROM students WHERE matricula = $1 AND email = $2 AND deleted_at IS NULL AND is_active = TRUE',
       [matricula, email]
     );
     if (res.rows.length === 0) return null;
