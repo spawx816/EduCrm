@@ -8,15 +8,9 @@ export class BillingService {
 
     async getInvoices(filters: { studentId?: string; search?: string; status?: string; startDate?: string; endDate?: string }) {
         let query = `
-            SELECT i.*, i.created_at as issue_date, s.first_name, s.last_name, 
-                   concepts_data.concepts
+            SELECT i.*, s.first_name, s.last_name
             FROM invoices i
             JOIN students s ON i.student_id = s.id
-            LEFT JOIN (
-                SELECT invoice_id, STRING_AGG(description, ', ') as concepts
-                FROM invoice_details
-                GROUP BY invoice_id
-            ) concepts_data ON i.id = concepts_data.invoice_id
             WHERE 1=1
         `;
         const params: any[] = [];
