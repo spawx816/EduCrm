@@ -180,8 +180,15 @@ let ExamsService = class ExamsService {
         const res = await this.pool.query(`INSERT INTO exam_assignments (exam_id, cohort_id, module_id, start_date, end_date)
        VALUES ($1, $2, $3, $4, $5)
        ON CONFLICT (exam_id, cohort_id, module_id)
-       DO UPDATE SET start_date = EXCLUDED.start_date, end_date = EXCLUDED.end_date, is_active = TRUE
-       RETURNING *`, [data.exam_id, data.cohort_id, data.module_id, data.start_date, data.end_date]);
+       DO UPDATE SET is_active = TRUE
+       RETURNING *`, [data.exam_id, data.cohort_id, data.module_id, data.start_date || null, data.end_date || null]);
+        return res.rows[0];
+    }
+    async updateAssignmentSchedule(id, start_date, end_date) {
+        const res = await this.pool.query(`UPDATE exam_assignments 
+       SET start_date = $1, end_date = $2, is_active = TRUE
+       WHERE id = $3
+       RETURNING *`, [start_date, end_date, id]);
         return res.rows[0];
     }
     async getCohortAssignments(cohortId) {
@@ -242,7 +249,7 @@ let ExamsService = class ExamsService {
         }
     }
     async getStudentAttempts(studentId) {
-        const res = await this.pool.query(`SELECT at.*, e.title as exam_title, am.name as module_name
+        const res = await this.pool.query(`SELECT at.*, e.title as exam_title, am.name as module_name, ea.cohort_id, am.order_index
        FROM exam_attempts at
        JOIN exam_assignments ea ON at.assignment_id = ea.id
        JOIN exams e ON ea.exam_id = e.id

@@ -15,12 +15,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ExamsController = void 0;
 const common_1 = require("@nestjs/common");
 const exams_service_1 = require("./exams.service");
+const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const roles_guard_1 = require("../auth/roles.guard");
+const roles_decorator_1 = require("../auth/roles.decorator");
 let ExamsController = class ExamsController {
     constructor(examsService) {
         this.examsService = examsService;
     }
-    async createExam(data) {
-        return this.examsService.createExam(data);
+    async createExam(data, req) {
+        return this.examsService.createExam({ ...data, created_by: req.user.id });
     }
     async getModuleExams(moduleId) {
         return this.examsService.getModuleExams(moduleId);
@@ -46,6 +49,9 @@ let ExamsController = class ExamsController {
     async assignExam(data) {
         return this.examsService.assignExam(data);
     }
+    async updateAssignmentSchedule(id, data) {
+        return this.examsService.updateAssignmentSchedule(id, data.start_date, data.end_date);
+    }
     async getCohortAssignments(cohortId) {
         return this.examsService.getCohortAssignments(cohortId);
     }
@@ -64,10 +70,12 @@ let ExamsController = class ExamsController {
 };
 exports.ExamsController = ExamsController;
 __decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Post)(),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "createExam", null);
 __decorate([
@@ -92,6 +100,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "getAttemptDetail", null);
 __decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Post)(':id/questions'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -100,6 +109,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "addQuestion", null);
 __decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Put)(':id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -108,6 +118,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "updateExam", null);
 __decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Put)('questions/:id'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
@@ -116,6 +127,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "updateQuestion", null);
 __decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Delete)('questions/:id'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
@@ -123,12 +135,22 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "deleteQuestion", null);
 __decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Post)('assign'),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "assignExam", null);
+__decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director', 'docente'),
+    (0, common_1.Patch)('assignments/:id/schedule'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], ExamsController.prototype, "updateAssignmentSchedule", null);
 __decorate([
     (0, common_1.Get)('cohort/:cohortId/assignments'),
     __param(0, (0, common_1.Param)('cohortId')),
@@ -166,6 +188,7 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "getStudentAttempts", null);
 exports.ExamsController = ExamsController = __decorate([
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, common_1.Controller)('exams'),
     __metadata("design:paramtypes", [exams_service_1.ExamsService])
 ], ExamsController);

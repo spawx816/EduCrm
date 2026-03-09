@@ -2,7 +2,7 @@ import { ExamsService } from './exams.service';
 export declare class ExamsController {
     private readonly examsService;
     constructor(examsService: ExamsService);
-    createExam(data: any): Promise<any>;
+    createExam(data: any, req: any): Promise<any>;
     getModuleExams(moduleId: string): Promise<any[]>;
     getExamDetail(id: string): Promise<any>;
     getAttemptDetail(attemptId: string): Promise<any>;
@@ -13,6 +13,10 @@ export declare class ExamsController {
         success: boolean;
     }>;
     assignExam(data: any): Promise<any>;
+    updateAssignmentSchedule(id: string, data: {
+        start_date: string;
+        end_date: string;
+    }): Promise<any>;
     getCohortAssignments(cohortId: string): Promise<any[]>;
     getAssignmentResults(assignmentId: string): Promise<any[]>;
     startAttempt(data: {

@@ -160,14 +160,14 @@ let BillingService = class BillingService {
         return res.rows[0];
     }
     async getInvoiceSuggestions(studentId) {
-        const enrollmentsRes = await this.pool.query(`SELECT e.id as enrollment_id, e.cohort_id, c.program_id, c.requires_enrollment, p.enrollment_price, p.name as program_name, p.billing_day,
+        const enrollmentsRes = await this.pool.query(`SELECT e.id as enrollment_id, e.cohort_id, e.status as enrollment_status, c.program_id, c.requires_enrollment, p.enrollment_price, p.name as program_name, p.billing_day,
                     s.id as scholarship_id, s.name as scholarship_name, s.type as scholarship_type, s.value as scholarship_value,
                     s.applies_to_enrollment, s.applies_to_monthly
              FROM enrollments e 
              JOIN academic_cohorts c ON e.cohort_id = c.id 
              JOIN academic_programs p ON c.program_id = p.id
              LEFT JOIN scholarships s ON e.scholarship_id = s.id
-             WHERE e.student_id = $1 AND e.status = 'ACTIVE'`, [studentId]);
+             WHERE e.student_id = $1 AND e.status IN ('ACTIVE', 'PENDING')`, [studentId]);
         if (enrollmentsRes.rows.length === 0)
             return { enrollmentSuggestions: [], suggestedDueDate: null };
         const today = new Date();
@@ -205,11 +205,36 @@ let BillingService = class BillingService {
                  FROM academic_modules 
                  WHERE program_id = $1 AND deleted_at IS NULL 
                  ORDER BY order_index ASC, name ASC`, [program_id]);
+            const invoicedModulesRes = await this.pool.query(`SELECT id.description, id.module_id
+                 FROM invoice_details id
+                 JOIN invoices i ON id.invoice_id = i.id
+                 WHERE i.student_id = $1 AND i.status != 'VOIDED' AND id.item_id IS NULL AND id.description NOT ILIKE '%Inscripción%'
+                 AND (id.enrollment_id = $2 OR (id.enrollment_id IS NULL AND id.description ILIKE $3))`, [studentId, enrollment_id, `%${program_name}%`]);
+            const invoicedModules = invoicedModulesRes.rows;
+            const uninvoicedModules = allModulesRes.rows.filter(m => {
+                return !invoicedModules.some(inv => {
+                    if (inv.module_id === m.id)
+                        return true;
+                    const invDesc = inv.description.toLowerCase().trim();
+                    const mName = m.name.toLowerCase().trim();
+                    return invDesc.includes(mName) || mName.includes(invDesc);
+                });
+            }).map(m => {
+                const finalModulePrice = parseFloat(m.price) || 0;
+                const moduleDiscount = calculateDiscount(finalModulePrice, 'MONTHLY');
+                return {
+                    id: m.id,
+                    name: m.name,
+                    price: finalModulePrice,
+                    discount: moduleDiscount
+                };
+            });
             let currentSuggestion = {
                 enrollmentId: enrollment_id,
                 programName: program_name,
                 enrollmentFee: null,
-                suggestedModule: null,
+                suggestedModule: uninvoicedModules.length > 0 ? uninvoicedModules[0] : null,
+                uninvoicedModules: uninvoicedModules,
                 addons: [],
                 allModules: allModulesRes.rows,
                 isEnrollmentPaid,
@@ -226,43 +251,12 @@ let BillingService = class BillingService {
                 };
             }
             else if (isEnrollmentPaid) {
-                const modulesRes = await this.pool.query(`SELECT m.* 
-                     FROM academic_modules m 
-                     WHERE m.program_id = $1 AND m.deleted_at IS NULL 
-                     ORDER BY m.order_index ASC`, [program_id]);
-                const modules = modulesRes.rows;
-                if (modules.length > 0) {
-                    const invoicedModulesRes = await this.pool.query(`SELECT id.description, id.module_id
-                         FROM invoice_details id
-                         JOIN invoices i ON id.invoice_id = i.id
-                         WHERE i.student_id = $1 AND i.status != 'VOIDED' AND id.item_id IS NULL AND id.description NOT ILIKE '%Inscripción%'
-                         AND (id.enrollment_id = $2 OR (id.enrollment_id IS NULL AND id.description ILIKE $3))`, [studentId, enrollment_id, `%${program_name}%`]);
-                    const invoicedModules = invoicedModulesRes.rows;
-                    const suggestedModuleData = modules.find(m => {
-                        const isAlreadyInvoiced = invoicedModules.some(inv => {
-                            if (inv.module_id === m.id)
-                                return true;
-                            const invDesc = inv.description.toLowerCase().trim();
-                            const mName = m.name.toLowerCase().trim();
-                            return invDesc.includes(mName) || mName.includes(invDesc);
-                        });
-                        return !isAlreadyInvoiced;
-                    });
-                    if (suggestedModuleData) {
-                        const addonsRes = await this.pool.query(`SELECT bi.* 
-                             FROM academic_module_addons ama
-                             JOIN billing_items bi ON ama.item_id = bi.id
-                             WHERE ama.module_id = $1`, [suggestedModuleData.id]);
-                        const finalModulePrice = parseFloat(suggestedModuleData.price) || 0;
-                        const moduleDiscount = calculateDiscount(finalModulePrice, 'MONTHLY');
-                        currentSuggestion.suggestedModule = {
-                            id: suggestedModuleData.id,
-                            name: suggestedModuleData.name,
-                            price: finalModulePrice,
-                            discount: moduleDiscount
-                        };
-                        currentSuggestion.addons = addonsRes.rows;
-                    }
+                if (currentSuggestion.suggestedModule) {
+                    const addonsRes = await this.pool.query(`SELECT bi.* 
+                         FROM academic_module_addons ama
+                         JOIN billing_items bi ON ama.item_id = bi.id
+                         WHERE ama.module_id = $1`, [currentSuggestion.suggestedModule.id]);
+                    currentSuggestion.addons = addonsRes.rows;
                 }
             }
             else if (isEnrollmentInvoiced && !isEnrollmentPaid) {

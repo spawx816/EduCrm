@@ -116,7 +116,7 @@ export function useAssignExam() {
 export function useUpdateAssignmentSchedule() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async ({ id, cohort_id, start_date, end_date }: { id: string; cohort_id: string; start_date: string; end_date: string }) => {
+        mutationFn: async ({ id, cohort_id: _cohort_id, start_date, end_date }: { id: string; cohort_id: string; start_date: string; end_date: string }) => {
             const res = await apiClient.patch(`/exams/assignments/${id}/schedule`, { start_date, end_date });
             return res.data;
         },

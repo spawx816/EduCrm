@@ -42,9 +42,10 @@ export declare class ExamsService {
         exam_id: string;
         cohort_id: string;
         module_id: string;
-        start_date: string;
-        end_date: string;
+        start_date?: string;
+        end_date?: string;
     }): Promise<any>;
+    updateAssignmentSchedule(id: string, start_date: string, end_date: string): Promise<any>;
     getCohortAssignments(cohortId: string): Promise<any[]>;
     startAttempt(studentId: string, assignmentId: string): Promise<any>;
     submitAttempt(attemptId: string, answers: {
