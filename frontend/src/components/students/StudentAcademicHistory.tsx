@@ -1,4 +1,4 @@
-import { useStudentHistory } from '../../hooks/useStudents';
+import { useStudentHistory, useDeleteEnrollment } from '../../hooks/useStudents';
 import {
     BookOpen, GraduationCap, Clock,
     Trophy, AlertCircle, ChevronRight
@@ -10,6 +10,7 @@ interface StudentAcademicHistoryProps {
 
 export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProps) {
     const { data: history, isLoading } = useStudentHistory(studentId);
+    const deleteEnrollment = useDeleteEnrollment();
 
     if (isLoading) {
         return (
@@ -33,18 +34,31 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
             {history.map((enrollment: any) => (
                 <div key={enrollment.id} className="space-y-6 pt-12 first:pt-0 border-t border-slate-800/50 first:border-0">
                     {/* Enrollment Header */}
-                    <div className="flex items-center space-x-4">
-                        <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/5">
-                            <GraduationCap className="w-6 h-6 text-blue-400" />
-                        </div>
-                        <div>
-                            <h3 className="text-xl font-black text-white tracking-tight">{enrollment.program_name}</h3>
-                            <div className="flex items-center space-x-2 mt-1">
-                                <span className="text-[10px] text-blue-500 font-black uppercase tracking-widest">{enrollment.cohort_name}</span>
-                                <span className="w-1 h-1 bg-slate-700 rounded-full"></span>
-                                <span className={`text-[10px] font-black uppercase tracking-widest ${enrollment.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-500'}`}>{enrollment.status}</span>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-12 h-12 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-blue-500/30 shadow-lg shadow-blue-500/5">
+                                <GraduationCap className="w-6 h-6 text-blue-400" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-black text-white tracking-tight">{enrollment.program_name}</h3>
+                                <div className="flex items-center space-x-2 mt-1">
+                                    <span className="text-[10px] text-blue-500 font-black uppercase tracking-widest">{enrollment.cohort_name}</span>
+                                    <span className="w-1 h-1 bg-slate-700 rounded-full"></span>
+                                    <span className={`text-[10px] font-black uppercase tracking-widest ${enrollment.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-500'}`}>{enrollment.status}</span>
+                                </div>
                             </div>
                         </div>
+                        <button
+                            onClick={() => {
+                                if (confirm(`¿Estás seguro de ELIMINAR la inscripción en ${enrollment.program_name}? Se borrarán también las notas y asistencias de este programa para este estudiante.`)) {
+                                    deleteEnrollment.mutate({ studentId, enrollmentId: enrollment.id });
+                                }
+                            }}
+                            className="p-2 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all group"
+                            title="Eliminar Inscripción"
+                        >
+                            <AlertCircle className="w-4 h-4" />
+                        </button>
                     </div>
 
                     {/* Modules Timeline */}

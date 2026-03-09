@@ -50,9 +50,11 @@ export class BillingService {
 
     async getInvoiceById(id: string) {
         const invoiceRes = await this.pool.query(
-            `SELECT i.*, s.first_name, s.last_name, s.email, s.phone 
+            `SELECT i.*, s.first_name, s.last_name, s.email, s.phone,
+                    u.first_name as voided_by_first_name, u.last_name as voided_by_last_name 
              FROM invoices i 
              JOIN students s ON i.student_id = s.id 
+             LEFT JOIN users u ON i.voided_by = u.id
              WHERE i.id = $1`,
             [id]
         );
@@ -219,7 +221,7 @@ export class BillingService {
         return res.rows[0];
     }
 
-    async voidInvoice(id: string) {
+    async voidInvoice(id: string, voidedBy?: string) {
         const client = await this.pool.connect();
         try {
             await client.query('BEGIN');
@@ -251,8 +253,8 @@ export class BillingService {
 
             // Update status to VOIDED - ALLOW IT EVEN IF PAID/PARTIAL as per user request to "limpiar"
             const res = await client.query(
-                "UPDATE invoices SET status = 'VOIDED' WHERE id = $1 RETURNING *",
-                [id]
+                "UPDATE invoices SET status = 'VOIDED', voided_at = NOW(), voided_by = $2 WHERE id = $1 RETURNING *",
+                [id, voidedBy]
             );
 
             await client.query('COMMIT');

@@ -48,7 +48,14 @@ export function InvoiceDetailsModal({ isOpen, onClose, invoice }: InvoiceDetails
                         </div>
                         <div>
                             <h2 className="text-xl font-bold text-white tracking-tight">Detalles de Factura</h2>
-                            <p className="text-xs text-slate-500">Nº {invoice.invoice_number} • {new Date(invoice.created_at).toLocaleDateString()}</p>
+                            <p className="text-xs text-slate-500">
+                                Nº {invoice.invoice_number} • {new Date(invoice.created_at).toLocaleDateString()}
+                                {invoice.status === 'VOIDED' && invoice.voided_by_first_name && (
+                                    <span className="ml-2 text-rose-500 font-bold uppercase tracking-tighter">
+                                        • ANULADA POR: {invoice.voided_by_first_name} {invoice.voided_by_last_name}
+                                    </span>
+                                )}
+                            </p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-slate-500 hover:text-white transition-colors">

@@ -25,7 +25,8 @@ export function EditStudentModal({ isOpen, onClose, student }: EditStudentModalP
         phone: '',
         address: '',
         sede_id: '',
-        status: 'ACTIVE'
+        status: 'ACTIVE',
+        is_active: true
     });
 
     useEffect(() => {
@@ -39,7 +40,8 @@ export function EditStudentModal({ isOpen, onClose, student }: EditStudentModalP
                 phone: student.phone || '',
                 address: student.address || '',
                 sede_id: student.sede_id || '',
-                status: student.status || 'ACTIVE'
+                status: student.status || 'ACTIVE',
+                is_active: student.is_active ?? true
             });
             setIsSubmitting(false);
         }
@@ -209,25 +211,51 @@ export function EditStudentModal({ isOpen, onClose, student }: EditStudentModalP
 
                         {/* Estado y Dirección */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 tracking-wider uppercase">Estado del Estudiante</label>
-                                <select
-                                    value={formData.status}
-                                    onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                    className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-900/50 text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                                >
-                                    <option value="ACTIVE">Activo</option>
-                                    <option value="INACTIVE">Inactivo</option>
-                                </select>
+                            <div className="space-y-4">
+                                <label className="text-xs font-bold text-slate-400 tracking-wider uppercase">Estado de Cuenta</label>
+                                <div className="flex items-center space-x-4 p-4 bg-slate-900/50 border border-slate-700 rounded-xl">
+                                    <label className="flex items-center cursor-pointer group">
+                                        <div className="relative">
+                                            <input
+                                                type="checkbox"
+                                                className="sr-only"
+                                                checked={formData.is_active}
+                                                onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
+                                            />
+                                            <div className={`block w-10 h-6 rounded-full transition-colors ${formData.is_active ? 'bg-emerald-500' : 'bg-slate-700'}`}></div>
+                                            <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${formData.is_active ? 'translate-x-4' : ''}`}></div>
+                                        </div>
+                                        <div className="ml-3">
+                                            <p className={`text-sm font-bold ${formData.is_active ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                                {formData.is_active ? 'Cuenta Habilitada' : 'Cuenta Deshabilitada'}
+                                            </p>
+                                            <p className="text-[10px] text-slate-500">Acceso al portal estudiantil.</p>
+                                        </div>
+                                    </label>
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-slate-400 tracking-wider uppercase">Dirección Física</label>
-                                <textarea
-                                    rows={1}
-                                    value={formData.address}
-                                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                                    className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-900/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner resize-none"
-                                />
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-400 tracking-wider uppercase">Tipo de Estado</label>
+                                    <select
+                                        value={formData.status}
+                                        onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                        className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-900/50 text-white appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                                    >
+                                        <option value="ACTIVE">Regular</option>
+                                        <option value="INACTIVE">Retirado</option>
+                                        <option value="GRADUATED">Graduado</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-slate-400 tracking-wider uppercase">Dirección Física</label>
+                                    <textarea
+                                        rows={1}
+                                        value={formData.address}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                        className="block w-full px-4 py-3 border border-slate-700 rounded-xl bg-slate-900/50 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all shadow-inner resize-none"
+                                    />
+                                </div>
                             </div>
                         </div>
                     </form>
@@ -261,7 +289,7 @@ export function EditStudentModal({ isOpen, onClose, student }: EditStudentModalP
                         )}
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

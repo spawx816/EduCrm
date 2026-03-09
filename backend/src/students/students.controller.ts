@@ -40,6 +40,11 @@ export class StudentsController {
     return this.studentsService.enroll(data);
   }
 
+  @Delete('enrollments/:id')
+  async deleteEnrollment(@Param('id') id: string) {
+    return this.studentsService.deleteEnrollment(id);
+  }
+
   @Get(':id/full-history')
   async getFullHistory(@Param('id') id: string) {
     return this.studentsService.getFullHistory(id);

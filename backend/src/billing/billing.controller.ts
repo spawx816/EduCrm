@@ -101,8 +101,8 @@ export class BillingController {
         res.end(buffer);
     }
     @Post('invoices/:id/void')
-    async voidInvoice(@Param('id') id: string) {
-        return this.billingService.voidInvoice(id);
+    async voidInvoice(@Param('id') id: string, @Req() req: any) {
+        return this.billingService.voidInvoice(id, req?.user?.id);
     }
 
     @Delete('invoices/:id')

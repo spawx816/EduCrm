@@ -148,3 +148,16 @@ export function useUploadStudentAvatar() {
         },
     });
 }
+export function useDeleteEnrollment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ enrollmentId }: { studentId: string; enrollmentId: string }) => {
+            const { data } = await apiClient.delete(`/students/enrollments/${enrollmentId}`);
+            return data;
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['students', variables.studentId] });
+            queryClient.invalidateQueries({ queryKey: ['students', variables.studentId, 'history'] });
+        },
+    });
+}

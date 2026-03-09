@@ -166,6 +166,7 @@ export class StudentsService {
     address?: string;
     status?: string;
     sede_id?: string;
+    is_active?: boolean;
   }) {
     try {
       const res = await this.pool.query(
@@ -179,8 +180,9 @@ export class StudentsService {
              address = COALESCE($7, address),
              status = COALESCE($8, status),
              sede_id = COALESCE($9, sede_id),
+             is_active = COALESCE($10, is_active),
              updated_at = NOW()
-         WHERE id = $10 AND deleted_at IS NULL
+         WHERE id = $11 AND deleted_at IS NULL
          RETURNING *`,
         [
           data.first_name,
@@ -192,6 +194,7 @@ export class StudentsService {
           data.address,
           data.status,
           data.sede_id || null,
+          data.is_active,
           id
         ]
       );
@@ -406,5 +409,39 @@ export class StudentsService {
     );
 
     return updateRes.rows[0];
+  }
+
+  async deleteEnrollment(id: string) {
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // Check if enrollment exists
+      const enrollmentRes = await client.query('SELECT * FROM enrollments WHERE id = $1', [id]);
+      if (enrollmentRes.rows.length === 0) throw new NotFoundException('Enrollment not found');
+
+      // Delete related records (grades, attendance, exam attempts)
+      await client.query('DELETE FROM grades WHERE cohort_id = $1 AND student_id = $2', [enrollmentRes.rows[0].cohort_id, enrollmentRes.rows[0].student_id]);
+      await client.query('DELETE FROM attendance WHERE cohort_id = $1 AND student_id = $2', [enrollmentRes.rows[0].cohort_id, enrollmentRes.rows[0].student_id]);
+
+      // Delete exam attempts related to this cohort+student indirectly
+      await client.query(`
+        DELETE FROM exam_attempts 
+        WHERE student_id = $1 AND assignment_id IN (
+            SELECT id FROM exam_assignments WHERE cohort_id = $2
+        )
+      `, [enrollmentRes.rows[0].student_id, enrollmentRes.rows[0].cohort_id]);
+
+      // Finally delete the enrollment
+      const res = await client.query('DELETE FROM enrollments WHERE id = $1 RETURNING *', [id]);
+
+      await client.query('COMMIT');
+      return res.rows[0];
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   }
 }
