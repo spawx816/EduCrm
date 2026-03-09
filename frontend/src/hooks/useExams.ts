@@ -103,8 +103,21 @@ export function useDeleteQuestion() {
 export function useAssignExam() {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (data: { exam_id: string; cohort_id: string; module_id: string; start_date: string; end_date: string }) => {
+        mutationFn: async (data: { exam_id: string; cohort_id: string; module_id: string; start_date?: string; end_date?: string }) => {
             const res = await apiClient.post('/exams/assign', data);
+            return res.data;
+        },
+        onSuccess: (_, variables) => {
+            queryClient.invalidateQueries({ queryKey: ['exams', 'cohort', variables.cohort_id] });
+        }
+    });
+}
+
+export function useUpdateAssignmentSchedule() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id, cohort_id, start_date, end_date }: { id: string; cohort_id: string; start_date: string; end_date: string }) => {
+            const res = await apiClient.patch(`/exams/assignments/${id}/schedule`, { start_date, end_date });
             return res.data;
         },
         onSuccess: (_, variables) => {

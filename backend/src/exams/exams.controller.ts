@@ -1,13 +1,18 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, Put, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, UseGuards, Request, Put, Delete, Patch } from '@nestjs/common';
 import { ExamsService } from './exams.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('exams')
 export class ExamsController {
     constructor(private readonly examsService: ExamsService) { }
 
+    @Roles('admin', 'director')
     @Post()
-    async createExam(@Body() data: any) {
-        return this.examsService.createExam(data);
+    async createExam(@Body() data: any, @Request() req: any) {
+        return this.examsService.createExam({ ...data, created_by: req.user.id });
     }
 
     @Get('module/:moduleId')
@@ -25,29 +30,40 @@ export class ExamsController {
         return this.examsService.getAttemptDetail(attemptId);
     }
 
+    @Roles('admin', 'director')
     @Post(':id/questions')
     async addQuestion(@Param('id') id: string, @Body() data: any) {
         return this.examsService.addQuestion(id, data);
     }
 
+    @Roles('admin', 'director')
     @Put(':id')
     async updateExam(@Param('id') id: string, @Body() data: any) {
         return this.examsService.updateExam(id, data);
     }
 
+    @Roles('admin', 'director')
     @Put('questions/:id')
     async updateQuestion(@Param('id') id: string, @Body() data: any) {
         return this.examsService.updateQuestion(id, data);
     }
 
+    @Roles('admin', 'director')
     @Delete('questions/:id')
     async deleteQuestion(@Param('id') id: string) {
         return this.examsService.deleteQuestion(id);
     }
 
+    @Roles('admin', 'director')
     @Post('assign')
     async assignExam(@Body() data: any) {
         return this.examsService.assignExam(data);
+    }
+
+    @Roles('admin', 'director', 'docente')
+    @Patch('assignments/:id/schedule')
+    async updateAssignmentSchedule(@Param('id') id: string, @Body() data: { start_date: string; end_date: string }) {
+        return this.examsService.updateAssignmentSchedule(id, data.start_date, data.end_date);
     }
 
     @Get('cohort/:cohortId/assignments')

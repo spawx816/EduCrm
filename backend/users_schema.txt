@@ -1,0 +1,32 @@
+                                Table "public.users"
+    Column     |           Type           | Collation | Nullable |      Default      
+---------------+--------------------------+-----------+----------+-------------------
+ id            | uuid                     |           | not null | gen_random_uuid()
+ email         | character varying(255)   |           | not null | 
+ password_hash | character varying(255)   |           | not null | 
+ first_name    | character varying(100)   |           |          | 
+ last_name     | character varying(100)   |           |          | 
+ phone         | character varying(20)    |           |          | 
+ avatar_url    | text                     |           |          | 
+ role_id       | uuid                     |           |          | 
+ sede_ids      | uuid[]                   |           |          | 
+ is_active     | boolean                  |           |          | true
+ last_login_at | timestamp with time zone |           |          | 
+ created_at    | timestamp with time zone |           |          | now()
+ updated_at    | timestamp with time zone |           |          | now()
+ deleted_at    | timestamp with time zone |           |          | 
+Indexes:
+    "users_pkey" PRIMARY KEY, btree (id)
+    "idx_users_email" btree (email)
+    "users_email_key" UNIQUE CONSTRAINT, btree (email)
+Foreign-key constraints:
+    "users_role_id_fkey" FOREIGN KEY (role_id) REFERENCES roles(id)
+Referenced by:
+    TABLE "academic_cohort_modules" CONSTRAINT "academic_cohort_modules_teacher_id_fkey" FOREIGN KEY (teacher_id) REFERENCES users(id)
+    TABLE "exams" CONSTRAINT "exams_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+    TABLE "expenses" CONSTRAINT "expenses_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+    TABLE "instructor_payments" CONSTRAINT "instructor_payments_teacher_id_fkey" FOREIGN KEY (teacher_id) REFERENCES users(id)
+    TABLE "inventory_movements" CONSTRAINT "inventory_movements_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+    TABLE "invoices" CONSTRAINT "invoices_created_by_fkey" FOREIGN KEY (created_by) REFERENCES users(id)
+    TABLE "leads" CONSTRAINT "leads_assigned_to_fkey" FOREIGN KEY (assigned_to) REFERENCES users(id)
+
