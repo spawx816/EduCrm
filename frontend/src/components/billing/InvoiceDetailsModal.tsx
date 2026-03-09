@@ -1,6 +1,7 @@
 import { X, Receipt, DollarSign, Calendar, Clock, CreditCard } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../lib/api-client.ts';
+import { useVoidInvoice, useDeleteInvoice } from '../../hooks/useBilling.ts';
 
 interface InvoiceDetailsModalProps {
     isOpen: boolean;
@@ -9,6 +10,9 @@ interface InvoiceDetailsModalProps {
 }
 
 export function InvoiceDetailsModal({ isOpen, onClose, invoice }: InvoiceDetailsModalProps) {
+    const voidInvoice = useVoidInvoice();
+    const deleteInvoice = useDeleteInvoice();
+
     const { data: payments, isLoading: isLoadingPayments } = useQuery({
         queryKey: ['payments', invoice?.id],
         queryFn: async () => {
@@ -168,7 +172,33 @@ export function InvoiceDetailsModal({ isOpen, onClose, invoice }: InvoiceDetails
                 </div>
 
                 {/* Footer */}
-                <div className="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-end">
+                <div className="p-4 border-t border-slate-800 bg-slate-900/50 flex justify-between items-center">
+                    <div className="flex space-x-2">
+                        {invoice.status !== 'VOIDED' && (
+                            <button
+                                onClick={() => {
+                                    if (confirm(`¿Estás seguro de ANULAR la factura ${invoice.invoice_number}? Se revertirá el inventario pero la factura quedará en el registro como ANULADA.`)) {
+                                        voidInvoice.mutate(invoice.id);
+                                        onClose();
+                                    }
+                                }}
+                                className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white font-bold text-[10px] uppercase tracking-widest transition-all"
+                            >
+                                Anular Factura
+                            </button>
+                        )}
+                        <button
+                            onClick={() => {
+                                if (confirm(`🚨 ¿ELIMINAR COMPLETAMENTE la factura ${invoice.invoice_number}? Esta acción borrará la factura, sus detalles y pagos del sistema. No quedará registro de ella.`)) {
+                                    deleteInvoice.mutate(invoice.id);
+                                    onClose();
+                                }
+                            }}
+                            className="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white font-bold text-[10px] uppercase tracking-widest transition-all"
+                        >
+                            Eliminar (Limpiar)
+                        </button>
+                    </div>
                     <button
                         onClick={onClose}
                         className="px-6 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs transition-all"

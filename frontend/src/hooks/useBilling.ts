@@ -141,6 +141,19 @@ export function useVoidInvoice() {
     });
 }
 
+export function useDeleteInvoice() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const res = await apiClient.delete(`/billing/invoices/${id}`);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['invoices'] });
+        },
+    });
+}
+
 export function useInventoryMovements(itemId?: string) {
     return useQuery({
         queryKey: ['inventoryMovements', itemId],

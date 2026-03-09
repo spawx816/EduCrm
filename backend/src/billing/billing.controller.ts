@@ -105,6 +105,11 @@ export class BillingController {
         return this.billingService.voidInvoice(id);
     }
 
+    @Delete('invoices/:id')
+    async deleteInvoice(@Param('id') id: string) {
+        return this.billingService.deleteInvoice(id);
+    }
+
     @Get('suggestions/:studentId')
     async getSuggestions(@Param('studentId') studentId: string) {
         return this.billingService.getInvoiceSuggestions(studentId);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useInvoices, useBillingItems, useVoidInvoice } from '../../hooks/useBilling.ts';
+import { useInvoices, useBillingItems, useVoidInvoice, useDeleteInvoice } from '../../hooks/useBilling.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import { Receipt, Plus, DollarSign, Clock, CheckCircle, AlertCircle, Search, Tag, Eye, Trash2 } from 'lucide-react';
 import apiClient from '../../lib/api-client.ts';
@@ -25,6 +25,7 @@ export function BillingDashboard() {
     });
     const { data: items, isLoading: isLoadingItems } = useBillingItems();
     const voidInvoice = useVoidInvoice();
+    const deleteInvoice = useDeleteInvoice();
 
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -218,7 +219,7 @@ export function BillingDashboard() {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 text-right">
-                                                    <div className="flex items-center justify-end space-x-2">
+                                                    <div className="flex items-center justify-end space-x-1">
                                                         <button
                                                             onClick={() => {
                                                                 setSelectedInvoice(invoice);
@@ -250,31 +251,43 @@ export function BillingDashboard() {
                                                         </button>
 
                                                         {invoice.status !== 'PAID' && invoice.status !== 'VOIDED' && (
-                                                            <>
-                                                                <button
-                                                                    onClick={() => {
-                                                                        setSelectedInvoice(invoice);
-                                                                        setIsPaymentModalOpen(true);
-                                                                    }}
-                                                                    className="text-emerald-500 hover:text-emerald-400 p-1.5 hover:bg-emerald-500/10 rounded-lg transition-all"
-                                                                    title="Registrar Pago"
-                                                                >
-                                                                    <DollarSign className="w-4 h-4" />
-                                                                </button>
-
-                                                                <button
-                                                                    onClick={() => {
-                                                                        if (confirm(`¿Estás seguro de anular la factura ${invoice.invoice_number}? Esta acción no se puede deshacer.`)) {
-                                                                            voidInvoice.mutate(invoice.id);
-                                                                        }
-                                                                    }}
-                                                                    className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-500/10 rounded-lg transition-all"
-                                                                    title="Anular Factura"
-                                                                >
-                                                                    <Trash2 className="w-4 h-4" />
-                                                                </button>
-                                                            </>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedInvoice(invoice);
+                                                                    setIsPaymentModalOpen(true);
+                                                                }}
+                                                                className="text-emerald-500 hover:text-emerald-400 p-1.5 hover:bg-emerald-500/10 rounded-lg transition-all"
+                                                                title="Registrar Pago"
+                                                            >
+                                                                <DollarSign className="w-4 h-4" />
+                                                            </button>
                                                         )}
+
+                                                        {invoice.status !== 'VOIDED' && (
+                                                            <button
+                                                                onClick={() => {
+                                                                    if (confirm(`¿Estás seguro de ANULAR la factura ${invoice.invoice_number}? Se revertirá el inventario pero la factura quedará en el registro como ANULADA.`)) {
+                                                                        voidInvoice.mutate(invoice.id);
+                                                                    }
+                                                                }}
+                                                                className="text-slate-400 hover:text-amber-500 p-1.5 hover:bg-amber-500/10 rounded-lg transition-all"
+                                                                title="Anular Factura"
+                                                            >
+                                                                <AlertCircle className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+
+                                                        <button
+                                                            onClick={() => {
+                                                                if (confirm(`🚨 ¿ELIMINAR COMPLETAMENTE la factura ${invoice.invoice_number}? Esta acción borrará la factura, sus detalles y pagos del sistema. No quedará registro de ella.`)) {
+                                                                    deleteInvoice.mutate(invoice.id);
+                                                                }
+                                                            }}
+                                                            className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-500/10 rounded-lg transition-all"
+                                                            title="Eliminar Factura (Limpiar)"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
                                                     </div>
                                                 </td>
                                             </tr>

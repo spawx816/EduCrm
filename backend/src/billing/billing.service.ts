@@ -220,11 +220,90 @@ export class BillingService {
     }
 
     async voidInvoice(id: string) {
-        const res = await this.pool.query(
-            "UPDATE invoices SET status = 'VOIDED' WHERE id = $1 AND status != 'PAID' RETURNING *",
-            [id]
-        );
-        return res.rows[0];
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Find current status
+            const currentRes = await client.query('SELECT status, invoice_number FROM invoices WHERE id = $1', [id]);
+            if (currentRes.rows.length === 0) throw new Error('Invoice not found');
+            if (currentRes.rows[0].status === 'VOIDED') {
+                await client.query('ROLLBACK');
+                return currentRes.rows[0];
+            }
+
+            // Revert inventory
+            const details = await client.query('SELECT item_id, quantity FROM invoice_details WHERE invoice_id = $1 AND item_id IS NOT NULL', [id]);
+            for (const item of details.rows) {
+                const itemCheck = await client.query('SELECT is_inventory FROM billing_items WHERE id = $1', [item.item_id]);
+                if (itemCheck.rows[0]?.is_inventory) {
+                    await client.query(
+                        `INSERT INTO inventory_movements (item_id, type, quantity, reference_type, reference_id, notes)
+                     VALUES ($1, 'IN', $2, 'VOIDED_INVOICE', $3, $4)`,
+                        [item.item_id, item.quantity, id, `Anulación de factura ${currentRes.rows[0].invoice_number}`]
+                    );
+                    await client.query(
+                        'UPDATE billing_items SET stock_quantity = stock_quantity + $1 WHERE id = $2',
+                        [item.quantity, item.item_id]
+                    );
+                }
+            }
+
+            // Update status to VOIDED - ALLOW IT EVEN IF PAID/PARTIAL as per user request to "limpiar"
+            const res = await client.query(
+                "UPDATE invoices SET status = 'VOIDED' WHERE id = $1 RETURNING *",
+                [id]
+            );
+
+            await client.query('COMMIT');
+            return res.rows[0];
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    async deleteInvoice(id: string) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const currentRes = await client.query('SELECT status, invoice_number FROM invoices WHERE id = $1', [id]);
+            if (currentRes.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return null;
+            }
+
+            // If not VOIDED, revert inventory before deleting
+            if (currentRes.rows[0].status !== 'VOIDED') {
+                const details = await client.query('SELECT item_id, quantity FROM invoice_details WHERE invoice_id = $1 AND item_id IS NOT NULL', [id]);
+                for (const item of details.rows) {
+                    const itemCheck = await client.query('SELECT is_inventory FROM billing_items WHERE id = $1', [item.item_id]);
+                    if (itemCheck.rows[0]?.is_inventory) {
+                        await client.query(
+                            'UPDATE billing_items SET stock_quantity = stock_quantity + $1 WHERE id = $2',
+                            [item.quantity, item.item_id]
+                        );
+                    }
+                }
+            }
+
+            // Now delete all related records
+            await client.query('DELETE FROM invoice_payments WHERE invoice_id = $1', [id]);
+            await client.query('DELETE FROM invoice_details WHERE invoice_id = $1', [id]);
+            await client.query("DELETE FROM inventory_movements WHERE reference_id = $1 AND reference_type = 'INVOICE'", [id]);
+            const res = await client.query('DELETE FROM invoices WHERE id = $1 RETURNING *', [id]);
+
+            await client.query('COMMIT');
+            return res.rows[0];
+        } catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 
     // Smart Suggestions
