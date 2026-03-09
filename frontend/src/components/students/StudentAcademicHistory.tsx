@@ -56,8 +56,14 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                             const presentCount = (Array.isArray(module.attendance) ? module.attendance : []).filter((a: any) => a.status === 'PRESENT').length || 0;
                             const attendanceRate = attendanceCount > 0 ? (presentCount / attendanceCount) * 100 : 0;
 
-                            const averageGrade = module.grades?.length > 0
-                                ? (module.grades.reduce((acc: number, g: any) => acc + parseFloat(g.value), 0) / module.grades.length).toFixed(1)
+                            const completedExams = (Array.isArray(module.exams) ? module.exams : []).filter((ex: any) => ex.attempt_status === 'COMPLETED');
+                            const allModuleScores = [
+                                ...(module.grades || []).map((g: any) => parseFloat(g.value)),
+                                ...completedExams.map((ex: any) => parseFloat(ex.score))
+                            ];
+
+                            const averageGrade = allModuleScores.length > 0
+                                ? (allModuleScores.reduce((acc, val) => acc + val, 0) / allModuleScores.length).toFixed(1)
                                 : null;
 
                             return (

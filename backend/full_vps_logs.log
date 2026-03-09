@@ -2,30 +2,6 @@
   line: [32m'1066'[39m,
   routine: [32m'checkInsertTargets'[39m
 }
-[31m[Nest] 64700  - [39m03/08/2026, 10:55:40 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column "match_text" of relation "exam_options" does not exist
-    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg[24m/lib/client.js:624:17
-[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
-    at ExamsService.addQuestion [90m(/home/deploy/apps/EduCrm/backend/[39msrc/exams/exams.service.ts:95:21[90m)[39m
-    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
-    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
-  length: [33m135[39m,
-  severity: [32m'ERROR'[39m,
-  code: [32m'42703'[39m,
-  detail: [90mundefined[39m,
-  hint: [90mundefined[39m,
-  position: [32m'58'[39m,
-  internalPosition: [90mundefined[39m,
-  internalQuery: [90mundefined[39m,
-  where: [90mundefined[39m,
-  schema: [90mundefined[39m,
-  table: [90mundefined[39m,
-  column: [90mundefined[39m,
-  dataType: [90mundefined[39m,
-  constraint: [90mundefined[39m,
-  file: [32m'parse_target.c'[39m,
-  line: [32m'1066'[39m,
-  routine: [32m'checkInsertTargets'[39m
-}
 [31m[Nest] 64700  - [39m03/08/2026, 10:55:41 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column "match_text" of relation "exam_options" does not exist
     at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg[24m/lib/client.js:624:17
 [90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
@@ -98,104 +74,128 @@
   line: [32m'1066'[39m,
   routine: [32m'checkInsertTargets'[39m
 }
+[31m[Nest] 71509  - [39m03/08/2026, 11:43:00 PM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: there is no unique or exclusion constraint matching the ON CONFLICT specification
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg[24m/lib/client.js:624:17
+[90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+    at AcademicService.registerGrades [90m(/home/deploy/apps/EduCrm/backend/[39msrc/academic/academic.service.ts:292:9[90m)[39m
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
+    at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
+  length: [33m148[39m,
+  severity: [32m'ERROR'[39m,
+  code: [32m'42P10'[39m,
+  detail: [90mundefined[39m,
+  hint: [90mundefined[39m,
+  position: [90mundefined[39m,
+  internalPosition: [90mundefined[39m,
+  internalQuery: [90mundefined[39m,
+  where: [90mundefined[39m,
+  schema: [90mundefined[39m,
+  table: [90mundefined[39m,
+  column: [90mundefined[39m,
+  dataType: [90mundefined[39m,
+  constraint: [90mundefined[39m,
+  file: [32m'plancat.c'[39m,
+  line: [32m'920'[39m,
+  routine: [32m'infer_arbiter_indexes'[39m
+}
 --- OUT LOG ---
-[2026-03-08T22:32:24.328Z] GET /leads
-[2026-03-08T22:32:24.334Z] GET /leads
-[2026-03-08T22:33:24.330Z] GET /leads
-[2026-03-08T22:33:24.332Z] GET /leads
-[2026-03-08T22:34:24.319Z] GET /leads
-[2026-03-08T22:34:24.320Z] GET /leads
-[2026-03-08T22:35:24.326Z] GET /leads
-[2026-03-08T22:35:24.330Z] GET /leads
-[2026-03-08T22:36:24.334Z] GET /leads
-[2026-03-08T22:36:24.337Z] GET /leads
-[2026-03-08T22:37:24.335Z] GET /leads
-[2026-03-08T22:37:24.336Z] GET /leads
-[2026-03-08T22:38:24.338Z] GET /leads
-[2026-03-08T22:38:24.342Z] GET /leads
-[2026-03-08T22:39:24.349Z] GET /leads
-[2026-03-08T22:39:24.350Z] GET /leads
-[2026-03-08T22:40:24.343Z] GET /leads
-[2026-03-08T22:40:24.346Z] GET /leads
-[2026-03-08T22:41:24.325Z] GET /leads
-[2026-03-08T22:41:24.330Z] GET /leads
-[2026-03-08T22:42:24.318Z] GET /leads
-[2026-03-08T22:42:24.327Z] GET /leads
-[2026-03-08T22:43:24.312Z] GET /leads
-[2026-03-08T22:43:24.318Z] GET /leads
-[2026-03-08T22:44:24.332Z] GET /leads
-[2026-03-08T22:44:24.336Z] GET /leads
-[2026-03-08T22:45:24.335Z] GET /leads
-[2026-03-08T22:45:24.345Z] GET /leads
-[2026-03-08T22:46:24.313Z] GET /leads
-[2026-03-08T22:46:24.314Z] GET /leads
-[2026-03-08T22:47:24.345Z] GET /leads
-[2026-03-08T22:47:24.352Z] GET /leads
-[2026-03-08T22:48:24.342Z] GET /leads
-[2026-03-08T22:48:24.346Z] GET /leads
-[2026-03-08T22:49:24.329Z] GET /leads
-[2026-03-08T22:49:24.329Z] GET /leads
-[2026-03-08T22:50:24.355Z] GET /leads
-[2026-03-08T22:51:22.034Z] GET /leads
-[2026-03-08T22:51:28.019Z] GET /academic/programs
-[2026-03-08T22:51:28.103Z] GET /billing/scholarships
-[2026-03-08T22:51:28.175Z] GET /leads
-[2026-03-08T22:51:28.178Z] GET /academic/cohorts?programId=
-[2026-03-08T22:51:30.335Z] GET /settings
-[2026-03-08T22:51:46.365Z] POST /auth/login
-Body: {"email":"admin@educrm.com","password":"password123"}
-[2026-03-08T22:51:46.611Z] GET /stats/dashboard
-[2026-03-08T22:51:46.639Z] GET /leads
-[2026-03-08T22:51:46.643Z] GET /settings
-[2026-03-08T22:51:46.869Z] GET /uploads/settings/c457aa08-e2d8-4d55-9dad-b50cf9898112.png
-[2026-03-08T22:51:48.847Z] GET /billing/scholarships
-[2026-03-08T22:51:48.847Z] GET /academic/programs
-[2026-03-08T22:51:48.857Z] GET /academic/cohorts?programId=
-[2026-03-08T22:51:48.863Z] GET /leads
-[2026-03-08T22:51:56.242Z] GET /integrations/keys
-[2026-03-08T22:51:58.209Z] GET /billing/expenses/categories
-[2026-03-08T22:51:58.212Z] GET /billing/expenses?categoryId=&startDate=&endDate=
-[2026-03-08T22:52:00.011Z] GET /academic/programs
-[2026-03-08T22:52:00.720Z] GET /billing/invoices?status=ALL&search=&startDate=&endDate=
-[2026-03-08T22:52:00.721Z] GET /billing/items
-[2026-03-08T22:52:00.841Z] GET /billing/items
-[2026-03-08T22:52:00.848Z] GET /students
-[2026-03-08T22:52:01.770Z] GET /academic/programs
-[2026-03-08T22:52:02.850Z] GET /academic/cohorts?programId=3deb445e-6209-45f2-ac46-9a2f3819dd77
-[2026-03-08T22:52:02.943Z] GET /academic/programs
-[2026-03-08T22:52:05.879Z] GET /academic/cohorts/b24f8a95-80db-4cb5-9800-3f4cced2b40d/modules
-[2026-03-08T22:52:07.333Z] GET /exams/module/5755e35b-e104-40e5-9fc8-e15ef8cca775
-[2026-03-08T22:52:07.335Z] GET /exams/cohort/b24f8a95-80db-4cb5-9800-3f4cced2b40d/assignments
-[2026-03-08T22:52:10.949Z] GET /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b
-[2026-03-08T22:52:16.577Z] GET /leads
-[2026-03-08T22:52:33.826Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
-Body: {"text":"1231","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"123","is_correct":true},{"text":"123","is_correct":false}]}
-[2026-03-08T22:52:46.591Z] GET /leads
-[2026-03-08T22:53:16.741Z] GET /leads
-[2026-03-08T22:53:46.744Z] GET /leads
-[2026-03-08T22:54:17.448Z] GET /leads
-[2026-03-08T22:54:47.915Z] GET /leads
-[2026-03-08T22:55:17.435Z] GET /leads
-[2026-03-08T22:55:40.629Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
-Body: {"text":"1231","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"123","is_correct":true},{"text":"123","is_correct":false}]}
-[2026-03-08T22:55:41.260Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
-Body: {"text":"1231","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"123","is_correct":true},{"text":"123","is_correct":false}]}
-[2026-03-08T22:55:44.947Z] GET /leads
-[2026-03-08T22:55:44.950Z] GET /stats/dashboard
-[2026-03-08T22:55:45.046Z] GET /settings
-[2026-03-08T22:55:45.073Z] GET /settings
-[2026-03-08T22:55:45.403Z] GET /uploads/settings/c457aa08-e2d8-4d55-9dad-b50cf9898112.png
-[2026-03-08T22:55:46.616Z] GET /academic/programs
-[2026-03-08T22:55:52.354Z] GET /academic/cohorts?programId=3deb445e-6209-45f2-ac46-9a2f3819dd77
-[2026-03-08T22:55:52.462Z] GET /academic/programs
-[2026-03-08T22:55:53.956Z] GET /academic/cohorts/b24f8a95-80db-4cb5-9800-3f4cced2b40d/modules
-[2026-03-08T22:55:55.218Z] GET /exams/module/5755e35b-e104-40e5-9fc8-e15ef8cca775
-[2026-03-08T22:55:55.286Z] GET /exams/cohort/b24f8a95-80db-4cb5-9800-3f4cced2b40d/assignments
-[2026-03-08T22:56:03.177Z] GET /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b
-[2026-03-08T22:56:13.560Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
-Body: {"text":"12","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"1","is_correct":true},{"text":"13","is_correct":false}]}
-[2026-03-08T22:56:14.917Z] GET /leads
-[2026-03-08T22:56:45.064Z] GET /leads
-[2026-03-08T22:56:47.890Z] POST /exams/e048adca-b5f8-4df0-90ea-68d3f86bdc0b/questions
-Body: {"text":"122134","type":"MULTIPLE_CHOICE","points":1,"image_url":"","options":[{"text":"1","is_correct":true},{"text":"13","is_correct":false},{"text":"123","is_correct":false}]}
-[2026-03-08T22:57:15.465Z] GET /leads
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/students/portal/academic/:studentId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/students/portal/attendance/:studentId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/students/portal/grades/:studentId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/students/:id/attachments, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/students/:id/attachments, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/students/attachments/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/students/:id/avatar, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mBillingController {/billing}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/items, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/scholarships, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/scholarships, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/scholarships/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/items, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/invoices, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/invoices/:id/pdf, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/invoices/:id/items, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/invoices, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/payments, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/payments, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/instructor-payments, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/instructor-payments, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/instructor-payments/:id/pdf, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/invoices/:id/void, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/suggestions/:studentId, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/inventory/movements, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/inventory/adjust, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/expenses/categories, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/expenses, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/expenses, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/billing/expenses/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mStatsController {/stats}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/stats/dashboard, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mExamsController {/exams}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/module/:moduleId, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/:id, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/attempts/:attemptId/detail, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/:id/questions, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/questions/:id, PUT} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/questions/:id, DELETE} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/assign, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/cohort/:cohortId/assignments, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/assignments/:assignmentId/results, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/attempts/start, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/attempts/:attemptId/submit, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/exams/student/:studentId/attempts, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSettingsController {/settings}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/settings, PATCH} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 71509  - [39m03/08/2026, 11:27:12 PM [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +3ms[39m
+Database schema maintenance completed.
+[2026-03-08T23:27:24.320Z] GET /leads
+[2026-03-08T23:28:04.648Z] GET /api/exams/student/4c1e59ec-f48c-4da7-a170-7350a1a085a6/attempts
+[2026-03-08T23:28:24.347Z] GET /leads
+[2026-03-08T23:28:54.344Z] GET /exams/cohort/b24f8a95-80db-4cb5-9800-3f4cced2b40d/assignments
+[2026-03-08T23:28:54.437Z] GET /exams/student/4c1e59ec-f48c-4da7-a170-7350a1a085a6/attempts
+[2026-03-08T23:28:58.650Z] GET /students/portal/me/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:28:58.656Z] GET /students/portal/invoices/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:28:58.725Z] GET /students/portal/academic/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:28:58.736Z] GET /students/portal/attendance/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:28:58.800Z] GET /students/portal/grades/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:28:58.824Z] GET /exams/student/4c1e59ec-f48c-4da7-a170-7350a1a085a6/attempts
+[2026-03-08T23:28:58.825Z] GET /settings
+[2026-03-08T23:29:24.328Z] GET /leads
+[2026-03-08T23:30:24.340Z] GET /leads
+[2026-03-08T23:30:31.146Z] GET /exams/student/4c1e59ec-f48c-4da7-a170-7350a1a085a6/attempts
+[2026-03-08T23:30:49.851Z] GET /exams/student/4c1e59ec-f48c-4da7-a170-7350a1a085a6/attempts
+[2026-03-08T23:31:11.989Z] GET /students/portal/attendance/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:31:24.335Z] GET /leads
+[2026-03-08T23:31:27.685Z] GET /students/portal/attendance/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:31:27.695Z] GET /exams/student/4c1e59ec-f48c-4da7-a170-7350a1a085a6/attempts
+[2026-03-08T23:31:27.705Z] GET /students/portal/academic/4c1e59ec-f48c-4da7-a170-7350a1a085a6
+[2026-03-08T23:32:24.303Z] GET /leads
+[2026-03-08T23:33:24.335Z] GET /leads
+[2026-03-08T23:34:24.341Z] GET /leads
+[2026-03-08T23:35:24.342Z] GET /leads
+[2026-03-08T23:36:24.325Z] GET /leads
+[2026-03-08T23:37:24.350Z] GET /leads
+[2026-03-08T23:38:24.335Z] GET /leads
+[2026-03-08T23:39:24.320Z] GET /leads
+[2026-03-08T23:40:24.341Z] GET /leads
+[2026-03-08T23:41:24.328Z] GET /leads
+[2026-03-08T23:42:24.399Z] GET /leads
+[2026-03-08T23:42:40.686Z] GET /billing/inventory/movements
+[2026-03-08T23:42:40.696Z] GET /billing/items
+[2026-03-08T23:42:42.974Z] GET /academic/programs
+[2026-03-08T23:42:42.993Z] GET /academic/cohorts?programId=3deb445e-6209-45f2-ac46-9a2f3819dd77
+[2026-03-08T23:42:43.321Z] GET /leads
+[2026-03-08T23:42:45.005Z] GET /academic/cohorts/b24f8a95-80db-4cb5-9800-3f4cced2b40d/students
+[2026-03-08T23:42:45.006Z] GET /academic/cohorts/b24f8a95-80db-4cb5-9800-3f4cced2b40d/modules
+[2026-03-08T23:42:45.076Z] GET /academic/grade-types/3deb445e-6209-45f2-ac46-9a2f3819dd77?moduleId=
+[2026-03-08T23:42:47.380Z] GET /academic/grade-types/3deb445e-6209-45f2-ac46-9a2f3819dd77?moduleId=5755e35b-e104-40e5-9fc8-e15ef8cca775
+[2026-03-08T23:42:47.381Z] GET /academic/grades/b24f8a95-80db-4cb5-9800-3f4cced2b40d?moduleId=5755e35b-e104-40e5-9fc8-e15ef8cca775
+[2026-03-08T23:42:50.467Z] POST /academic/grade-types
+Body: {"program_id":"3deb445e-6209-45f2-ac46-9a2f3819dd77","module_id":"5755e35b-e104-40e5-9fc8-e15ef8cca775","name":"e","weight":1}
+[2026-03-08T23:42:50.552Z] GET /academic/grade-types/3deb445e-6209-45f2-ac46-9a2f3819dd77?moduleId=5755e35b-e104-40e5-9fc8-e15ef8cca775
+[2026-03-08T23:43:00.903Z] POST /academic/grades
+Body: {"cohort_id":"b24f8a95-80db-4cb5-9800-3f4cced2b40d","module_id":"5755e35b-e104-40e5-9fc8-e15ef8cca775","grade_type_id":"f25fb9d1-e769-4f3f-8a30-3766c58bc14f","records":[{"student_id":"21e69aaa-648d-437a-b4ec-892fb750afe1","value":0,"remarks":""},{"student_id":"4fe6b0fd-3844-4ee5-9d38-06d4ca1341dc","value":0,"remarks":""},{"student_id":"8ba8f5ee-03ef-4be3-8b31-14bb667a49ec","value":0,"remarks":""},{"student_id":"0519638e-6812-4dd5-9891-78996a260bde","value":0,"remarks":""},{"student_id":"3c0665dd-b62f-4d34-9ed2-c08005ea6e7f","value":0,"remarks":""},{"student_id":"4c1e59ec-f48c-4da7-a170-7350a1a085a6","value":12,"remarks":""},{"student_id":"67505026-0b65-446a-9b42-43b07028525c","value":0,"remarks":""}]}
+[2026-03-08T23:43:14.454Z] GET /leads

@@ -61,7 +61,7 @@ export function PortalMain() {
         }, {});
 
     const avgGrade = allScores.length
-        ? (allScores.reduce((acc: number, g: any) => acc + Number(g.value), 0) / allScores.length).toFixed(1)
+        ? (allScores.reduce((acc: number, g: any) => acc + Number(g.value || 0), 0) / allScores.length).toFixed(1)
         : '0.0';
 
     const attendanceRecords = (attendance.data || []).filter((a: any) => a.cohort_id === currentCohortId);
@@ -214,7 +214,7 @@ export function PortalMain() {
                                     </h3>
 
                                     {Object.entries(gradesByModule).map(([moduleName, data]: [string, any]) => {
-                                        const moduleAvg = (data.grades.reduce((acc: number, g: any) => acc + Number(g.value), 0) / data.grades.length).toFixed(1);
+                                        const moduleAvg = (data.grades.reduce((acc: number, g: any) => acc + Number(g.value || 0), 0) / data.grades.length).toFixed(1);
                                         return (
                                             <div key={moduleName} className="bg-gradient-to-br from-slate-900/80 to-slate-900/40 border border-slate-800 rounded-[2rem] overflow-hidden shadow-xl shadow-black/20">
                                                 <div className="p-6 border-b border-slate-800/50 bg-slate-800/20 flex items-center justify-between">
@@ -228,7 +228,7 @@ export function PortalMain() {
                                                     </div>
                                                     <div className="text-right">
                                                         <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">Promedio Módulo</p>
-                                                        <span className={`text-2xl font-black ${Number(moduleAvg) >= 3 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.3)]'}`}>{moduleAvg}</span>
+                                                        <span className={`text-2xl font-black ${Number(moduleAvg) >= 60 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.3)]'}`}>{moduleAvg}</span>
                                                     </div>
                                                 </div>
                                                 <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -238,8 +238,8 @@ export function PortalMain() {
                                                                 <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">{grade.grade_type_name}</p>
                                                                 <p className="text-[9px] text-slate-600 font-mono mt-1 uppercase tracking-widest">{new Date(grade.created_at).toLocaleDateString()}</p>
                                                             </div>
-                                                            <div className={`px-4 py-2 rounded-xl text-xl font-black ${Number(grade.value) >= 3 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                                                                {Number(grade.value).toFixed(1)}
+                                                            <div className={`px-4 py-2 rounded-xl text-xl font-black ${Number(grade.value || 0) >= 60 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                                                {Number(grade.value || 0).toFixed(0)}
                                                             </div>
                                                         </div>
                                                     ))}
