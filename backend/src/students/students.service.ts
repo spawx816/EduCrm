@@ -319,26 +319,26 @@ export class StudentsService {
     const res = await this.pool.query(
       `SELECT e.*, c.name as cohort_name, p.name as program_name,
        (
-           SELECT json_agg(row_to_json(m_data)) FROM (
+       SELECT COALESCE(json_agg(row_to_json(m_data)), '[]'::json) FROM (
                SELECT am.*, 
-               (SELECT json_agg(row_to_json(g_data)) FROM (
+               COALESCE((SELECT json_agg(row_to_json(g_data)) FROM (
                    SELECT g.*, gt.name as grade_type_name
                    FROM grades g
                    JOIN grade_types gt ON g.grade_type_id = gt.id
                    WHERE g.student_id = $1 AND g.module_id = am.id AND g.cohort_id = e.cohort_id
-               ) g_data) as grades,
-               (SELECT json_agg(row_to_json(a_data)) FROM (
+               ) g_data), '[]'::json) as grades,
+               COALESCE((SELECT json_agg(row_to_json(a_data)) FROM (
                    SELECT a.*
                    FROM attendance a
                    WHERE a.student_id = $1 AND a.module_id = am.id AND a.cohort_id = e.cohort_id
-               ) a_data) as attendance,
-               (SELECT json_agg(row_to_json(ex_data)) FROM (
+               ) a_data), '[]'::json) as attendance,
+               COALESCE((SELECT json_agg(row_to_json(ex_data)) FROM (
                    SELECT ea.id as assignment_id, ex.title as exam_title, eat.score, eat.status as attempt_status, eat.completed_at
                    FROM exam_assignments ea
                    JOIN exams ex ON ea.exam_id = ex.id
                    LEFT JOIN exam_attempts eat ON ea.id = eat.assignment_id AND eat.student_id = $1
                    WHERE ea.module_id = am.id AND ea.cohort_id = e.cohort_id
-               ) ex_data) as exams
+               ) ex_data), '[]'::json) as exams
                FROM academic_modules am
                WHERE am.program_id = c.program_id
                ORDER BY am.order_index ASC, am.name ASC

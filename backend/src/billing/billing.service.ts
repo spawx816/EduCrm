@@ -8,14 +8,20 @@ export class BillingService {
 
     async getInvoices(filters: { studentId?: string; search?: string; status?: string; startDate?: string; endDate?: string }) {
         let query = `
-            SELECT i.*, s.first_name, s.last_name
+            SELECT i.*, i.created_at as issue_date, s.first_name, s.last_name,
+                   concepts_data.concepts
             FROM invoices i
             JOIN students s ON i.student_id = s.id
+            LEFT JOIN (
+                SELECT invoice_id, STRING_AGG(description, ', ') as concepts
+                FROM invoice_details
+                GROUP BY invoice_id
+            ) concepts_data ON i.id = concepts_data.invoice_id
             WHERE 1=1
         `;
         const params: any[] = [];
 
-        if (filters.studentId) {
+        if (filters.studentId && filters.studentId.trim() !== '') {
             params.push(filters.studentId);
             query += ` AND i.student_id = $${params.length}`;
         }
@@ -25,7 +31,7 @@ export class BillingService {
             query += ` AND i.status = $${params.length}`;
         }
 
-        if (filters.search) {
+        if (filters.search && filters.search.trim() !== '') {
             params.push(`%${filters.search}%`);
             query += ` AND (s.first_name ILIKE $${params.length} OR s.last_name ILIKE $${params.length} OR i.invoice_number ILIKE $${params.length})`;
         }

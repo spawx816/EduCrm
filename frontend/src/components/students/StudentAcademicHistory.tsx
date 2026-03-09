@@ -146,7 +146,7 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                                         {/* Activity Breakdown */}
                                         {(module.grades?.length > 0 || (module.exams && module.exams.some((ex: any) => ex.attempt_status === 'COMPLETED'))) && (
                                             <div className="mt-6 pt-5 border-t border-slate-800/60 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-                                                {module.grades.map((g: any) => (
+                                                {(module.grades || []).map((g: any) => (
                                                     <div key={g.id} className="group/item flex flex-col px-3 py-2 bg-slate-950/30 rounded-xl border border-slate-800/40 hover:border-slate-700 transition-colors">
                                                         <span className="text-[8px] text-slate-600 uppercase font-black tracking-[0.15em] mb-1 truncate">{g.grade_type_name}</span>
                                                         <span className={`text-xs font-black ${parseFloat(g.value) < 3.5 ? 'text-rose-500' : 'text-slate-300'}`}>{g.value}</span>
