@@ -50,14 +50,24 @@ if [ -d "$APPS_DIR/backend" ]; then
     echo "  > Instalando dependencias (npm install)..."
     npm install
     
+    echo "  > Limpiando dist..."
+    rm -rf dist
+    
     echo "  > Construyendo aplicación backend (npm run build)..."
     npm run build
     
+    echo "  > Ejecutando scripts de base de datos y usuario..."
+    node ensure_diplomas_table.js
+    node create_admin_user.js
+    
     # Intentar reiniciar o iniciar el proceso en PM2
     echo "  > Reiniciando/Iniciando servicio en PM2..."
-    pm2 restart educrm-api || PORT=3000 pm2 start dist/main.js --name "educrm-api"
+    pm2 stop educrm-api || true
+    pm2 delete educrm-api || true
+    PORT=3000 pm2 start dist/main.js --name "educrm-api"
+    pm2 save
     
-    echo -e "  ✅ Backend actualizado.\n"
+    echo -e "  ✅ Backend actualizado y base de datos verificada.\n"
 else
     echo -e "  ⚠️ Carpeta 'backend' no encontrada.\n"
 fi
