@@ -8,7 +8,6 @@ import { StorageService } from '../common/storage.service';
 import { IntegrationsModule } from '../integrations/integrations.module';
 
 import { DiplomasService } from './diplomas.service';
-import { DiplomasController } from './diplomas.controller';
 
 @Module({
   imports: [DatabaseModule, IntegrationsModule],
