@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { useInstructorPayments, useRegisterInstructorPayment } from '../../hooks/useBilling.ts';
+import { useInstructorPayments, useRegisterInstructorPayment, useDeleteInstructorPayment, useVoidInstructorPayment } from '../../hooks/useBilling.ts';
 import { useInstructors } from '../../hooks/useAcademic.ts';
-import { Wallet, Plus, Loader2, ArrowLeft, Hash, Download } from 'lucide-react';
+import { Wallet, Plus, Loader2, ArrowLeft, Hash, Download, Trash2, Ban } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import apiClient from '../../lib/api-client.ts';
 
@@ -16,6 +16,8 @@ export function InstructorPayrollManager() {
     const { data: instructors } = useInstructors();
     const { data: payments, isLoading } = useInstructorPayments();
     const registerPayment = useRegisterInstructorPayment();
+    const deletePayment = useDeleteInstructorPayment();
+    const voidPayment = useVoidInstructorPayment();
 
     const [isAdding, setIsAdding] = useState(false);
     const [formData, setFormData] = useState({
@@ -68,6 +70,26 @@ export function InstructorPayrollManager() {
         } catch (error) {
             console.error('Error downloading receipt:', error);
             toast.error('Error al generar el recibo');
+        }
+    };
+
+    const handleDeletePayment = async (id: string) => {
+        if (!confirm('¿Estás seguro de que deseas eliminar este registro de pago de nómina?')) return;
+        try {
+            await deletePayment.mutateAsync(id);
+            toast.success('Pago eliminado correctamente');
+        } catch (err) {
+            toast.error('Error al eliminar el pago');
+        }
+    };
+
+    const handleVoidPayment = async (id: string) => {
+        if (!confirm('¿Estás seguro de que deseas anular este pago? Se mantendrá el registro pero figurará como ANULADO.')) return;
+        try {
+            await voidPayment.mutateAsync(id);
+            toast.success('Pago anulado correctamente');
+        } catch (err) {
+            toast.error('Error al anular el pago');
         }
     };
 
@@ -239,17 +261,39 @@ export function InstructorPayrollManager() {
                                     </div>
                                 </td>
                                 <td className="px-8 py-6 text-right">
-                                    <span className="text-lg font-black text-emerald-400 tracking-tighter">RD${parseFloat(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                                    <span className={`text-lg font-black tracking-tighter ${payment.status === 'VOIDED' ? 'text-slate-500 line-through' : 'text-emerald-400'}`}>
+                                        RD${parseFloat(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                                     </span>
+                                    {payment.status === 'VOIDED' && (
+                                        <div className="text-[9px] text-rose-500 font-black uppercase tracking-widest mt-1">Anulado</div>
+                                    )}
                                 </td>
                                 <td className="px-8 py-6 text-right">
-                                    <button
-                                        onClick={() => handleDownloadReceipt(payment.id)}
-                                        className="p-2 bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white rounded-xl transition-colors group-hover:bg-slate-700 inline-flex items-center justify-center"
-                                        title="Descargar Comprobante"
-                                    >
-                                        <Download className="w-4 h-4" />
-                                    </button>
+                                    <div className="flex items-center justify-end space-x-2">
+                                        <button
+                                            onClick={() => handleDownloadReceipt(payment.id)}
+                                            className="p-2 bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white rounded-xl transition-colors group-hover:bg-slate-700 inline-flex items-center justify-center"
+                                            title="Descargar Comprobante"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                        </button>
+                                        {payment.status !== 'VOIDED' && (
+                                            <button
+                                                onClick={() => handleVoidPayment(payment.id)}
+                                                className="p-2 bg-slate-800 hover:bg-amber-600 text-slate-400 hover:text-white rounded-xl transition-colors group-hover:bg-slate-700 inline-flex items-center justify-center"
+                                                title="Anular Pago"
+                                            >
+                                                <Ban className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => handleDeletePayment(payment.id)}
+                                            className="p-2 bg-slate-800 hover:bg-rose-600 text-slate-400 hover:text-white rounded-xl transition-colors group-hover:bg-slate-700 inline-flex items-center justify-center"
+                                            title="Eliminar Pago"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}

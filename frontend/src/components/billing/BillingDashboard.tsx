@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useInvoices, useBillingItems, useVoidInvoice, useDeleteInvoice } from '../../hooks/useBilling.ts';
+import { useInvoices, useBillingItems, useVoidInvoice, useDeleteInvoice, useDeleteBillingItem } from '../../hooks/useBilling.ts';
 import { useDebounce } from '../../hooks/useDebounce.ts';
 import { Receipt, Plus, DollarSign, Clock, CheckCircle, AlertCircle, Search, Tag, Eye, Trash2 } from 'lucide-react';
 import apiClient from '../../lib/api-client.ts';
@@ -26,6 +26,7 @@ export function BillingDashboard() {
     const { data: items, isLoading: isLoadingItems } = useBillingItems();
     const voidInvoice = useVoidInvoice();
     const deleteInvoice = useDeleteInvoice();
+    const deleteBillingItem = useDeleteBillingItem();
 
     const [isInvoiceModalOpen, setIsInvoiceModalOpen] = useState(false);
     const [isItemModalOpen, setIsItemModalOpen] = useState(false);
@@ -321,6 +322,7 @@ export function BillingDashboard() {
                                     <th className="px-6 py-4">Nombre</th>
                                     <th className="px-6 py-4">Descripción</th>
                                     <th className="px-6 py-4 text-right">Precio Base</th>
+                                    <th className="px-6 py-4 text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/50">
@@ -329,6 +331,19 @@ export function BillingDashboard() {
                                         <td className="px-6 py-4 text-white font-bold">{item.name}</td>
                                         <td className="px-6 py-4 text-xs italic text-slate-500">{item.description || 'Sin descripción'}</td>
                                         <td className="px-6 py-4 text-white font-bold text-right">RD$ {parseFloat(item.price).toLocaleString()}</td>
+                                        <td className="px-6 py-4 text-center">
+                                            <button
+                                                onClick={() => {
+                                                    if (confirm(`¿Seguro que deseas eliminar o deshabilitar el concepto: ${item.name}?`)) {
+                                                        deleteBillingItem.mutate(item.id);
+                                                    }
+                                                }}
+                                                className="text-slate-400 hover:text-rose-500 transition-colors p-2 rounded hover:bg-rose-500/10"
+                                                title="Eliminar Concepto"
+                                            >
+                                                <Trash2 className="w-4 h-4 mx-auto" />
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>

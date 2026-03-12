@@ -118,6 +118,34 @@ export function useRegisterInstructorPayment() {
     });
 }
 
+export function useDeleteInstructorPayment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const res = await apiClient.delete(`/billing/instructor-payments/${id}`);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['instructorPayments'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+        },
+    });
+}
+
+export function useVoidInstructorPayment() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const res = await apiClient.post(`/billing/instructor-payments/${id}/void`);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['instructorPayments'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboardStats'] });
+        },
+    });
+}
+
 export function useInvoiceSuggestions(studentId?: string) {
     return useQuery({
         queryKey: ['invoiceSuggestions', studentId],
@@ -242,3 +270,17 @@ export function useDeleteScholarship() {
         },
     });
 }
+
+export function useDeleteBillingItem() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async (id: string) => {
+            const res = await apiClient.delete(`/billing/items/${id}`);
+            return res.data;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['billingItems'] });
+        },
+    });
+}
+

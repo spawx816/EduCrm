@@ -17,17 +17,18 @@ import { LeadInboxList } from './components/students/LeadInboxList.tsx';
 import { useAuth, AuthProvider } from './hooks/useAuth.tsx';
 import { InstructorMain } from './pages/InstructorMain.tsx';
 import { Login } from './pages/Login.tsx';
-import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Link, Wallet, Package, Settings as SettingsIcon, LogOut } from 'lucide-react';
+import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Link, Wallet, Package, Settings as SettingsIcon, LogOut, Contact } from 'lucide-react';
 import { InstructorPayrollManager } from './components/academic/InstructorPayrollManager.tsx';
 import { ChatInbox } from './pages/ChatInbox.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
 
 import { InventoryManager } from './components/billing/InventoryManager.tsx';
 import { ExpenseManager } from './components/billing/ExpenseManager.tsx';
+import { StudentCardsManager } from './components/students/StudentCardsManager.tsx';
 import apiClient, { getStaticUrl } from './lib/api-client';
 
 function DashboardLayout() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets'>('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<AcademicProgram | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -44,6 +45,7 @@ function DashboardLayout() {
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'prospects', label: 'Prospectos / Leads', icon: Users },
     { id: 'students', label: 'Directorio Estudiantes', icon: GraduationCap },
+    { id: 'carnets', label: 'Carnetización', icon: Contact },
     { id: 'academic', label: 'Académico', icon: GraduationCap },
     { id: 'billing', label: 'Facturación', icon: Receipt },
     { id: 'inventory', label: 'Inventario', icon: Package },
@@ -174,6 +176,7 @@ function DashboardLayout() {
           </div>
         </div>
       );
+      case 'carnets': return <StudentCardsManager />;
       case 'settings': return <SettingsPage />;
       default: return <DashboardOverview />;
 

@@ -4,8 +4,10 @@ import { useInvoices } from '../hooks/useBilling';
 import {
     Mail, Phone, Calendar, BadgeCheck, Receipt,
     ArrowLeft, TrendingUp, Users, GraduationCap, BarChart3, Ticket, FolderKey,
-    Camera, Loader2, Edit
+    Camera, Loader2, Edit, Award
 } from 'lucide-react';
+import { StudentDiplomas } from '../components/students/StudentDiplomas';
+import { getStaticUrl } from '../lib/api-client';
 import { EnrollStudentModal } from '../components/students/EnrollStudentModal';
 import { EditStudentModal } from '../components/students/EditStudentModal';
 import { StudentAcademicHistory } from '../components/students/StudentAcademicHistory';
@@ -20,7 +22,7 @@ interface StudentProfileProps {
 export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
     const [showEnrollModal, setShowEnrollModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [activeTab, setActiveTab] = useState<'academic' | 'billing' | 'docs'>('academic');
+    const [activeTab, setActiveTab] = useState<'academic' | 'billing' | 'docs' | 'diplomas'>('academic');
     const { data: student, isLoading: loadingStudent } = useStudent(studentId);
     const { data: invoices, isLoading: loadingInvoices } = useInvoices({ studentId });
     const uploadAvatarMutation = useUploadStudentAvatar();
@@ -79,7 +81,7 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                             <div className="w-24 h-24 rounded-3xl bg-blue-900/30 flex items-center justify-center overflow-hidden border border-blue-500/30 shadow-2xl shadow-blue-500/10 transition-all duration-300 relative">
                                 {student.avatar_url ? (
                                     <img
-                                        src={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}/uploads/students/avatars/${student.avatar_url}`}
+                                        src={getStaticUrl(`/uploads/students/avatars/${student.avatar_url}`)}
                                         alt={`${student.first_name} avatar`}
                                         className="w-full h-full object-cover"
                                     />
@@ -258,6 +260,13 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                                     <FolderKey className="w-4 h-4 mr-2" />
                                     Documentación
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab('diplomas')}
+                                    className={`flex items-center px-6 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${activeTab === 'diplomas' ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/20' : 'text-slate-500 hover:text-slate-300'}`}
+                                >
+                                    <Award className="w-4 h-4 mr-2" />
+                                    Diplomas
+                                </button>
                             </div>
 
                             {activeTab === 'academic' && (
@@ -314,6 +323,12 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                             {activeTab === 'docs' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                                     <StudentAttachments studentId={studentId} />
+                                </div>
+                            )}
+
+                            {activeTab === 'diplomas' && (
+                                <div className="animate-in fade-in zoom-in duration-500">
+                                    <StudentDiplomas studentId={studentId} />
                                 </div>
                             )}
                         </div>

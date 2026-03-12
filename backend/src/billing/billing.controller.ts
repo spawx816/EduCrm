@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, Param, Res, Delete, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, Res, Delete, UseGuards, Req, Patch } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { InvoicePdfService } from './invoice-pdf.service';
 import type { Response } from 'express';
@@ -33,6 +33,21 @@ export class BillingController {
     @Post('items')
     async createItem(@Body() data: { name: string; description?: string; price: number }) {
         return this.billingService.createBillingItem(data);
+    }
+
+    @Patch('items/:id')
+    async updateItem(@Param('id') id: string, @Body() data: { name?: string; description?: string; price?: number; is_active?: boolean }) {
+        return this.billingService.updateBillingItem(id, data);
+    }
+
+    @Delete('items/:id')
+    async deleteItem(@Param('id') id: string) {
+        return this.billingService.deleteBillingItem(id);
+    }
+
+    @Get('seed-carnets')
+    async seedCarnets() {
+        return this.billingService.seedCarnets();
     }
 
     @Get('invoices')
@@ -100,6 +115,17 @@ export class BillingController {
         });
         res.end(buffer);
     }
+
+    @Delete('instructor-payments/:id')
+    async deleteInstructorPayment(@Param('id') id: string) {
+        return this.billingService.deleteInstructorPayment(id);
+    }
+
+    @Post('instructor-payments/:id/void')
+    async voidInstructorPayment(@Param('id') id: string) {
+        return this.billingService.voidInstructorPayment(id);
+    }
+
     @Post('invoices/:id/void')
     async voidInvoice(@Param('id') id: string, @Req() req: any) {
         return this.billingService.voidInvoice(id, req?.user?.id);

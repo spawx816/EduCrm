@@ -1,0 +1,1 @@
+ALTER TABLE instructor_payments ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'PAID';

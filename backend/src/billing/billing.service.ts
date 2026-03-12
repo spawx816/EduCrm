@@ -1,10 +1,16 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, forwardRef } from '@nestjs/common';
 import { Pool } from 'pg';
 import { PG_POOL } from '../database/database.module';
+import { StudentCardsService } from '../students/student-cards.service';
+import { DiplomasService } from '../students/diplomas.service';
 
 @Injectable()
 export class BillingService {
-    constructor(@Inject(PG_POOL) private pool: Pool) { }
+    constructor(
+        @Inject(PG_POOL) private pool: Pool,
+        @Inject(forwardRef(() => StudentCardsService)) private studentCardsService: StudentCardsService,
+        @Inject(forwardRef(() => DiplomasService)) private diplomasService: DiplomasService,
+    ) { }
 
     async getInvoices(filters: { studentId?: string; search?: string; status?: string; startDate?: string; endDate?: string }) {
         let query = `
@@ -137,6 +143,7 @@ export class BillingService {
                              VALUES ($1, 'OUT', $2, 'INVOICE', $3, $4)`,
                             [dbItemId, item.quantity, invoiceId, `Venta en factura ${invoiceNumber}`]
                         );
+
                         await client.query(
                             'UPDATE billing_items SET stock_quantity = stock_quantity - $1 WHERE id = $2',
                             [item.quantity, dbItemId]
@@ -146,7 +153,28 @@ export class BillingService {
             }
 
             await client.query('COMMIT');
+
+            // Trigger side-effects AFTER transaction commit to avoid foreign key violations
+            for (const item of data.items) {
+                if (item.description.toLowerCase().includes('carnet')) {
+                    try {
+                        await this.studentCardsService.generateCard(data.studentId, invoiceId);
+                    } catch (cardError) {
+                        console.error('Failed to automatically generate carnet:', cardError);
+                    }
+                }
+
+                if (item.description.toUpperCase().includes('DERECHO A GRADUACION')) {
+                    try {
+                        await this.diplomasService.generateDiploma(data.studentId, invoiceId);
+                    } catch (diplomaError) {
+                        console.error('Failed to automatically generate diploma:', diplomaError);
+                    }
+                }
+            }
+
             return invoiceRes.rows[0];
+
         } catch (error) {
             await client.query('ROLLBACK');
             throw error;
@@ -225,6 +253,58 @@ export class BillingService {
         return res.rows[0];
     }
 
+    async updateBillingItem(id: string, data: { name?: string; description?: string; price?: number; is_active?: boolean }) {
+        let setFields = [];
+        let params: any[] = [];
+        let idx = 1;
+        for (const [key, value] of Object.entries(data)) {
+            setFields.push(`${key} = $${idx}`);
+            params.push(value);
+            idx++;
+        }
+        if (setFields.length === 0) return null;
+
+        params.push(id);
+        const res = await this.pool.query(
+            `UPDATE billing_items SET ${setFields.join(', ')} WHERE id = $${idx} RETURNING *`,
+            params
+        );
+        return res.rows[0];
+    }
+
+    async deleteBillingItem(id: string) {
+        // Soft delete para mantener facturas históricas
+        return this.updateBillingItem(id, { is_active: false });
+    }
+
+
+    async seedCarnets() {
+        await this.pool.query(`
+          CREATE TABLE IF NOT EXISTS student_cards (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            student_id UUID NOT NULL REFERENCES students(id),
+            invoice_id UUID REFERENCES invoices(id),
+            enrollment_id UUID REFERENCES enrollments(id),
+            student_name TEXT NOT NULL,
+            matricula TEXT NOT NULL,
+            program_name TEXT NOT NULL,
+            cohort_name TEXT NOT NULL,
+            status TEXT DEFAULT 'PENDING',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
+
+        await this.pool.query(`
+          INSERT INTO billing_items (name, price, is_active)
+          VALUES ('Carnet', 250, true)
+          ON CONFLICT DO NOTHING
+        `);
+
+        return { message: "Carnet seeding applied" };
+    }
+
+
     async voidInvoice(id: string, voidedBy?: string) {
         const client = await this.pool.connect();
         try {
@@ -297,6 +377,7 @@ export class BillingService {
             }
 
             // Now delete all related records
+            await client.query('DELETE FROM student_cards WHERE invoice_id = $1', [id]);
             await client.query('DELETE FROM invoice_payments WHERE invoice_id = $1', [id]);
             await client.query('DELETE FROM invoice_details WHERE invoice_id = $1', [id]);
             await client.query("DELETE FROM inventory_movements WHERE reference_id = $1 AND reference_type = 'INVOICE'", [id]);
@@ -502,6 +583,19 @@ export class BillingService {
             `INSERT INTO instructor_payments (teacher_id, amount, payment_method, reference_number, notes)
              VALUES ($1, $2, $3, $4, $5) RETURNING *`,
             [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes]
+        );
+        return res.rows[0];
+    }
+
+    async deleteInstructorPayment(id: string) {
+        const res = await this.pool.query('DELETE FROM instructor_payments WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0];
+    }
+
+    async voidInstructorPayment(id: string) {
+        const res = await this.pool.query(
+            "UPDATE instructor_payments SET status = 'VOIDED', updated_at = NOW() WHERE id = $1 RETURNING *",
+            [id]
         );
         return res.rows[0];
     }

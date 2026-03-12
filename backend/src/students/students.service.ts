@@ -41,7 +41,7 @@ export class StudentsService {
   async findOne(id: string) {
     const res = await this.pool.query(
       `SELECT s.*, 
-       (SELECT json_agg(row_to_json(e_data)) FROM (
+       (SELECT COALESCE(json_agg(row_to_json(e_data)), '[]'::json) FROM (
           SELECT e.*, c.name as cohort_name, p.name as program_name,
                  s_tab.name as scholarship_name, s_tab.type as scholarship_type, s_tab.value as scholarship_value
           FROM enrollments e

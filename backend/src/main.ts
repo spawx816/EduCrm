@@ -11,14 +11,7 @@ async function bootstrap() {
   app.use(json({ limit: '50mb' }));
   app.use(urlencoded({ extended: true, limit: '50mb' }));
 
-  // Logger detallado para depuración en el VPS (después de body-parsers)
-  app.use((req: any, res: any, next: any) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl || req.url}`);
-    if (req.method === 'POST' || req.method === 'PATCH') {
-      console.log('Body:', JSON.stringify(req.body));
-    }
-    next();
-  });
+
 
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
