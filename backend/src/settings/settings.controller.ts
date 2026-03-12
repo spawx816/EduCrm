@@ -14,6 +14,11 @@ export class SettingsController {
         return this.settingsService.getSettings();
     }
 
+    @Get('test-status')
+    async test() {
+        return { status: 'ok', message: 'SettingsController is live' };
+    }
+
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin')
     @Patch()
