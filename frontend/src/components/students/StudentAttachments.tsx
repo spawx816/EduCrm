@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useStudentAttachments, useUploadStudentAttachment, useDeleteStudentAttachment } from '../../hooks/useStudents';
 import { toast } from 'react-hot-toast';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
+import apiClient from '../../lib/api-client.ts';
 
 interface StudentAttachmentsProps {
     studentId: string;
@@ -16,6 +18,17 @@ export function StudentAttachments({ studentId }: StudentAttachmentsProps) {
     const uploadMutation = useUploadStudentAttachment();
     const deleteMutation = useDeleteStudentAttachment();
     const [isDragging, setIsDragging] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
+    });
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -29,15 +42,20 @@ export function StudentAttachments({ studentId }: StudentAttachmentsProps) {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('¿Estás seguro de eliminar este archivo?')) return;
-
-        try {
-            await deleteMutation.mutateAsync({ studentId, attachmentId: id });
-            toast.success('Archivo eliminado');
-        } catch (err) {
-            toast.error('Error al eliminar');
-        }
+    const handleDelete = (id: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar Archivo',
+            message: '¿Estás seguro de eliminar este archivo? Esta acción es irreversible.',
+            action: async () => {
+                try {
+                    await deleteMutation.mutateAsync({ studentId, attachmentId: id });
+                    toast.success('Archivo eliminado');
+                } catch (err) {
+                    toast.error('Error al eliminar');
+                }
+            }
+        });
     };
 
     const getFileIcon = (mimetype: string) => {
@@ -124,7 +142,7 @@ export function StudentAttachments({ studentId }: StudentAttachmentsProps) {
                                 </div>
                                 <div className="flex items-center space-x-2 px-2">
                                     <a
-                                        href={`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}/uploads/students/${file.filename}`}
+                                        href={`${apiClient.defaults.baseURL?.replace('/api', '') || ''}/uploads/students/${file.filename}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="p-2.5 bg-slate-800/50 text-slate-400 rounded-xl hover:bg-slate-700 hover:text-white transition-all"
@@ -152,6 +170,18 @@ export function StudentAttachments({ studentId }: StudentAttachmentsProps) {
                     )}
                 </div>
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={() => {
+                    confirmModal.action();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                isDanger={true}
+            />
         </div>
     );
 }

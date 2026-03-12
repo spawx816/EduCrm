@@ -4,6 +4,7 @@ import { GraduationCap, Layers, Edit2, Trash2, Plus, Users } from 'lucide-react'
 import { ProgramModal } from './ProgramModal.tsx';
 import { ModuleManager } from './ModuleManager.tsx';
 import { toast } from 'react-hot-toast';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 import type { AcademicProgram } from '../../types';
 
 interface ProgramListProps {
@@ -17,6 +18,17 @@ export function ProgramList({ onSelectProgram }: ProgramListProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedProgram, setSelectedProgram] = useState<AcademicProgram | null>(null);
     const [viewMode, setViewMode] = useState<{ mode: 'list' | 'modules', program?: AcademicProgram }>({ mode: 'list' });
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
+    });
 
     const handleEdit = (program: AcademicProgram) => {
         setSelectedProgram(program);
@@ -28,15 +40,20 @@ export function ProgramList({ onSelectProgram }: ProgramListProps) {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('¿Estás seguro de eliminar este programa?')) {
-            try {
-                await deleteProgram.mutateAsync(id);
-                toast.success('Programa eliminado');
-            } catch (err) {
-                toast.error('Error al eliminar programa');
+    const handleDelete = (id: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar Programa',
+            message: '¿Estás seguro de eliminar este programa? Esta acción no se puede deshacer si tiene registros asociados.',
+            action: async () => {
+                try {
+                    await deleteProgram.mutateAsync(id);
+                    toast.success('Programa eliminado');
+                } catch (err) {
+                    toast.error('Error al eliminar programa');
+                }
             }
-        }
+        });
     };
 
     if (viewMode.mode === 'modules' && viewMode.program) {
@@ -138,6 +155,18 @@ export function ProgramList({ onSelectProgram }: ProgramListProps) {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 program={selectedProgram}
+            />
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={() => {
+                    confirmModal.action();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                isDanger={true}
             />
         </div>
     );

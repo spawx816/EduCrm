@@ -8,6 +8,7 @@ import { CohortModuleManager } from './CohortModuleManager.tsx';
 import { ModulePricingManager } from './ModulePricingManager.tsx';
 import { AdminExamWorkspace } from './AdminExamWorkspace.tsx';
 import { toast } from 'react-hot-toast';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 import type { Cohort, AcademicProgram } from '../../types';
 
 interface CohortListProps {
@@ -22,6 +23,17 @@ export function CohortList({ program, onBack }: CohortListProps) {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(null);
     const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'exams', cohort?: Cohort }>({ mode: 'list' });
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
+    });
 
     const handleEdit = (cohort: Cohort) => {
         setSelectedCohort(cohort);
@@ -33,15 +45,20 @@ export function CohortList({ program, onBack }: CohortListProps) {
         setIsModalOpen(true);
     };
 
-    const handleDelete = async (id: string) => {
-        if (window.confirm('¿Estás seguro de eliminar este grupo?')) {
-            try {
-                await deleteCohort.mutateAsync(id);
-                toast.success('Grupo eliminado');
-            } catch (err) {
-                toast.error('Error al eliminar grupo');
+    const handleDelete = (id: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar Grupo (Cohorte)',
+            message: '¿Estás seguro de eliminar este grupo? Esta acción borrará la relación con los estudiantes en este grupo específico.',
+            action: async () => {
+                try {
+                    await deleteCohort.mutateAsync(id);
+                    toast.success('Grupo eliminado');
+                } catch (err) {
+                    toast.error('Error al eliminar grupo');
+                }
             }
-        }
+        });
     };
 
     if (viewMode.mode === 'attendance' && viewMode.cohort) {
@@ -235,6 +252,18 @@ export function CohortList({ program, onBack }: CohortListProps) {
                 onClose={() => setIsModalOpen(false)}
                 cohort={selectedCohort}
                 defaultProgramId={program.id}
+            />
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={() => {
+                    confirmModal.action();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                isDanger={true}
             />
         </div>
     );

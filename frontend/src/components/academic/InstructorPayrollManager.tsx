@@ -4,6 +4,7 @@ import { useInstructors } from '../../hooks/useAcademic.ts';
 import { Wallet, Plus, Loader2, ArrowLeft, Hash, Download, Trash2, Ban } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import apiClient from '../../lib/api-client.ts';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 
 const PAYMENT_METHODS: Record<string, string> = {
     'TRANSFER': 'Transferencia',
@@ -27,6 +28,19 @@ export function InstructorPayrollManager() {
         reference: '',
         notes: '',
         date: new Date().toISOString().split('T')[0]
+    });
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+        isDanger?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
     });
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -73,24 +87,38 @@ export function InstructorPayrollManager() {
         }
     };
 
-    const handleDeletePayment = async (id: string) => {
-        if (!confirm('¿Estás seguro de que deseas eliminar este registro de pago de nómina?')) return;
-        try {
-            await deletePayment.mutateAsync(id);
-            toast.success('Pago eliminado correctamente');
-        } catch (err) {
-            toast.error('Error al eliminar el pago');
-        }
+    const handleDeletePayment = (id: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar Registro de Nómina',
+            message: '¿Estás seguro de que deseas eliminar este registro de pago de nómina? Esta acción es irreversible.',
+            isDanger: true,
+            action: async () => {
+                try {
+                    await deletePayment.mutateAsync(id);
+                    toast.success('Pago eliminado correctamente');
+                } catch (err) {
+                    toast.error('Error al eliminar el pago');
+                }
+            }
+        });
     };
 
-    const handleVoidPayment = async (id: string) => {
-        if (!confirm('¿Estás seguro de que deseas anular este pago? Se mantendrá el registro pero figurará como ANULADO.')) return;
-        try {
-            await voidPayment.mutateAsync(id);
-            toast.success('Pago anulado correctamente');
-        } catch (err) {
-            toast.error('Error al anular el pago');
-        }
+    const handleVoidPayment = (id: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Anular Pago de Nómina',
+            message: '¿Estás seguro de que deseas anular este pago? Se mantendrá el registro pero figurará como ANULADO.',
+            isDanger: true,
+            action: async () => {
+                try {
+                    await voidPayment.mutateAsync(id);
+                    toast.success('Pago anulado correctamente');
+                } catch (err) {
+                    toast.error('Error al anular el pago');
+                }
+            }
+        });
     };
 
     if (isLoading) return (
@@ -308,6 +336,18 @@ export function InstructorPayrollManager() {
                     </div>
                 )}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                isDanger={confirmModal.isDanger}
+                onConfirm={() => {
+                    confirmModal.action();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+            />
         </div>
     );
 }

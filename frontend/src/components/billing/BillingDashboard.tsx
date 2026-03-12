@@ -8,6 +8,7 @@ import { RegisterPaymentModal } from './RegisterPaymentModal.tsx';
 import { CreateBillingItemModal } from './CreateBillingItemModal.tsx';
 import { InvoiceDetailsModal } from './InvoiceDetailsModal.tsx';
 import { ScholarshipSettings } from './ScholarshipSettings.tsx';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 
 export function BillingDashboard() {
     const [mainTab, setMainTab] = useState<'invoices' | 'catalog' | 'scholarships'>('invoices');
@@ -33,6 +34,18 @@ export function BillingDashboard() {
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+        isDanger?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
+    });
 
     // Only block if it's the INITIAL load (no data yet)
     if ((isLoadingInvoices && !invoices) || (isLoadingItems && !items)) {
@@ -267,9 +280,13 @@ export function BillingDashboard() {
                                                         {invoice.status !== 'VOIDED' && (
                                                             <button
                                                                 onClick={() => {
-                                                                    if (confirm(`¿Estás seguro de ANULAR la factura ${invoice.invoice_number}? Se revertirá el inventario pero la factura quedará en el registro como ANULADA.`)) {
-                                                                        voidInvoice.mutate(invoice.id);
-                                                                    }
+                                                                    setConfirmModal({
+                                                                        isOpen: true,
+                                                                        title: 'Anular Factura',
+                                                                        message: `¿Estás seguro de ANULAR la factura ${invoice.invoice_number}? Se revertirá el inventario pero la factura quedará en el registro como ANULADA.`,
+                                                                        action: () => voidInvoice.mutate(invoice.id),
+                                                                        isDanger: true
+                                                                    });
                                                                 }}
                                                                 className="text-slate-400 hover:text-amber-500 p-1.5 hover:bg-amber-500/10 rounded-lg transition-all"
                                                                 title="Anular Factura"
@@ -280,9 +297,13 @@ export function BillingDashboard() {
 
                                                         <button
                                                             onClick={() => {
-                                                                if (confirm(`🚨 ¿ELIMINAR COMPLETAMENTE la factura ${invoice.invoice_number}? Esta acción borrará la factura, sus detalles y pagos del sistema. No quedará registro de ella.`)) {
-                                                                    deleteInvoice.mutate(invoice.id);
-                                                                }
+                                                                setConfirmModal({
+                                                                    isOpen: true,
+                                                                    title: 'ELIMINAR FACTURA',
+                                                                    message: `🚨 ¿ELIMINAR COMPLETAMENTE la factura ${invoice.invoice_number}? Esta acción borrará la factura, sus detalles y pagos del sistema. No quedará registro de ella.`,
+                                                                    action: () => deleteInvoice.mutate(invoice.id),
+                                                                    isDanger: true
+                                                                });
                                                             }}
                                                             className="text-slate-400 hover:text-rose-500 p-1.5 hover:bg-rose-500/10 rounded-lg transition-all"
                                                             title="Eliminar Factura (Limpiar)"
@@ -334,9 +355,13 @@ export function BillingDashboard() {
                                         <td className="px-6 py-4 text-center">
                                             <button
                                                 onClick={() => {
-                                                    if (confirm(`¿Seguro que deseas eliminar o deshabilitar el concepto: ${item.name}?`)) {
-                                                        deleteBillingItem.mutate(item.id);
-                                                    }
+                                                    setConfirmModal({
+                                                        isOpen: true,
+                                                        title: 'Eliminar Concepto',
+                                                        message: `¿Estás seguro de eliminar "${item.name}" del catálogo?`,
+                                                        action: () => deleteBillingItem.mutate(item.id),
+                                                        isDanger: true
+                                                    });
                                                 }}
                                                 className="text-slate-400 hover:text-rose-500 transition-colors p-2 rounded hover:bg-rose-500/10"
                                                 title="Eliminar Concepto"
@@ -374,6 +399,18 @@ export function BillingDashboard() {
                 isOpen={isDetailsModalOpen}
                 onClose={() => setIsDetailsModalOpen(false)}
                 invoice={selectedInvoice}
+            />
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                isDanger={confirmModal.isDanger}
+                onConfirm={() => {
+                    confirmModal.action();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
             />
         </div>
     );

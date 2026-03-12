@@ -3,6 +3,9 @@ import {
     BookOpen, GraduationCap, Clock,
     Trophy, AlertCircle, ChevronRight
 } from 'lucide-react';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
+import { useState } from 'react';
+import { toast } from 'react-hot-toast';
 
 interface StudentAcademicHistoryProps {
     studentId: string;
@@ -11,6 +14,18 @@ interface StudentAcademicHistoryProps {
 export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProps) {
     const { data: history, isLoading } = useStudentHistory(studentId);
     const deleteEnrollment = useDeleteEnrollment();
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
+    });
 
     if (isLoading) {
         return (
@@ -50,9 +65,19 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                         </div>
                         <button
                             onClick={() => {
-                                if (confirm(`¿Estás seguro de ELIMINAR la inscripción en ${enrollment.program_name}? Se borrarán también las notas y asistencias de este programa para este estudiante.`)) {
-                                    deleteEnrollment.mutate({ studentId, enrollmentId: enrollment.id });
-                                }
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'ELIMINAR INSCRIPCIÓN',
+                                    message: `🚨 ¿Estás seguro de ELIMINAR la inscripción en ${enrollment.program_name}? Se borrarán también las notas y asistencias de este programa para este estudiante. Esta acción es definitiva.`,
+                                    action: async () => {
+                                        try {
+                                            await deleteEnrollment.mutateAsync({ studentId, enrollmentId: enrollment.id });
+                                            toast.success('Inscripción eliminada correctamente');
+                                        } catch (err) {
+                                            toast.error('Error al eliminar la inscripción');
+                                        }
+                                    }
+                                });
                             }}
                             className="p-2 bg-rose-500/10 border border-rose-500/20 rounded-xl text-rose-500 hover:bg-rose-500 hover:text-white transition-all group"
                             title="Eliminar Inscripción"
@@ -167,6 +192,18 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                     </div>
                 </div>
             ))}
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={() => {
+                    confirmModal.action();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                isDanger={true}
+            />
         </div>
     );
 }

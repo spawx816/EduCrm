@@ -2,6 +2,8 @@ import { X, Receipt, DollarSign, Calendar, Clock, CreditCard } from 'lucide-reac
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../../lib/api-client.ts';
 import { useVoidInvoice, useDeleteInvoice } from '../../hooks/useBilling.ts';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
+import { useState } from 'react';
 
 interface InvoiceDetailsModalProps {
     isOpen: boolean;
@@ -12,6 +14,19 @@ interface InvoiceDetailsModalProps {
 export function InvoiceDetailsModal({ isOpen, onClose, invoice }: InvoiceDetailsModalProps) {
     const voidInvoice = useVoidInvoice();
     const deleteInvoice = useDeleteInvoice();
+
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+        isDanger?: boolean;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
+    });
 
     const { data: payments, isLoading: isLoadingPayments } = useQuery({
         queryKey: ['payments', invoice?.id],
@@ -184,10 +199,16 @@ export function InvoiceDetailsModal({ isOpen, onClose, invoice }: InvoiceDetails
                         {invoice.status !== 'VOIDED' && (
                             <button
                                 onClick={() => {
-                                    if (confirm(`¿Estás seguro de ANULAR la factura ${invoice.invoice_number}? Se revertirá el inventario pero la factura quedará en el registro como ANULADA.`)) {
-                                        voidInvoice.mutate(invoice.id);
-                                        onClose();
-                                    }
+                                    setConfirmModal({
+                                        isOpen: true,
+                                        title: 'Anular Factura',
+                                        message: `¿Estás seguro de ANULAR la factura ${invoice.invoice_number}? Se revertirá el inventario pero la factura quedará en el registro como ANULADA.`,
+                                        action: () => {
+                                            voidInvoice.mutate(invoice.id);
+                                            onClose();
+                                        },
+                                        isDanger: true
+                                    });
                                 }}
                                 className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white font-bold text-[10px] uppercase tracking-widest transition-all"
                             >
@@ -196,10 +217,16 @@ export function InvoiceDetailsModal({ isOpen, onClose, invoice }: InvoiceDetails
                         )}
                         <button
                             onClick={() => {
-                                if (confirm(`🚨 ¿ELIMINAR COMPLETAMENTE la factura ${invoice.invoice_number}? Esta acción borrará la factura, sus detalles y pagos del sistema. No quedará registro de ella.`)) {
-                                    deleteInvoice.mutate(invoice.id);
-                                    onClose();
-                                }
+                                setConfirmModal({
+                                    isOpen: true,
+                                    title: 'ELIMINAR FACTURA',
+                                    message: `🚨 ¿ELIMINAR COMPLETAMENTE la factura ${invoice.invoice_number}? Esta acción borrará la factura, sus detalles y pagos del sistema. No quedará registro de ella.`,
+                                    action: () => {
+                                        deleteInvoice.mutate(invoice.id);
+                                        onClose();
+                                    },
+                                    isDanger: true
+                                });
                             }}
                             className="px-4 py-2 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white font-bold text-[10px] uppercase tracking-widest transition-all"
                         >
@@ -213,6 +240,18 @@ export function InvoiceDetailsModal({ isOpen, onClose, invoice }: InvoiceDetails
                         Cerrar
                     </button>
                 </div>
+
+                <ConfirmModal
+                    isOpen={confirmModal.isOpen}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    isDanger={confirmModal.isDanger}
+                    onConfirm={() => {
+                        confirmModal.action();
+                        setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                    }}
+                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                />
             </div>
         </div>
     );

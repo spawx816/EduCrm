@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useScholarships, useCreateScholarship, useDeleteScholarship } from '../../hooks/useBilling.ts';
 import { Ticket, Plus, Trash2, Percent, DollarSign, CheckCircle2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 
 export function ScholarshipSettings() {
     const { data: scholarships, isLoading } = useScholarships();
@@ -18,15 +19,32 @@ export function ScholarshipSettings() {
         applies_to_monthly: true
     });
 
-    const handleDelete = async (id: string, name: string) => {
-        if (!window.confirm(`¿Estás seguro de que deseas eliminar la beca "${name}"?`)) return;
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        action: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        action: () => { }
+    });
 
-        try {
-            await deleteScholarship.mutateAsync(id);
-            toast.success('Beca eliminada correctamente');
-        } catch (error) {
-            toast.error('Error al eliminar la beca. Es posible que esté siendo utilizada.');
-        }
+    const handleDelete = (id: string, name: string) => {
+        setConfirmModal({
+            isOpen: true,
+            title: 'Eliminar Beca',
+            message: `¿Estás seguro de que deseas eliminar la beca "${name}"?`,
+            action: async () => {
+                try {
+                    await deleteScholarship.mutateAsync(id);
+                    toast.success('Beca eliminada correctamente');
+                } catch (error) {
+                    toast.error('Error al eliminar la beca. Es posible que esté siendo utilizada.');
+                }
+            }
+        });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -226,6 +244,18 @@ export function ScholarshipSettings() {
                     </div>
                 ))}
             </div>
+
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={() => {
+                    confirmModal.action();
+                    setConfirmModal(prev => ({ ...prev, isOpen: false }));
+                }}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                isDanger={true}
+            />
         </div>
     );
 }
