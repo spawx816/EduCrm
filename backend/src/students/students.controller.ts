@@ -10,6 +10,23 @@ export class StudentsController {
     private readonly diplomasService: DiplomasService
   ) { }
 
+  // Diploma Endpoints (Moved above :id to avoid shadowing)
+  @Get('diplomas/student/:studentId')
+  async getStudentDiplomas(@Param('studentId') studentId: string) {
+    return this.diplomasService.findByStudentId(studentId);
+  }
+
+  @Get('diplomas/:id/pdf')
+  async downloadDiplomaPdf(@Param('id') id: string, @Res() res: any) {
+    const buffer = await this.diplomasService.getDiplomaPdf(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=diploma-${id}.pdf`,
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
+  }
+
   @Get()
   async findAll(
     @Query('search') search?: string,
@@ -117,20 +134,4 @@ export class StudentsController {
     return this.studentsService.uploadAvatar(id, file);
   }
 
-  // Diploma Endpoints (Integrated here to ensure registration)
-  @Get('diplomas/student/:studentId')
-  async getStudentDiplomas(@Param('studentId') studentId: string) {
-    return this.diplomasService.findByStudentId(studentId);
-  }
-
-  @Get('diplomas/:id/pdf')
-  async downloadDiplomaPdf(@Param('id') id: string, @Res() res: any) {
-    const buffer = await this.diplomasService.getDiplomaPdf(id);
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename=diploma-${id}.pdf`,
-      'Content-Length': buffer.length,
-    });
-    res.end(buffer);
-  }
 }
