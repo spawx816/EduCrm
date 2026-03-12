@@ -16,6 +16,11 @@ export class StudentsController {
     return this.diplomasService.findByStudentId(studentId);
   }
 
+  @Get('test-status')
+  testStatus() {
+    return { status: 'ok', message: 'StudentsController is live' };
+  }
+
   @Get('diplomas/:id/pdf')
   async downloadDiplomaPdf(@Param('id') id: string, @Res() res: any) {
     const buffer = await this.diplomasService.getDiplomaPdf(id);
