@@ -1,4 +1,3 @@
-import React from 'react';
 import { AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
 
 interface ConfirmModalProps {
