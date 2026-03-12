@@ -9,6 +9,21 @@ export class BillingController {
         private readonly billingService: BillingService,
         private readonly pdfService: InvoicePdfService
     ) { }
+ 
+    @Delete('invoices/:id')
+    async deleteInvoice(@Param('id') id: string) {
+        return this.billingService.deleteInvoice(id);
+    }
+ 
+    @Delete('instructor-payments/:id')
+    async deleteInstructorPayment(@Param('id') id: string) {
+        return this.billingService.deleteInstructorPayment(id);
+    }
+
+    @Get('test-status')
+    async test() {
+        return { status: 'ok', message: 'BillingController is live' };
+    }
 
     @Get('items')
     async getItems() {
@@ -116,10 +131,6 @@ export class BillingController {
         res.end(buffer);
     }
 
-    @Delete('instructor-payments/:id')
-    async deleteInstructorPayment(@Param('id') id: string) {
-        return this.billingService.deleteInstructorPayment(id);
-    }
 
     @Post('instructor-payments/:id/void')
     async voidInstructorPayment(@Param('id') id: string) {
@@ -131,10 +142,6 @@ export class BillingController {
         return this.billingService.voidInvoice(id, req?.user?.id);
     }
 
-    @Delete('invoices/:id')
-    async deleteInvoice(@Param('id') id: string) {
-        return this.billingService.deleteInvoice(id);
-    }
 
     @Get('suggestions/:studentId')
     async getSuggestions(@Param('studentId') studentId: string) {
