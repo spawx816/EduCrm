@@ -13,7 +13,7 @@ import { DiplomasController } from './diplomas.controller';
 @Module({
   imports: [DatabaseModule, IntegrationsModule],
   providers: [StudentsService, StudentCardsService, DiplomasService],
-  controllers: [StudentsController, StudentCardsController, DiplomasController],
+  controllers: [StudentsController, StudentCardsController],
   exports: [StudentCardsService, DiplomasService]
 })
 export class StudentsModule { }

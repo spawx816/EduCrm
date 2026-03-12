@@ -1,10 +1,14 @@
-import { Controller, Get, Post, Patch, Body, Param, NotFoundException, Query, UseInterceptors, UploadedFile, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, NotFoundException, Query, UseInterceptors, UploadedFile, Delete, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { StudentsService } from './students.service';
+import { DiplomasService } from './diplomas.service';
 
 @Controller('students')
 export class StudentsController {
-  constructor(private readonly studentsService: StudentsService) { }
+  constructor(
+    private readonly studentsService: StudentsService,
+    private readonly diplomasService: DiplomasService
+  ) { }
 
   @Get()
   async findAll(
@@ -111,5 +115,22 @@ export class StudentsController {
     @UploadedFile() file: any
   ) {
     return this.studentsService.uploadAvatar(id, file);
+  }
+
+  // Diploma Endpoints (Integrated here to ensure registration)
+  @Get('diplomas/student/:studentId')
+  async getStudentDiplomas(@Param('studentId') studentId: string) {
+    return this.diplomasService.findByStudentId(studentId);
+  }
+
+  @Get('diplomas/:id/pdf')
+  async downloadDiplomaPdf(@Param('id') id: string, @Res() res: any) {
+    const buffer = await this.diplomasService.getDiplomaPdf(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename=diploma-${id}.pdf`,
+      'Content-Length': buffer.length,
+    });
+    res.end(buffer);
   }
 }
