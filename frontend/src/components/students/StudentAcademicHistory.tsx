@@ -64,7 +64,8 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                             </div>
                         </div>
                         <button
-                            onClick={() => {
+                            onClick={(e) => {
+                                e.stopPropagation();
                                 setConfirmModal({
                                     isOpen: true,
                                     title: 'ELIMINAR INSCRIPCIÓN',

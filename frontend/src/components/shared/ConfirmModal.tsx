@@ -1,4 +1,5 @@
 import { AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react';
+import { createPortal } from 'react-dom';
 
 interface ConfirmModalProps {
     isOpen: boolean;
@@ -25,10 +26,17 @@ export function ConfirmModal({
 }: ConfirmModalProps) {
     if (!isOpen) return null;
 
-    return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-200">
+    const modalContent = (
+        <div 
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-200"
+            onClick={(e) => {
+                if (e.target === e.currentTarget) {
+                    onCancel();
+                }
+            }}
+        >
             <div 
-                className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200"
+                className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-200 relative"
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="p-8">
@@ -54,7 +62,10 @@ export function ConfirmModal({
                         </button>
                         <button
                             type="button"
-                            onClick={onConfirm}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onConfirm();
+                            }}
                             disabled={isLoading}
                             className={`px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 disabled:opacity-50 flex items-center justify-center space-x-2 ${
                                 isDanger 
@@ -72,7 +83,10 @@ export function ConfirmModal({
                 </div>
                 
                 <button 
-                    onClick={onCancel}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        onCancel();
+                    }}
                     className="absolute top-6 right-6 text-slate-500 hover:text-white transition-colors"
                 >
                     <XCircle className="w-6 h-6" />
@@ -80,4 +94,6 @@ export function ConfirmModal({
             </div>
         </div>
     );
+
+    return createPortal(modalContent, document.body);
 }
