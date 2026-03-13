@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, GraduationCap, Download, Filter, List as ListIcon, Calendar } from 'lucide-react';
+import { Search, GraduationCap, Download, Filter, Calendar } from 'lucide-react';
 import apiClient from '../../lib/api-client';
 import toast from 'react-hot-toast';
 
@@ -12,7 +12,7 @@ export const DiplomasManager: React.FC = () => {
     const fetchDiplomas = async () => {
         setLoading(true);
         try {
-            const res = await apiClient.get('/students/diplomas/all');
+            const res = await apiClient.get('/students/global-diplomas');
             setDiplomas(res.data);
         } catch (error) {
             console.error('Error fetching diplomas:', error);

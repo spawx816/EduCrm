@@ -11,7 +11,7 @@ export class StudentsController {
   ) { }
 
   // Diploma Endpoints (Moved above :id to avoid shadowing)
-  @Get('diplomas/all')
+  @Get('global-diplomas')
   async getAllDiplomas() {
     return this.diplomasService.findAll();
   }
