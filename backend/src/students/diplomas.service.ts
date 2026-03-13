@@ -11,9 +11,22 @@ export class DiplomasService {
 
     async findAll() {
         const res = await this.pool.query(
-            `SELECT d.*, s.matricula, s.first_name, s.last_name
+            `SELECT 
+                d.*, 
+                s.matricula, s.first_name, s.last_name,
+                c.id as cohort_id, c.name as cohort_name,
+                p.name as program_name
              FROM diplomas d
              JOIN students s ON d.student_id = s.id
+             LEFT JOIN LATERAL (
+                SELECT c.id, c.name, p.name as prog_name
+                FROM enrollments e
+                JOIN academic_cohorts c ON e.cohort_id = c.id
+                JOIN academic_programs p ON c.program_id = p.id
+                WHERE e.student_id = s.id
+                ORDER BY e.created_at DESC
+                LIMIT 1
+             ) c ON true
              ORDER BY d.created_at DESC`
         );
         return res.rows;

@@ -25,10 +25,11 @@ import { SettingsPage } from './pages/SettingsPage.tsx';
 import { InventoryManager } from './components/billing/InventoryManager.tsx';
 import { ExpenseManager } from './components/billing/ExpenseManager.tsx';
 import { StudentCardsManager } from './components/students/StudentCardsManager.tsx';
+import { DiplomasManager } from './components/students/DiplomasManager.tsx';
 import apiClient, { getStaticUrl } from './lib/api-client';
 
 function DashboardLayout() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets' | 'diplomas'>('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<AcademicProgram | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -46,6 +47,7 @@ function DashboardLayout() {
     { id: 'prospects', label: 'Prospectos / Leads', icon: Users },
     { id: 'students', label: 'Directorio Estudiantes', icon: GraduationCap },
     { id: 'carnets', label: 'Carnetización', icon: Contact },
+    { id: 'diplomas', label: 'Diplomas', icon: GraduationCap },
     { id: 'academic', label: 'Académico', icon: GraduationCap },
     { id: 'billing', label: 'Facturación', icon: Receipt },
     { id: 'inventory', label: 'Inventario', icon: Package },
@@ -177,6 +179,7 @@ function DashboardLayout() {
         </div>
       );
       case 'carnets': return <StudentCardsManager />;
+      case 'diplomas': return <DiplomasManager />;
       case 'settings': return <SettingsPage />;
       default: return <DashboardOverview />;
 
