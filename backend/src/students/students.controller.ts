@@ -16,9 +16,9 @@ export class StudentsController {
     return this.diplomasService.findByStudentId(studentId);
   }
 
-  @Post('diplomas/generate/:studentId')
-  async generateDiploma(@Param('studentId') studentId: string, @Body() body: { invoiceId?: string }) {
-    return this.diplomasService.generateDiploma(studentId, body.invoiceId);
+  @Get('diplomas/generate/:studentId')
+  async generateDiploma(@Param('studentId') studentId: string, @Query('invoiceId') invoiceId?: string) {
+    return this.diplomasService.generateDiploma(studentId, invoiceId);
   }
 
   @Get('test-status')
