@@ -11,7 +11,7 @@ export function StudentDiplomas({ studentId }: StudentDiplomasProps) {
 
     const handleDownload = async (id: string) => {
         try {
-            const response = await apiClient.get(`/students/diplomas/${id}/pdf`, {
+            const response = await apiClient.get(`/diplomas/${id}/pdf`, {
                 responseType: 'blob'
             });
             const url = window.URL.createObjectURL(new Blob([response.data]));

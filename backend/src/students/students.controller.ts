@@ -11,44 +11,6 @@ export class StudentsController {
   ) { }
 
   // Diploma Endpoints (Moved above :id to avoid shadowing)
-  @Get('global-diplomas')
-  async getAllDiplomas() {
-    try {
-      return await this.diplomasService.findAll();
-    } catch (error) {
-      console.error('ERROR in getAllDiplomas:', error);
-      throw error;
-    }
-  }
-
-  @Get('diplomas/student/:studentId')
-  async getStudentDiplomas(@Param('studentId') studentId: string) {
-    return this.diplomasService.findByStudentId(studentId);
-  }
-
-  @Get('test-status')
-  testStatus() {
-    return { status: 'ok', message: 'StudentsController is live' };
-  }
-
-  @Get('diplomas/:id/pdf')
-  async downloadDiplomaPdf(@Param('id') id: string, @Res() res: any) {
-    const diplomaRes = await this.diplomasService.findAll(); // Simple way to find this specific one if no findById
-    const diploma = diplomaRes.find(d => d.id === id);
-    const buffer = await this.diplomasService.getDiplomaPdf(id);
-    
-    const safeName = diploma 
-      ? `Diploma_${diploma.student_name.replace(/\s+/g, '_')}.pdf`
-      : `diploma-${id}.pdf`;
-
-    res.set({
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${safeName}"`,
-      'Content-Length': buffer.length,
-    });
-    res.end(buffer);
-  }
-
   @Get()
   async findAll(
     @Query('search') search?: string,

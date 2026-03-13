@@ -12,7 +12,7 @@ export const DiplomasManager: React.FC = () => {
     const fetchDiplomas = async () => {
         setLoading(true);
         try {
-            const res = await apiClient.get('/students/global-diplomas');
+            const res = await apiClient.get('/diplomas/all');
             setDiplomas(res.data);
         } catch (error) {
             console.error('Error fetching diplomas:', error);
@@ -41,7 +41,7 @@ export const DiplomasManager: React.FC = () => {
 
     const handleDownload = async (diplomaId: string, studentName: string) => {
         try {
-            const response = await apiClient.get(`/students/diplomas/${diplomaId}/pdf`, {
+            const response = await apiClient.get(`/diplomas/${diplomaId}/pdf`, {
                 responseType: 'blob'
             });
             
