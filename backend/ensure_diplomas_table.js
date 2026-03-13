@@ -1,7 +1,24 @@
 const { Pool } = require('pg');
-const pool = new Pool({
-  connectionString: "postgresql://postgres:postgres@localhost:5432/educrm"
-});
+const fs = require('fs');
+const path = require('path');
+
+// Intentar cargar desde .env si existe
+let connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/educrm";
+
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const match = envContent.match(/DATABASE_URL=(.+)/);
+    if (match && match[1]) {
+      connectionString = match[1].trim();
+    }
+  }
+} catch (e) {
+  console.log("No se pudo leer el archivo .env, usando valores por defecto.");
+}
+
+const pool = new Pool({ connectionString });
 
 async function checkTable() {
   try {

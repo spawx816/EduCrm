@@ -1,9 +1,25 @@
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
+const fs = require('fs');
+const path = require('path');
 
-const pool = new Pool({
-  connectionString: "postgresql://postgres:postgres@localhost:5432/educrm"
-});
+// Intentar cargar desde .env si existe
+let connectionString = process.env.DATABASE_URL || "postgresql://postgres:postgres@localhost:5432/educrm";
+
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    const match = envContent.match(/DATABASE_URL=(.+)/);
+    if (match && match[1]) {
+      connectionString = match[1].trim();
+    }
+  }
+} catch (e) {
+  console.log("No se pudo leer el archivo .env, usando valores por defecto.");
+}
+
+const pool = new Pool({ connectionString });
 
 async function createAdminUser() {
   const email = 'a@enaa.com.do';
