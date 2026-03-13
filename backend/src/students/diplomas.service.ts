@@ -14,8 +14,8 @@ export class DiplomasService {
             `SELECT 
                 d.*, 
                 s.matricula, s.first_name, s.last_name,
-                c.id as cohort_id, c.name as cohort_name,
-                p.name as program_name
+                lat.id as cohort_id, lat.name as cohort_name,
+                lat.prog_name as program_name
              FROM diplomas d
              JOIN students s ON d.student_id = s.id
              LEFT JOIN LATERAL (
@@ -26,7 +26,7 @@ export class DiplomasService {
                 WHERE e.student_id = s.id
                 ORDER BY e.created_at DESC
                 LIMIT 1
-             ) c ON true
+             ) lat ON true
              ORDER BY d.created_at DESC`
         );
         return res.rows;
