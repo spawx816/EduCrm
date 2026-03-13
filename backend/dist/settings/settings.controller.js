@@ -26,6 +26,9 @@ let SettingsController = class SettingsController {
     async getSettings() {
         return this.settingsService.getSettings();
     }
+    async test() {
+        return { status: 'ok', message: 'SettingsController is live' };
+    }
     async updateSettings(settings, logo) {
         return this.settingsService.updateSettings(settings, logo);
     }
@@ -37,6 +40,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], SettingsController.prototype, "getSettings", null);
+__decorate([
+    (0, common_1.Get)('test-status'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], SettingsController.prototype, "test", null);
 __decorate([
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     (0, roles_decorator_1.Roles)('admin'),

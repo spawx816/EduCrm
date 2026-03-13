@@ -34,6 +34,7 @@ export declare class StudentsService {
         address?: string;
         status?: string;
         sede_id?: string;
+        is_active?: boolean;
     }): Promise<any>;
     enroll(data: {
         studentId: string;
@@ -51,4 +52,5 @@ export declare class StudentsService {
     uploadAttachment(studentId: string, file: any): Promise<any>;
     deleteAttachment(id: string): Promise<any>;
     uploadAvatar(studentId: string, file: any): Promise<any>;
+    deleteEnrollment(id: string): Promise<any>;
 }

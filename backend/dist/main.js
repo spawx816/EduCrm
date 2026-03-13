@@ -10,10 +10,7 @@ async function bootstrap() {
     app.use((0, express_1.json)({ limit: '50mb' }));
     app.use((0, express_1.urlencoded)({ extended: true, limit: '50mb' }));
     app.use((req, res, next) => {
-        console.log(`[${new Date().toISOString()}] ${req.method} ${req.originalUrl || req.url}`);
-        if (req.method === 'POST' || req.method === 'PATCH') {
-            console.log('Body:', JSON.stringify(req.body));
-        }
+        console.log(`DEBUG: ${req.method} ${req.originalUrl}`);
         next();
     });
     app.useStaticAssets((0, path_1.join)(__dirname, '..', 'uploads'), {
@@ -24,7 +21,7 @@ async function bootstrap() {
         transform: true,
     }));
     app.enableCors();
-    await app.listen(process.env.PORT ?? 3001);
+    await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();
 //# sourceMappingURL=main.js.map

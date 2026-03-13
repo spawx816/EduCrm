@@ -1,7 +1,11 @@
 import { Pool } from 'pg';
+import { StudentCardsService } from '../students/student-cards.service';
+import { DiplomasService } from '../students/diplomas.service';
 export declare class BillingService {
     private pool;
-    constructor(pool: Pool);
+    private studentCardsService;
+    private diplomasService;
+    constructor(pool: Pool, studentCardsService: StudentCardsService, diplomasService: DiplomasService);
     getInvoices(filters: {
         studentId?: string;
         search?: string;
@@ -42,7 +46,18 @@ export declare class BillingService {
         stock_quantity?: number;
         min_stock?: number;
     }): Promise<any>;
-    voidInvoice(id: string): Promise<any>;
+    updateBillingItem(id: string, data: {
+        name?: string;
+        description?: string;
+        price?: number;
+        is_active?: boolean;
+    }): Promise<any>;
+    deleteBillingItem(id: string): Promise<any>;
+    seedCarnets(): Promise<{
+        message: string;
+    }>;
+    voidInvoice(id: string, voidedBy?: string): Promise<any>;
+    deleteInvoice(id: string): Promise<any>;
     getInvoiceSuggestions(studentId: string): Promise<{
         enrollmentSuggestions: never[];
         suggestedDueDate: null;
@@ -62,6 +77,8 @@ export declare class BillingService {
     deleteScholarship(id: string): Promise<any>;
     getInstructorPayments(teacherId?: string): Promise<any[]>;
     registerInstructorPayment(data: any): Promise<any>;
+    deleteInstructorPayment(id: string): Promise<any>;
+    voidInstructorPayment(id: string): Promise<any>;
     getInventoryMovements(itemId?: string): Promise<any[]>;
     adjustStock(data: any): Promise<any>;
     getExpenseCategories(): Promise<any[]>;

@@ -21,6 +21,15 @@ let BillingController = class BillingController {
         this.billingService = billingService;
         this.pdfService = pdfService;
     }
+    async deleteInvoice(id) {
+        return this.billingService.deleteInvoice(id);
+    }
+    async deleteInstructorPayment(id) {
+        return this.billingService.deleteInstructorPayment(id);
+    }
+    async test() {
+        return { status: 'ok', message: 'BillingController is live' };
+    }
     async getItems() {
         return this.billingService.getBillingItems();
     }
@@ -35,6 +44,15 @@ let BillingController = class BillingController {
     }
     async createItem(data) {
         return this.billingService.createBillingItem(data);
+    }
+    async updateItem(id, data) {
+        return this.billingService.updateBillingItem(id, data);
+    }
+    async deleteItem(id) {
+        return this.billingService.deleteBillingItem(id);
+    }
+    async seedCarnets() {
+        return this.billingService.seedCarnets();
     }
     async getInvoices(studentId, search, status, startDate, endDate) {
         return this.billingService.getInvoices({ studentId, search, status, startDate, endDate });
@@ -78,8 +96,11 @@ let BillingController = class BillingController {
         });
         res.end(buffer);
     }
-    async voidInvoice(id) {
-        return this.billingService.voidInvoice(id);
+    async voidInstructorPayment(id) {
+        return this.billingService.voidInstructorPayment(id);
+    }
+    async voidInvoice(id, req) {
+        return this.billingService.voidInvoice(id, req?.user?.id);
     }
     async getSuggestions(studentId) {
         return this.billingService.getInvoiceSuggestions(studentId);
@@ -104,6 +125,26 @@ let BillingController = class BillingController {
     }
 };
 exports.BillingController = BillingController;
+__decorate([
+    (0, common_1.Delete)('invoices/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "deleteInvoice", null);
+__decorate([
+    (0, common_1.Delete)('instructor-payments/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "deleteInstructorPayment", null);
+__decorate([
+    (0, common_1.Get)('test-status'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "test", null);
 __decorate([
     (0, common_1.Get)('items'),
     __metadata("design:type", Function),
@@ -137,6 +178,27 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], BillingController.prototype, "createItem", null);
+__decorate([
+    (0, common_1.Patch)('items/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "updateItem", null);
+__decorate([
+    (0, common_1.Delete)('items/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "deleteItem", null);
+__decorate([
+    (0, common_1.Get)('seed-carnets'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "seedCarnets", null);
 __decorate([
     (0, common_1.Get)('invoices'),
     __param(0, (0, common_1.Query)('studentId')),
@@ -208,10 +270,18 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], BillingController.prototype, "downloadInstructorPdf", null);
 __decorate([
-    (0, common_1.Post)('invoices/:id/void'),
+    (0, common_1.Post)('instructor-payments/:id/void'),
     __param(0, (0, common_1.Param)('id')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], BillingController.prototype, "voidInstructorPayment", null);
+__decorate([
+    (0, common_1.Post)('invoices/:id/void'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], BillingController.prototype, "voidInvoice", null);
 __decorate([

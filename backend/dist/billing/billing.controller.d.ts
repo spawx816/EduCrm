@@ -5,6 +5,12 @@ export declare class BillingController {
     private readonly billingService;
     private readonly pdfService;
     constructor(billingService: BillingService, pdfService: InvoicePdfService);
+    deleteInvoice(id: string): Promise<any>;
+    deleteInstructorPayment(id: string): Promise<any>;
+    test(): Promise<{
+        status: string;
+        message: string;
+    }>;
     getItems(): Promise<any[]>;
     getScholarships(): Promise<any[]>;
     createScholarship(data: any): Promise<any>;
@@ -14,6 +20,16 @@ export declare class BillingController {
         description?: string;
         price: number;
     }): Promise<any>;
+    updateItem(id: string, data: {
+        name?: string;
+        description?: string;
+        price?: number;
+        is_active?: boolean;
+    }): Promise<any>;
+    deleteItem(id: string): Promise<any>;
+    seedCarnets(): Promise<{
+        message: string;
+    }>;
     getInvoices(studentId?: string, search?: string, status?: string, startDate?: string, endDate?: string): Promise<any[]>;
     downloadPdf(id: string, res: Response): Promise<void>;
     getInvoiceItems(id: string): Promise<any[]>;
@@ -23,7 +39,8 @@ export declare class BillingController {
     getInstructorPayments(teacherId?: string): Promise<any[]>;
     registerInstructorPayment(data: any): Promise<any>;
     downloadInstructorPdf(id: string, res: Response): Promise<void>;
-    voidInvoice(id: string): Promise<any>;
+    voidInstructorPayment(id: string): Promise<any>;
+    voidInvoice(id: string, req: any): Promise<any>;
     getSuggestions(studentId: string): Promise<{
         enrollmentSuggestions: never[];
         suggestedDueDate: null;

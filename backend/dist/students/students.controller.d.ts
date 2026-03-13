@@ -1,13 +1,22 @@
 import { StudentsService } from './students.service';
+import { DiplomasService } from './diplomas.service';
 export declare class StudentsController {
     private readonly studentsService;
-    constructor(studentsService: StudentsService);
+    private readonly diplomasService;
+    constructor(studentsService: StudentsService, diplomasService: DiplomasService);
+    getStudentDiplomas(studentId: string): Promise<any[]>;
+    testStatus(): {
+        status: string;
+        message: string;
+    };
+    downloadDiplomaPdf(id: string, res: any): Promise<void>;
     findAll(search?: string, status?: string, sede_id?: string): Promise<any[]>;
     findOne(id: string): Promise<any>;
     create(data: any): Promise<any>;
     update(id: string, data: any): Promise<any>;
     convertLead(leadId: string): Promise<any>;
     enroll(data: any): Promise<any>;
+    deleteEnrollment(id: string): Promise<any>;
     getFullHistory(id: string): Promise<any[]>;
     portalLogin(data: {
         matricula: string;

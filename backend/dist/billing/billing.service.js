@@ -16,21 +16,29 @@ exports.BillingService = void 0;
 const common_1 = require("@nestjs/common");
 const pg_1 = require("pg");
 const database_module_1 = require("../database/database.module");
+const student_cards_service_1 = require("../students/student-cards.service");
+const diplomas_service_1 = require("../students/diplomas.service");
 let BillingService = class BillingService {
-    constructor(pool) {
+    constructor(pool, studentCardsService, diplomasService) {
         this.pool = pool;
+        this.studentCardsService = studentCardsService;
+        this.diplomasService = diplomasService;
     }
     async getInvoices(filters) {
         let query = `
-            SELECT i.*, s.first_name, s.last_name, 
-                   STRING_AGG(id.description, ', ') as concepts
+            SELECT i.*, i.created_at as issue_date, s.first_name, s.last_name,
+                   concepts_data.concepts
             FROM invoices i
             JOIN students s ON i.student_id = s.id
-            LEFT JOIN invoice_details id ON i.id = id.invoice_id
+            LEFT JOIN (
+                SELECT invoice_id, STRING_AGG(description, ', ') as concepts
+                FROM invoice_details
+                GROUP BY invoice_id
+            ) concepts_data ON i.id = concepts_data.invoice_id
             WHERE 1=1
         `;
         const params = [];
-        if (filters.studentId) {
+        if (filters.studentId && filters.studentId.trim() !== '') {
             params.push(filters.studentId);
             query += ` AND i.student_id = $${params.length}`;
         }
@@ -38,7 +46,7 @@ let BillingService = class BillingService {
             params.push(filters.status);
             query += ` AND i.status = $${params.length}`;
         }
-        if (filters.search) {
+        if (filters.search && filters.search.trim() !== '') {
             params.push(`%${filters.search}%`);
             query += ` AND (s.first_name ILIKE $${params.length} OR s.last_name ILIKE $${params.length} OR i.invoice_number ILIKE $${params.length})`;
         }
@@ -50,14 +58,16 @@ let BillingService = class BillingService {
             params.push(filters.endDate);
             query += ` AND i.created_at <= $${params.length}`;
         }
-        query += ` GROUP BY i.id, s.id ORDER BY i.created_at DESC`;
+        query += ` ORDER BY i.created_at DESC`;
         const res = await this.pool.query(query, params);
         return res.rows;
     }
     async getInvoiceById(id) {
-        const invoiceRes = await this.pool.query(`SELECT i.*, s.first_name, s.last_name, s.email, s.phone 
+        const invoiceRes = await this.pool.query(`SELECT i.*, s.first_name, s.last_name, s.email, s.phone,
+                    u.first_name as voided_by_first_name, u.last_name as voided_by_last_name 
              FROM invoices i 
              JOIN students s ON i.student_id = s.id 
+             LEFT JOIN users u ON i.voided_by = u.id
              WHERE i.id = $1`, [id]);
         if (invoiceRes.rows.length === 0)
             return null;
@@ -102,6 +112,24 @@ let BillingService = class BillingService {
                 }
             }
             await client.query('COMMIT');
+            for (const item of data.items) {
+                if (item.description.toLowerCase().includes('carnet')) {
+                    try {
+                        await this.studentCardsService.generateCard(data.studentId, invoiceId);
+                    }
+                    catch (cardError) {
+                        console.error('Failed to automatically generate carnet:', cardError);
+                    }
+                }
+                if (item.description.toUpperCase().includes('DERECHO A GRADUACION')) {
+                    try {
+                        await this.diplomasService.generateDiploma(data.studentId, invoiceId);
+                    }
+                    catch (diplomaError) {
+                        console.error('Failed to automatically generate diploma:', diplomaError);
+                    }
+                }
+            }
             return invoiceRes.rows[0];
         }
         catch (error) {
@@ -155,9 +183,112 @@ let BillingService = class BillingService {
         ]);
         return res.rows[0];
     }
-    async voidInvoice(id) {
-        const res = await this.pool.query("UPDATE invoices SET status = 'VOIDED' WHERE id = $1 AND status != 'PAID' RETURNING *", [id]);
+    async updateBillingItem(id, data) {
+        let setFields = [];
+        let params = [];
+        let idx = 1;
+        for (const [key, value] of Object.entries(data)) {
+            setFields.push(`${key} = $${idx}`);
+            params.push(value);
+            idx++;
+        }
+        if (setFields.length === 0)
+            return null;
+        params.push(id);
+        const res = await this.pool.query(`UPDATE billing_items SET ${setFields.join(', ')} WHERE id = $${idx} RETURNING *`, params);
         return res.rows[0];
+    }
+    async deleteBillingItem(id) {
+        return this.updateBillingItem(id, { is_active: false });
+    }
+    async seedCarnets() {
+        await this.pool.query(`
+          CREATE TABLE IF NOT EXISTS student_cards (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            student_id UUID NOT NULL REFERENCES students(id),
+            invoice_id UUID REFERENCES invoices(id),
+            enrollment_id UUID REFERENCES enrollments(id),
+            student_name TEXT NOT NULL,
+            matricula TEXT NOT NULL,
+            program_name TEXT NOT NULL,
+            cohort_name TEXT NOT NULL,
+            status TEXT DEFAULT 'PENDING',
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+          );
+        `);
+        await this.pool.query(`
+          INSERT INTO billing_items (name, price, is_active)
+          VALUES ('Carnet', 250, true)
+          ON CONFLICT DO NOTHING
+        `);
+        return { message: "Carnet seeding applied" };
+    }
+    async voidInvoice(id, voidedBy) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            const currentRes = await client.query('SELECT status, invoice_number FROM invoices WHERE id = $1', [id]);
+            if (currentRes.rows.length === 0)
+                throw new Error('Invoice not found');
+            if (currentRes.rows[0].status === 'VOIDED') {
+                await client.query('ROLLBACK');
+                return currentRes.rows[0];
+            }
+            const details = await client.query('SELECT item_id, quantity FROM invoice_details WHERE invoice_id = $1 AND item_id IS NOT NULL', [id]);
+            for (const item of details.rows) {
+                const itemCheck = await client.query('SELECT is_inventory FROM billing_items WHERE id = $1', [item.item_id]);
+                if (itemCheck.rows[0]?.is_inventory) {
+                    await client.query(`INSERT INTO inventory_movements (item_id, type, quantity, reference_type, reference_id, notes)
+                     VALUES ($1, 'IN', $2, 'VOIDED_INVOICE', $3, $4)`, [item.item_id, item.quantity, id, `Anulación de factura ${currentRes.rows[0].invoice_number}`]);
+                    await client.query('UPDATE billing_items SET stock_quantity = stock_quantity + $1 WHERE id = $2', [item.quantity, item.item_id]);
+                }
+            }
+            const res = await client.query("UPDATE invoices SET status = 'VOIDED', voided_at = NOW(), voided_by = $2 WHERE id = $1 RETURNING *", [id, voidedBy]);
+            await client.query('COMMIT');
+            return res.rows[0];
+        }
+        catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        }
+        finally {
+            client.release();
+        }
+    }
+    async deleteInvoice(id) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            const currentRes = await client.query('SELECT status, invoice_number FROM invoices WHERE id = $1', [id]);
+            if (currentRes.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return null;
+            }
+            if (currentRes.rows[0].status !== 'VOIDED') {
+                const details = await client.query('SELECT item_id, quantity FROM invoice_details WHERE invoice_id = $1 AND item_id IS NOT NULL', [id]);
+                for (const item of details.rows) {
+                    const itemCheck = await client.query('SELECT is_inventory FROM billing_items WHERE id = $1', [item.item_id]);
+                    if (itemCheck.rows[0]?.is_inventory) {
+                        await client.query('UPDATE billing_items SET stock_quantity = stock_quantity + $1 WHERE id = $2', [item.quantity, item.item_id]);
+                    }
+                }
+            }
+            await client.query('DELETE FROM student_cards WHERE invoice_id = $1', [id]);
+            await client.query('DELETE FROM invoice_payments WHERE invoice_id = $1', [id]);
+            await client.query('DELETE FROM invoice_details WHERE invoice_id = $1', [id]);
+            await client.query("DELETE FROM inventory_movements WHERE reference_id = $1 AND reference_type = 'INVOICE'", [id]);
+            const res = await client.query('DELETE FROM invoices WHERE id = $1 RETURNING *', [id]);
+            await client.query('COMMIT');
+            return res.rows[0];
+        }
+        catch (error) {
+            await client.query('ROLLBACK');
+            throw error;
+        }
+        finally {
+            client.release();
+        }
     }
     async getInvoiceSuggestions(studentId) {
         const enrollmentsRes = await this.pool.query(`SELECT e.id as enrollment_id, e.cohort_id, e.status as enrollment_status, c.program_id, c.requires_enrollment, p.enrollment_price, p.name as program_name, p.billing_day,
@@ -300,6 +431,14 @@ let BillingService = class BillingService {
              VALUES ($1, $2, $3, $4, $5) RETURNING *`, [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes]);
         return res.rows[0];
     }
+    async deleteInstructorPayment(id) {
+        const res = await this.pool.query('DELETE FROM instructor_payments WHERE id = $1 RETURNING *', [id]);
+        return res.rows[0];
+    }
+    async voidInstructorPayment(id) {
+        const res = await this.pool.query("UPDATE instructor_payments SET status = 'VOIDED', updated_at = NOW() WHERE id = $1 RETURNING *", [id]);
+        return res.rows[0];
+    }
     async getInventoryMovements(itemId) {
         const query = itemId
             ? 'SELECT im.*, bi.name as item_name FROM inventory_movements im JOIN billing_items bi ON im.item_id = bi.id WHERE im.item_id = $1 ORDER BY im.created_at DESC'
@@ -364,6 +503,10 @@ exports.BillingService = BillingService;
 exports.BillingService = BillingService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, common_1.Inject)(database_module_1.PG_POOL)),
-    __metadata("design:paramtypes", [pg_1.Pool])
+    __param(1, (0, common_1.Inject)((0, common_1.forwardRef)(() => student_cards_service_1.StudentCardsService))),
+    __param(2, (0, common_1.Inject)((0, common_1.forwardRef)(() => diplomas_service_1.DiplomasService))),
+    __metadata("design:paramtypes", [pg_1.Pool,
+        student_cards_service_1.StudentCardsService,
+        diplomas_service_1.DiplomasService])
 ], BillingService);
 //# sourceMappingURL=billing.service.js.map

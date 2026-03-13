@@ -10,16 +10,20 @@ exports.StudentsModule = void 0;
 const common_1 = require("@nestjs/common");
 const students_service_1 = require("./students.service");
 const students_controller_1 = require("./students.controller");
+const student_cards_service_1 = require("./student-cards.service");
+const student_cards_controller_1 = require("./student-cards.controller");
 const database_module_1 = require("../database/database.module");
 const integrations_module_1 = require("../integrations/integrations.module");
+const diplomas_service_1 = require("./diplomas.service");
 let StudentsModule = class StudentsModule {
 };
 exports.StudentsModule = StudentsModule;
 exports.StudentsModule = StudentsModule = __decorate([
     (0, common_1.Module)({
         imports: [database_module_1.DatabaseModule, integrations_module_1.IntegrationsModule],
-        providers: [students_service_1.StudentsService],
-        controllers: [students_controller_1.StudentsController],
+        providers: [students_service_1.StudentsService, student_cards_service_1.StudentCardsService, diplomas_service_1.DiplomasService],
+        controllers: [students_controller_1.StudentsController, student_cards_controller_1.StudentCardsController],
+        exports: [student_cards_service_1.StudentCardsService, diplomas_service_1.DiplomasService]
     })
 ], StudentsModule);
 //# sourceMappingURL=students.module.js.map

@@ -12,12 +12,13 @@ const billing_service_1 = require("./billing.service");
 const billing_controller_1 = require("./billing.controller");
 const database_module_1 = require("../database/database.module");
 const invoice_pdf_service_1 = require("./invoice-pdf.service");
+const students_module_1 = require("../students/students.module");
 let BillingModule = class BillingModule {
 };
 exports.BillingModule = BillingModule;
 exports.BillingModule = BillingModule = __decorate([
     (0, common_1.Module)({
-        imports: [database_module_1.DatabaseModule],
+        imports: [database_module_1.DatabaseModule, (0, common_1.forwardRef)(() => students_module_1.StudentsModule)],
         providers: [billing_service_1.BillingService, invoice_pdf_service_1.InvoicePdfService],
         controllers: [billing_controller_1.BillingController]
     })

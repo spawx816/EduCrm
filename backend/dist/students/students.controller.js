@@ -16,9 +16,26 @@ exports.StudentsController = void 0;
 const common_1 = require("@nestjs/common");
 const platform_express_1 = require("@nestjs/platform-express");
 const students_service_1 = require("./students.service");
+const diplomas_service_1 = require("./diplomas.service");
 let StudentsController = class StudentsController {
-    constructor(studentsService) {
+    constructor(studentsService, diplomasService) {
         this.studentsService = studentsService;
+        this.diplomasService = diplomasService;
+    }
+    async getStudentDiplomas(studentId) {
+        return this.diplomasService.findByStudentId(studentId);
+    }
+    testStatus() {
+        return { status: 'ok', message: 'StudentsController is live' };
+    }
+    async downloadDiplomaPdf(id, res) {
+        const buffer = await this.diplomasService.getDiplomaPdf(id);
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=diploma-${id}.pdf`,
+            'Content-Length': buffer.length,
+        });
+        res.end(buffer);
     }
     async findAll(search, status, sede_id) {
         return this.studentsService.findAll({ search, status, sede_id });
@@ -37,6 +54,9 @@ let StudentsController = class StudentsController {
     }
     async enroll(data) {
         return this.studentsService.enroll(data);
+    }
+    async deleteEnrollment(id) {
+        return this.studentsService.deleteEnrollment(id);
     }
     async getFullHistory(id) {
         return this.studentsService.getFullHistory(id);
@@ -76,6 +96,27 @@ let StudentsController = class StudentsController {
     }
 };
 exports.StudentsController = StudentsController;
+__decorate([
+    (0, common_1.Get)('diplomas/student/:studentId'),
+    __param(0, (0, common_1.Param)('studentId')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], StudentsController.prototype, "getStudentDiplomas", null);
+__decorate([
+    (0, common_1.Get)('test-status'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], StudentsController.prototype, "testStatus", null);
+__decorate([
+    (0, common_1.Get)('diplomas/:id/pdf'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Res)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], StudentsController.prototype, "downloadDiplomaPdf", null);
 __decorate([
     (0, common_1.Get)(),
     __param(0, (0, common_1.Query)('search')),
@@ -121,6 +162,13 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], StudentsController.prototype, "enroll", null);
+__decorate([
+    (0, common_1.Delete)('enrollments/:id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], StudentsController.prototype, "deleteEnrollment", null);
 __decorate([
     (0, common_1.Get)(':id/full-history'),
     __param(0, (0, common_1.Param)('id')),
@@ -204,6 +252,7 @@ __decorate([
 ], StudentsController.prototype, "uploadAvatar", null);
 exports.StudentsController = StudentsController = __decorate([
     (0, common_1.Controller)('students'),
-    __metadata("design:paramtypes", [students_service_1.StudentsService])
+    __metadata("design:paramtypes", [students_service_1.StudentsService,
+        diplomas_service_1.DiplomasService])
 ], StudentsController);
 //# sourceMappingURL=students.controller.js.map

@@ -19,6 +19,19 @@ let AppController = class AppController {
     getHello() {
         return this.appService.getHello();
     }
+    getRoutes() {
+        return {
+            message: 'Registered routes (internal names):',
+            routes: [
+                'POST /auth/login',
+                'GET /billing/invoices',
+                'GET /billing/test-status',
+                'DELETE /billing/invoices/:id',
+                'DELETE /billing/instructor-payments/:id',
+                'GET /students'
+            ]
+        };
+    }
 };
 exports.AppController = AppController;
 __decorate([
@@ -27,6 +40,12 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", String)
 ], AppController.prototype, "getHello", null);
+__decorate([
+    (0, common_1.Get)('routes-debug'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AppController.prototype, "getRoutes", null);
 exports.AppController = AppController = __decorate([
     (0, common_1.Controller)(),
     __metadata("design:paramtypes", [app_service_1.AppService])
