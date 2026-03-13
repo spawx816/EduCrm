@@ -13,7 +13,12 @@ export class StudentsController {
   // Diploma Endpoints (Moved above :id to avoid shadowing)
   @Get('global-diplomas')
   async getAllDiplomas() {
-    return this.diplomasService.findAll();
+    try {
+      return await this.diplomasService.findAll();
+    } catch (error) {
+      console.error('ERROR in getAllDiplomas:', error);
+      throw error;
+    }
   }
 
   @Get('diplomas/student/:studentId')
