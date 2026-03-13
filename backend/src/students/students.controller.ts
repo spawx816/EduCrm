@@ -11,19 +11,9 @@ export class StudentsController {
   ) { }
 
   // Diploma Endpoints (Moved above :id to avoid shadowing)
-  @Get('hello')
-  hello() {
-    return 'hello';
-  }
-
   @Get('diplomas/student/:studentId')
   async getStudentDiplomas(@Param('studentId') studentId: string) {
     return this.diplomasService.findByStudentId(studentId);
-  }
-
-  @Get('gen-diploma/:studentId')
-  async generateDiploma(@Param('studentId') studentId: string, @Query('invoiceId') invoiceId?: string) {
-    return this.diplomasService.generateDiploma(studentId, invoiceId);
   }
 
   @Get('test-status')
