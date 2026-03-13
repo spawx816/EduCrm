@@ -139,4 +139,9 @@ export class StudentsController {
     return this.studentsService.uploadAvatar(id, file);
   }
 
+  @Post('diplomas/generate/:studentId')
+  async generateDiploma(@Param('studentId') studentId: string, @Body() body: { invoiceId?: string }) {
+    return this.diplomasService.generateDiploma(studentId, body.invoiceId);
+  }
+
 }
