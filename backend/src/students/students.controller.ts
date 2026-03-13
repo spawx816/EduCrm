@@ -11,6 +11,11 @@ export class StudentsController {
   ) { }
 
   // Diploma Endpoints (Moved above :id to avoid shadowing)
+  @Get('hello')
+  hello() {
+    return 'hello';
+  }
+
   @Get('diplomas/student/:studentId')
   async getStudentDiplomas(@Param('studentId') studentId: string) {
     return this.diplomasService.findByStudentId(studentId);
