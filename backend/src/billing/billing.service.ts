@@ -164,7 +164,8 @@ export class BillingService {
                     }
                 }
 
-                if (item.description.toUpperCase().includes('DERECHO A GRADUACION')) {
+                const desc = item.description.toUpperCase();
+                if (desc.includes('GRADUACION') || desc.includes('GRADUACIÓN')) {
                     try {
                         await this.diplomasService.generateDiploma(data.studentId, invoiceId);
                     } catch (diplomaError) {

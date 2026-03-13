@@ -35,7 +35,7 @@ export class DiplomasService {
              JOIN enrollments e ON s.id = e.student_id
              JOIN academic_cohorts c ON e.cohort_id = c.id
              JOIN academic_programs p ON c.program_id = p.id
-             WHERE s.id = $1 AND p.name ILIKE '%AGENTES DE AEROLINEAS%'
+             WHERE s.id = $1
              ORDER BY e.created_at DESC
              LIMIT 1`,
             [studentId]
