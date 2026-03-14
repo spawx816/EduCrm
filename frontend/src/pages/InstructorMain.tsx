@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth.tsx';
 import { useInstructorCohorts } from '../hooks/useInstructor';
-import { GraduationCap, Users, Clock, ChevronRight, LogOut, Layout, Wallet, Hash, User, Mail, Phone, MapPin, Download, Edit2, Save, Check, ShieldCheck, UserCircle, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
+import { GraduationCap, Users, Clock, ChevronRight, LogOut, Layout, Wallet, Hash, User, Mail, Phone, MapPin, Download, Edit2, Save, Check, ShieldCheck, UserCircle, TrendingUp } from 'lucide-react';
 import { InstructorCohortDetail } from '../components/academic/InstructorCohortDetail.tsx';
 import { useInstructorPayments } from '../hooks/useBilling.ts';
 import { toast } from 'react-hot-toast';
