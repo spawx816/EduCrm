@@ -98,15 +98,15 @@ export class DiplomasService {
             }
 
             // Name: After "A:" - Center it on the first line
-            doc.font('Times-Bold').fontSize(38).fillColor('#000000');
-            doc.text(diploma.student_name, 60, 268, {
+            doc.font('Times-Bold').fontSize(34).fillColor('#000000');
+            doc.text(diploma.student_name, 60, 250, {
                 width: 721.89,
                 align: 'center'
             });
 
             // Course: Under "Por haber completado satisfactoriamente el curso de"
             doc.font('Times-Bold').fontSize(28).fillColor('#000000');
-            doc.text(diploma.course_name, 60, 360, {
+            doc.text(diploma.course_name, 60, 440, {
                 width: 721.89,
                 align: 'center'
             });
