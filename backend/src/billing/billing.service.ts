@@ -165,7 +165,8 @@ export class BillingService {
                 }
 
                 const desc = item.description.toUpperCase();
-                if (desc.includes('GRADUACION') || desc.includes('GRADUACIÓN')) {
+                // More flexible detection for graduation
+                if (desc.includes('GRADUA') || desc.includes('DERECHO A GRADU')) {
                     try {
                         await this.diplomasService.generateDiploma(data.studentId, invoiceId);
                     } catch (diplomaError) {
@@ -217,6 +218,23 @@ export class BillingService {
             );
 
             await client.query('COMMIT');
+
+            // Trigger side-effects AFTER transaction commit
+            if (status === 'PAID') {
+                try {
+                    const details = await this.getInvoiceItems(data.invoiceId);
+                    for (const item of details) {
+                        const desc = item.description.toUpperCase();
+                        if (desc.includes('GRADUA') || desc.includes('DERECHO A GRADU')) {
+                            // Use the invoice data to get student_id
+                            await this.diplomasService.generateDiploma(updatedInvoice.rows[0].student_id, data.invoiceId);
+                        }
+                    }
+                } catch (sideEffectError) {
+                    console.error('Failed to process post-payment side effects:', sideEffectError);
+                }
+            }
+
             return updatedInvoice.rows[0];
         } catch (error) {
             await client.query('ROLLBACK');

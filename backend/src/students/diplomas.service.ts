@@ -41,6 +41,17 @@ export class DiplomasService {
     }
 
     async generateDiploma(studentId: string, invoiceId?: string) {
+        console.log(`Generating diploma for student ${studentId}, invoice ${invoiceId}`);
+        
+        // 0. Check if already exists for this invoice
+        if (invoiceId) {
+            const existing = await this.pool.query('SELECT id FROM diplomas WHERE invoice_id = $1', [invoiceId]);
+            if (existing.rows.length > 0) {
+                console.log(`Diploma already exists for invoice ${invoiceId}`);
+                return existing.rows[0];
+            }
+        }
+
         // 1. Get student and program info
         const studentRes = await this.pool.query(
             `SELECT s.id, s.first_name, s.last_name, p.name as program_name 
@@ -55,7 +66,7 @@ export class DiplomasService {
         );
 
         if (studentRes.rows.length === 0) {
-            // Not in the required program or not found
+            console.log(`No active enrollment found for student ${studentId}`);
             return null;
         }
 
@@ -70,6 +81,7 @@ export class DiplomasService {
             [studentId, invoiceId || null, studentName, courseName]
         );
 
+        console.log(`Successfully generated diploma ${res.rows[0].id}`);
         return res.rows[0];
     }
 
