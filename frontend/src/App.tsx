@@ -21,6 +21,7 @@ import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Link, Wallet, Packag
 import { InstructorPayrollManager } from './components/academic/InstructorPayrollManager.tsx';
 import { ChatInbox } from './pages/ChatInbox.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
+import { AdminProfile } from './pages/AdminProfile.tsx';
 
 import { InventoryManager } from './components/billing/InventoryManager.tsx';
 import { ExpenseManager } from './components/billing/ExpenseManager.tsx';
@@ -29,7 +30,7 @@ import { DiplomasManager } from './components/students/DiplomasManager.tsx';
 import apiClient, { getStaticUrl } from './lib/api-client';
 
 function DashboardLayout() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets' | 'diplomas'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets' | 'diplomas' | 'profile'>('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [selectedProgram, setSelectedProgram] = useState<AcademicProgram | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -181,6 +182,7 @@ function DashboardLayout() {
       case 'carnets': return <StudentCardsManager />;
       case 'diplomas': return <DiplomasManager />;
       case 'settings': return <SettingsPage />;
+      case 'profile': return <AdminProfile />;
       default: return <DashboardOverview />;
 
     }
@@ -275,15 +277,22 @@ function DashboardLayout() {
         <div className="p-4 mt-auto space-y-4">
 
 
-          <div className="flex items-center space-x-3 p-3 bg-slate-900/50 rounded-2xl border border-slate-800">
-            <div className="w-10 h-10 bg-indigo-600 rounded-full flex shrink-0 items-center justify-center text-white font-bold shadow-inner uppercase">
+          <div className="flex items-center space-x-3 p-3 bg-slate-900/50 rounded-2xl border border-slate-800 group hover:border-indigo-500/50 transition-all cursor-pointer" onClick={() => setActiveTab('profile')}>
+            <div className="w-10 h-10 bg-indigo-600 rounded-full flex shrink-0 items-center justify-center text-white font-bold shadow-inner uppercase group-hover:scale-110 transition-transform">
               {(user?.first_name || user?.firstName)?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{user?.first_name || user?.firstName} {user?.last_name || user?.lastName}</p>
+              <p className="text-sm font-bold text-white truncate group-hover:text-indigo-400 transition-colors">{user?.first_name || user?.firstName} {user?.last_name || user?.lastName}</p>
               <p className="text-[10px] text-slate-400 truncate capitalize">{user?.role}</p>
             </div>
-            <button onClick={logout} className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all" title="Cerrar Sesión">
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                logout();
+              }} 
+              className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-xl transition-all" 
+              title="Cerrar Sesión"
+            >
               <LogOut className="w-5 h-5" />
             </button>
           </div>

@@ -164,26 +164,35 @@ export function SettingsPage() {
 
     return (
         <div className="flex flex-col h-full bg-[#0f172a] overflow-hidden">
-            <header className="h-16 border-b border-slate-800 flex items-center px-6 shrink-0 bg-[#0f172a]/80 backdrop-blur-sm z-10 w-full">
-                <h1 className="text-lg font-bold text-white tracking-tight">Panel de Administración</h1>
+            <header className="h-20 border-b border-slate-800 flex items-center justify-between px-8 shrink-0 bg-[#0f172a]/80 backdrop-blur-md z-20 w-full">
+                <div>
+                    <h1 className="text-xl font-black text-white tracking-tight uppercase">Configuración de Plataforma</h1>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-black mt-1">Control Global de la Institución</p>
+                </div>
+                <div className="flex items-center space-x-2">
+                    <div className="bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-[10px] font-black border border-blue-500/20">
+                        ADMIN v2.0
+                    </div>
+                </div>
             </header>
 
             <div className="flex flex-1 overflow-hidden">
                 {/* Tabs Sidebar */}
-                <aside className="w-64 border-r border-slate-800 p-4 space-y-2">
+                <aside className="w-72 border-r border-slate-800 p-6 space-y-3 bg-[#020617]/50">
+                    <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-widest mb-4 mt-2">Módulos de Sistema</p>
                     <button
                         onClick={() => setActiveTab('company')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'company' ? 'bg-blue-600/10 text-blue-400' : 'text-slate-400 hover:bg-slate-800/50'}`}
+                        className={`w-full flex items-center space-x-3 px-5 py-4 rounded-2xl transition-all duration-300 ${activeTab === 'company' ? 'bg-blue-600 text-white shadow-xl shadow-blue-600/20 active:scale-95' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}`}
                     >
-                        <Globe className="w-5 h-5" />
-                        <span className="font-bold">Empresa</span>
+                        <Globe className={`w-5 h-5 ${activeTab === 'company' ? 'text-white' : 'text-slate-500'}`} />
+                        <span className="font-black text-xs uppercase tracking-widest">Institución</span>
                     </button>
                     <button
                         onClick={() => setActiveTab('users')}
-                        className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all ${activeTab === 'users' ? 'bg-blue-600/10 text-blue-400' : 'text-slate-400 hover:bg-slate-800/50'}`}
+                        className={`w-full flex items-center space-x-3 px-5 py-4 rounded-2xl transition-all duration-300 ${activeTab === 'users' ? 'bg-indigo-600 text-white shadow-xl shadow-indigo-600/20 active:scale-95' : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'}`}
                     >
-                        <Users className="w-5 h-5" />
-                        <span className="font-bold">Usuarios</span>
+                        <Users className={`w-5 h-5 ${activeTab === 'users' ? 'text-white' : 'text-slate-500'}`} />
+                        <span className="font-black text-xs uppercase tracking-widest">Usuarios & Roles</span>
                     </button>
                 </aside>
 
@@ -196,11 +205,16 @@ export function SettingsPage() {
                     )}
 
                     {activeTab === 'company' ? (
-                        <div className="max-w-4xl space-y-6">
-                            <div className="bg-slate-900/50 border border-slate-800 p-8 rounded-3xl">
-                                <div className="flex items-center space-x-3 mb-8">
-                                    <Globe className="w-6 h-6 text-blue-500" />
-                                    <h2 className="text-xl font-black text-white">Información de la Empresa</h2>
+                        <div className="max-w-5xl space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
+                            <div className="bg-slate-900/40 border border-slate-800 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 p-12 opacity-[0.02] group-hover:rotate-12 transition-transform duration-1000">
+                                    <Globe className="w-48 h-48 text-white" />
+                                </div>
+                                <div className="flex items-center space-x-4 mb-10 relative z-10">
+                                    <div className="p-3 bg-blue-600/20 rounded-2xl border border-blue-500/30">
+                                        <Globe className="w-6 h-6 text-blue-500" />
+                                    </div>
+                                    <h2 className="text-xl font-black text-white uppercase tracking-tight">Identidad Institucional</h2>
                                 </div>
 
                                 <form onSubmit={handleSaveSettings} className="space-y-6">
@@ -230,7 +244,7 @@ export function SettingsPage() {
                                                         type="text"
                                                         value={settings.primary_color}
                                                         onChange={(e) => setSettings({ ...settings, primary_color: e.target.value })}
-                                                        className="flex-1 bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-mono text-sm"
+                                                        className="flex-1 bg-transparent border-none text-sm font-bold text-white focus:ring-0 px-3 uppercase"
                                                     />
                                                 </div>
                                             </div>
@@ -366,39 +380,46 @@ export function SettingsPage() {
                                         <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Acciones</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-800">
+                                <tbody className="divide-y divide-slate-800/50">
                                     {users.map((u) => (
-                                        <tr key={u.id} className="hover:bg-slate-800/30 transition-colors">
-                                            <td className="px-6 py-4">
-                                                <div className="flex flex-col">
-                                                    <span className="text-sm font-bold text-white">{u.first_name} {u.last_name}</span>
-                                                    <span className="text-xs text-slate-500">{u.email}</span>
+                                        <tr key={u.id} className="hover:bg-indigo-600/[0.03] transition-colors group/row">
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center space-x-4">
+                                                    <div className="w-10 h-10 bg-slate-950 border border-slate-800 rounded-full flex items-center justify-center text-[10px] font-black text-slate-500 group-hover/row:border-indigo-500/50 transition-all">
+                                                        {u.first_name[0]}{u.last_name[0]}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-bold text-white leading-none mb-1">{u.first_name} {u.last_name}</p>
+                                                        <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">{u.email}</p>
+                                                    </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <select
-                                                    value={roles.find(r => r.name === u.role_name)?.id || ''}
-                                                    onChange={(e) => handleUserUpdate(u.id, { roleId: e.target.value, isActive: u.is_active })}
-                                                    className="bg-[#020617] border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-none"
-                                                >
-                                                    {roles.map((r) => (
-                                                        <option key={r.id} value={r.id}>{r.display_name}</option>
-                                                    ))}
-                                                </select>
+                                            <td className="px-8 py-6">
+                                                <div className="bg-black/20 border border-slate-800 p-1.5 rounded-xl flex items-center px-4 w-48">
+                                                    <select
+                                                        value={roles.find(r => r.name === u.role_name)?.id || ''}
+                                                        onChange={(e) => handleUserUpdate(u.id, { roleId: e.target.value, isActive: u.is_active })}
+                                                        className="bg-transparent border-none text-[10px] font-black text-indigo-400 w-full focus:ring-0 uppercase tracking-widest"
+                                                    >
+                                                        {roles.map((r) => (
+                                                            <option key={r.id} value={r.id} className="bg-slate-900 text-white font-sans">{r.display_name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4">
+                                            <td className="px-8 py-6">
                                                 <button
                                                     onClick={() => handleUserUpdate(u.id, { roleId: roles.find(r => r.name === u.role_name)?.id, isActive: !u.is_active })}
-                                                    className={`px-3 py-1 rounded-full text-[10px] font-black border transition-all ${u.is_active
-                                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                                                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400'
+                                                    className={`px-4 py-1.5 rounded-full text-[9px] font-black border transition-all active:scale-95 tracking-[0.2em] ${u.is_active
+                                                        ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20'
+                                                        : 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20'
                                                         }`}
                                                 >
-                                                    {u.is_active ? 'ACTIVO' : 'INACTIVO'}
+                                                    {u.is_active ? 'CUENTA ACTIVA' : 'BLOQUEADA'}
                                                 </button>
                                             </td>
-                                            <td className="px-6 py-4">
-                                                <span className="text-[10px] text-slate-600 italic">Cambios inmediatos</span>
+                                            <td className="px-8 py-6 text-right">
+                                                <span className="text-[8px] font-black text-slate-700 uppercase tracking-[0.2em] italic">Persistencia Instantánea</span>
                                             </td>
                                         </tr>
                                     ))}
