@@ -150,5 +150,15 @@ export function usePortalData(studentId?: string) {
         enabled: !!studentId
     });
 
-    return { profile, invoices, academic, attendance, grades, exams, diplomas };
+    const updateProfile = useMutation({
+        mutationFn: async (data: any) => {
+            const { data: updated } = await apiClient.patch(`/students/${studentId}`, data);
+            return updated;
+        },
+        onSuccess: () => {
+            profile.refetch();
+        }
+    });
+
+    return { profile, invoices, academic, attendance, grades, exams, diplomas, updateProfile };
 }

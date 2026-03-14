@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
-import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X } from 'lucide-react';
+import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save } from 'lucide-react';
 import { StudentExams } from '../components/exams/StudentExams';
+import { toast } from 'react-hot-toast';
 
-type ViewMode = 'DASHBOARD' | 'EXAMS' | 'DIPLOMAS';
+type ViewMode = 'DASHBOARD' | 'EXAMS' | 'DIPLOMAS' | 'PROFILE';
 
 export function PortalMain() {
     const { student, logout } = usePortalAuth();
-    const { profile, invoices, academic, attendance, grades, exams, diplomas } = usePortalData(student?.id);
+    const { profile, invoices, academic, attendance, grades, exams, diplomas, updateProfile } = usePortalData(student?.id);
+    const [editMode, setEditMode] = useState(false);
+    const [profileForm, setProfileForm] = useState<any>({});
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('DASHBOARD');
     const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
@@ -71,6 +74,19 @@ export function PortalMain() {
         ? Math.round(((presentCount + (lateCount * 0.5)) / attendanceRecords.length) * 100)
         : 100;
 
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await updateProfile.mutateAsync(profileForm);
+            setEditMode(false);
+            toast.success('Perfil actualizado correctamente');
+        } catch (error) {
+            toast.error('Error al actualizar perfil');
+        }
+    };
+
+    const studentInfo = profile.data || {};
+
     const pendingInvoices = invoices.data?.filter((inv: any) => inv.status !== 'PAID') || [];
     const totalPending = pendingInvoices.reduce((acc: number, inv: any) => acc + Number(inv.total_amount), 0);
 
@@ -106,6 +122,19 @@ export function PortalMain() {
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'DIPLOMAS' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                             >
                                 Diplomas
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setViewMode('PROFILE');
+                                    setProfileForm({
+                                        email: studentInfo.email,
+                                        phone: studentInfo.phone,
+                                        address: studentInfo.address
+                                    });
+                                }}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'PROFILE' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                Mi Perfil
                             </button>
                         </div>
 
@@ -327,12 +356,20 @@ export function PortalMain() {
                                                         <p className="text-2xl font-black text-white tracking-tight">RD${Number(invoice.total_amount).toLocaleString()}</p>
                                                         <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest mt-1"><span className="text-slate-500">Vence:</span> {new Date(invoice.due_date || invoice.created_at).toLocaleDateString()}</p>
                                                     </div>
-                                                    <button
-                                                        onClick={() => setSelectedInvoice(invoice)}
-                                                        className="p-3 bg-slate-800 rounded-2xl text-slate-400 hover:text-white hover:bg-indigo-600 hover:shadow-lg hover:shadow-indigo-600/20 transition-all"
-                                                    >
-                                                        <Receipt className="w-5 h-5" />
-                                                    </button>
+                                                        <div className="flex items-center space-x-2">
+                                                            <button
+                                                                onClick={() => setSelectedInvoice(invoice)}
+                                                                className="p-3 bg-slate-800 rounded-2xl text-slate-400 hover:text-white hover:bg-slate-700 transition-all border border-slate-700/30"
+                                                            >
+                                                                <Receipt className="w-5 h-5" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => window.open(`${import.meta.env.VITE_API_URL}/billing/invoices/${invoice.id}/pdf`, '_blank')}
+                                                                className="p-3 bg-blue-600/20 rounded-2xl text-blue-400 hover:text-white hover:bg-blue-600 transition-all border border-blue-500/30"
+                                                            >
+                                                                <Download className="w-5 h-5" />
+                                                            </button>
+                                                        </div>
                                                 </div>
                                             </div>
                                         ))}
@@ -356,6 +393,212 @@ export function PortalMain() {
                     </>
                 ) : viewMode === 'EXAMS' ? (
                     <StudentExams studentId={student?.id} cohortId={currentCohortId} />
+                ) : viewMode === 'PROFILE' ? (
+                    <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-10 duration-700">
+                        {/* Header Profile */}
+                        <div className="bg-gradient-to-r from-blue-900/30 via-slate-900 to-indigo-900/30 border border-slate-800 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 p-12 opacity-[0.02] group-hover:scale-110 group-hover:rotate-12 transition-all duration-1000">
+                               <ShieldCheck className="w-64 h-64 text-blue-400" />
+                           </div>
+                           
+                           <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                                <div className="relative">
+                                    <div className="w-32 h-32 bg-slate-800 rounded-[2.5rem] flex items-center justify-center border-4 border-slate-700 group-hover:border-blue-500/50 transition-colors shadow-2xl shadow-black/50 overflow-hidden">
+                                        {studentInfo.avatar_url ? (
+                                            <img src={`${import.meta.env.VITE_API_URL}${studentInfo.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <UserCircle className="w-16 h-16 text-slate-600" />
+                                        )}
+                                    </div>
+                                    <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-emerald-500 border-4 border-[#020617] rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse">
+                                        <Check className="w-5 h-5" />
+                                    </div>
+                                </div>
+
+                                <div className="text-center md:text-left flex-1">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between">
+                                        <div>
+                                            <h2 className="text-3xl font-black text-white tracking-tight leading-none uppercase">{studentInfo.first_name} {studentInfo.last_name}</h2>
+                                            <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4">
+                                                <div className="bg-blue-600/20 text-blue-400 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-blue-500/20">
+                                                    Mat: {studentInfo.matricula}
+                                                </div>
+                                                <div className="bg-emerald-600/20 text-emerald-400 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-500/20">
+                                                    Estatus: ACTIVO
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => setEditMode(!editMode)}
+                                            className="mt-6 md:mt-0 px-6 py-3 bg-slate-800 hover:bg-blue-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center border border-slate-700 hover:border-blue-400 group/btn shadow-xl"
+                                        >
+                                            <Edit2 className="w-3.5 h-3.5 mr-2 group-hover/btn:rotate-12 transition-transform" />
+                                            {editMode ? 'Cancelar Edición' : 'Editar Información'}
+                                        </button>
+                                    </div>
+                                </div>
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            {/* Personal Info Box */}
+                            <div className="bg-slate-900/60 border border-slate-800 p-10 rounded-[3rem] shadow-xl group">
+                                <h4 className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em] mb-10 flex items-center">
+                                    <User className="w-4 h-4 mr-2" /> Datos Personales
+                                </h4>
+                                
+                                <form onSubmit={handleUpdateProfile} className="space-y-8">
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Cédula / Documento</label>
+                                        <div className="bg-slate-950/80 border border-slate-800/80 p-5 rounded-[1.5rem] flex items-center space-x-4 opacity-70 group-hover:opacity-100 transition-opacity">
+                                            <CreditCard className="w-5 h-5 text-indigo-500" />
+                                            <span className="text-sm font-bold text-white tracking-widest">{studentInfo.document_id}</span>
+                                            <span className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">({studentInfo.document_type})</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Correo Electrónico</label>
+                                        <div className="bg-slate-950/50 border border-slate-800 p-2 rounded-[1.5rem] group/input transition-all focus-within:border-blue-500/50 focus-within:bg-slate-950">
+                                            <div className="flex items-center space-x-4 px-3 py-3">
+                                                <Mail className="w-5 h-5 text-blue-500" />
+                                                <input 
+                                                    type="email"
+                                                    disabled={!editMode}
+                                                    value={profileForm.email || ''}
+                                                    onChange={e => setProfileForm({ ...profileForm, email: e.target.value })}
+                                                    className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 placeholder-slate-700"
+                                                    placeholder="tucorreo@ejemplo.com"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Teléfono / WhatsApp</label>
+                                            <div className="bg-slate-950/50 border border-slate-800 p-2 rounded-[1.5rem] group/input transition-all focus-within:border-emerald-500/50 focus-within:bg-slate-950">
+                                                <div className="flex items-center space-x-4 px-3 py-3">
+                                                    <Phone className="w-5 h-5 text-emerald-500" />
+                                                    <input 
+                                                        type="text"
+                                                        disabled={!editMode}
+                                                        value={profileForm.phone || ''}
+                                                        onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                                                        className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 placeholder-slate-700"
+                                                        placeholder="809-000-0000"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        {/* Other field if needed */}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Dirección de Residencia</label>
+                                        <div className="bg-slate-950/50 border border-slate-800 p-2 rounded-[1.5rem] group/input transition-all focus-within:border-indigo-500/50 focus-within:bg-slate-950">
+                                            <div className="flex items-center space-x-4 px-3 py-3">
+                                                <MapPin className="w-5 h-5 text-indigo-500" />
+                                                <textarea 
+                                                    disabled={!editMode}
+                                                    rows={1}
+                                                    value={profileForm.address || ''}
+                                                    onChange={e => setProfileForm({ ...profileForm, address: e.target.value })}
+                                                    className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 placeholder-slate-700 resize-none pt-2"
+                                                    placeholder="Sector, calle, #..."
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {editMode && (
+                                        <button 
+                                            type="submit"
+                                            disabled={updateProfile.isPending}
+                                            className="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.3em] transition-all shadow-2xl shadow-blue-500/20 flex items-center justify-center space-x-3 active:scale-95"
+                                        >
+                                            {updateProfile.isPending ? 'Guardando Cambios...' : (
+                                                <>
+                                                    <Save className="w-4 h-4" />
+                                                    <span>Guardar Cambios</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </form>
+                            </div>
+
+                            {/* Academic Status Box */}
+                            <div className="space-y-8">
+                                <div className="bg-slate-900/60 border border-slate-800 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                                    <h4 className="text-xs font-black text-emerald-400 uppercase tracking-[0.3em] mb-10 flex items-center">
+                                        <ShieldCheck className="w-4 h-4 mr-2" /> Seguridad de Cuenta
+                                    </h4>
+                                    
+                                    <div className="space-y-6">
+                                        <div className="flex items-center justify-between p-6 bg-slate-950/80 border border-slate-800 rounded-3xl group-hover:bg-slate-950 transition-all">
+                                            <div className="flex items-center space-x-4">
+                                                <div className="w-12 h-12 bg-emerald-500/10 rounded-2xl flex items-center justify-center text-emerald-500">
+                                                    <ShieldCheck className="w-6 h-6" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Contraseña Institucional</p>
+                                                    <p className="text-xs font-bold text-white mt-1 uppercase tracking-tight">Activa & Segura</p>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => toast.success('Para cambiar tu contraseña, contacta a Soporte Técnico')}
+                                                className="px-5 py-2.5 bg-slate-800 text-slate-400 hover:text-white rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border border-slate-700"
+                                            >
+                                                Gestionar
+                                            </button>
+                                        </div>
+
+                                        <div className="p-6 bg-blue-600/5 border border-blue-500/10 rounded-3xl">
+                                            <p className="text-[10px] text-blue-400 leading-relaxed font-bold uppercase tracking-wider">
+                                                <ShieldCheck className="w-3 h-3 inline mr-2" /> 
+                                                Tu acceso está vinculado a tu matrícula institucional. Mantén tus credenciales seguras para proteger tu avance académico.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div className="bg-gradient-to-br from-[#0f172a] to-slate-950 border border-slate-800 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                                     <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
+                                     <h4 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-8 relative z-10 flex items-center">
+                                         <GraduationCap className="w-4 h-4 mr-2" /> Avance de Carrera
+                                     </h4>
+
+                                     <div className="space-y-8 relative z-10">
+                                        <div className="space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Carga Académica</span>
+                                                <span className="text-xs font-black text-white">{academic.data?.length === 1 ? '1 Programa' : `${academic.data?.length} Programas`}</span>
+                                            </div>
+                                            <div className="h-4 bg-slate-800/50 rounded-full overflow-hidden border border-slate-700/50">
+                                                <div 
+                                                    className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all duration-1000 ease-out"
+                                                    style={{ width: `${Math.min((presentCount / (attendanceRecords.length || 1)) * 100, 100)}%` }}
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-6 border-t border-slate-800/50 space-y-4">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                                        <Check className="w-4 h-4" />
+                                                    </div>
+                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Módulos Completados</p>
+                                                </div>
+                                                <span className="text-xl font-black text-white">{Object.keys(gradesByModule).length}</span>
+                                            </div>
+                                        </div>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 ) : (
                     <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
                         <div className="flex items-center justify-between">
@@ -456,6 +699,12 @@ export function PortalMain() {
                                 <div className="text-right">
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Facturado</p>
                                     <p className="text-3xl font-black text-white">RD${Number(selectedInvoice.total_amount).toLocaleString()}</p>
+                                    <button 
+                                        onClick={() => window.open(`${import.meta.env.VITE_API_URL}/billing/invoices/${selectedInvoice.id}/pdf`, '_blank')}
+                                        className="mt-4 flex items-center justify-end w-full text-blue-500 hover:text-blue-400 font-black uppercase text-[9px] tracking-[0.2em] transition-colors"
+                                    >
+                                        <Download className="w-3 h-3 mr-2" /> Descargar PDF
+                                    </button>
                                 </div>
                             </div>
 
