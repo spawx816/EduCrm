@@ -9,18 +9,11 @@ interface StudentDiplomasProps {
 export function StudentDiplomas({ studentId }: StudentDiplomasProps) {
     const { data: diplomas, isLoading } = useStudentDiplomas(studentId);
 
-    const handleDownload = async (id: string) => {
+    const handleDownload = (id: string) => {
         try {
-            const response = await apiClient.get(`/diplomas/${id}/pdf`, {
-                responseType: 'blob'
-            });
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `diploma-${id}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            const baseUrl = (apiClient.defaults.baseURL || '').replace(/\/$/, '');
+            const url = `${baseUrl}/diplomas/${id}/pdf`;
+            window.open(url, '_blank');
         } catch (error) {
             console.error('Error downloading diploma:', error);
         }

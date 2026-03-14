@@ -39,22 +39,14 @@ export const DiplomasManager: React.FC = () => {
         return matchesSearch && matchesCohort;
     });
 
-    const handleDownload = async (diplomaId: string, studentName: string) => {
+    const handleDownload = (diplomaId: string) => {
         try {
-            const response = await apiClient.get(`/diplomas/${diplomaId}/pdf`, {
-                responseType: 'blob'
-            });
-            
-            const url = window.URL.createObjectURL(new Blob([response.data]));
-            const link = document.createElement('a');
-            link.href = url;
-            link.setAttribute('download', `Diploma_${studentName.replace(/\s+/g, '_')}.pdf`);
-            document.body.appendChild(link);
-            link.click();
-            link.remove();
+            const baseUrl = (apiClient.defaults.baseURL || '').replace(/\/$/, '');
+            const url = `${baseUrl}/diplomas/${diplomaId}/pdf`;
+            window.open(url, '_blank');
         } catch (error) {
             console.error('Error downloading diploma:', error);
-            toast.error('Error al descargar el diploma');
+            toast.error('Error al abrir enlace de descarga');
         }
     };
 
@@ -123,7 +115,7 @@ export const DiplomasManager: React.FC = () => {
                             >
                                 <div className="absolute top-0 right-0 p-4">
                                     <button 
-                                        onClick={() => handleDownload(diploma.id, diploma.student_name)}
+                                        onClick={() => handleDownload(diploma.id)}
                                         className="p-3 bg-indigo-600/10 text-indigo-400 rounded-2xl hover:bg-indigo-600 hover:text-white transition-all shadow-lg shadow-indigo-900/20"
                                         title="Descargar PDF"
                                     >
