@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { toProperCase } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
-import { User, Mail, Phone, MapPin, Save, Edit2, Check, ShieldCheck, UserCircle, Bell, Key, Globe, RefreshCw, TrendingUp } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Save, Edit2, Check, ShieldCheck, UserCircle, Key, RefreshCw, TrendingUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { GlobalCalendar } from '../components/common/GlobalCalendar';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
-import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save, Bell } from 'lucide-react';
+import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save } from 'lucide-react';
 import { StudentExams } from '../components/exams/StudentExams';
 import { toast } from 'react-hot-toast';
 import { PlatformTour } from '../components/common/PlatformTour.tsx';
