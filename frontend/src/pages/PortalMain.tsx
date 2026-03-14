@@ -3,6 +3,7 @@ import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
 import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save } from 'lucide-react';
 import { StudentExams } from '../components/exams/StudentExams';
 import { toast } from 'react-hot-toast';
+import { PlatformTour } from '../components/common/PlatformTour.tsx';
 
 type ViewMode = 'DASHBOARD' | 'EXAMS' | 'DIPLOMAS' | 'PROFILE';
 
@@ -92,6 +93,7 @@ export function PortalMain() {
 
     return (
         <div className="min-h-screen bg-[#020617] text-white font-sans selection:bg-blue-500/30 pb-12">
+            <PlatformTour role="estudiante" />
             <nav className="border-b border-slate-800 bg-[#0f172a]/50 backdrop-blur-md sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -106,6 +108,7 @@ export function PortalMain() {
                     <div className="flex items-center space-x-6">
                         <div className="flex items-center bg-slate-800/50 p-1 rounded-xl border border-slate-700/50 mr-4">
                             <button
+                                id="tour-student-progress"
                                 onClick={() => setViewMode('DASHBOARD')}
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'DASHBOARD' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                             >
@@ -118,12 +121,14 @@ export function PortalMain() {
                                 Exámenes
                             </button>
                             <button
+                                id="tour-student-diplomas"
                                 onClick={() => setViewMode('DIPLOMAS')}
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'DIPLOMAS' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                             >
                                 Diplomas
                             </button>
                             <button
+                                id="tour-student-profile"
                                 onClick={() => {
                                     setViewMode('PROFILE');
                                     setProfileForm({

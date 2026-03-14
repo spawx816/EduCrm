@@ -22,6 +22,7 @@ import { InstructorPayrollManager } from './components/academic/InstructorPayrol
 import { ChatInbox } from './pages/ChatInbox.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
 import { AdminProfile } from './pages/AdminProfile.tsx';
+import { PlatformTour } from './components/common/PlatformTour.tsx';
 
 import { InventoryManager } from './components/billing/InventoryManager.tsx';
 import { ExpenseManager } from './components/billing/ExpenseManager.tsx';
@@ -196,9 +197,10 @@ function DashboardLayout() {
 
   return (
     <div className="flex h-screen bg-[#020617] text-slate-200 font-sans selection:bg-blue-500/30">
+      <PlatformTour role="admin" />
       {/* Sidebar Desktop */}
       <aside className="hidden md:flex w-64 flex-col bg-[#020617] border-r border-slate-800">
-        <div className="p-6 flex items-center space-x-3 mb-4">
+        <div className="p-6 flex items-center space-x-3 mb-4" id="tour-logo">
           <div className={`w-10 h-10 shrink-0 rounded-xl flex items-center justify-center shadow-lg overflow-hidden ${companySettings?.logo_url ? 'bg-white shadow-slate-900/20' : 'bg-blue-600 shadow-blue-900/40'}`}>
             {companySettings?.logo_url ? (
               <img
@@ -225,6 +227,7 @@ function DashboardLayout() {
             .map((item) => (
               <button
                 key={item.id}
+                id={`tour-nav-${item.id}`}
                 onClick={() => {
                   setActiveTab(item.id as any);
                   setIsMobileMenuOpen(false);
@@ -250,6 +253,7 @@ function DashboardLayout() {
               setActiveTab('payroll');
               setIsMobileMenuOpen(false);
             }}
+            id="tour-nav-payroll"
             className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${activeTab === 'payroll'
               ? 'bg-indigo-600/10 text-indigo-400 shadow-sm'
               : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
@@ -277,7 +281,7 @@ function DashboardLayout() {
         <div className="p-4 mt-auto space-y-4">
 
 
-          <div className="flex items-center space-x-3 p-3 bg-slate-900/50 rounded-2xl border border-slate-800 group hover:border-indigo-500/50 transition-all cursor-pointer" onClick={() => setActiveTab('profile')}>
+          <div className="flex items-center space-x-3 p-3 bg-slate-900/50 rounded-2xl border border-slate-800 group hover:border-indigo-500/50 transition-all cursor-pointer" onClick={() => setActiveTab('profile')} id="tour-user-section">
             <div className="w-10 h-10 bg-indigo-600 rounded-full flex shrink-0 items-center justify-center text-white font-bold shadow-inner uppercase group-hover:scale-110 transition-transform">
               {(user?.first_name || user?.firstName)?.charAt(0) || 'U'}
             </div>
