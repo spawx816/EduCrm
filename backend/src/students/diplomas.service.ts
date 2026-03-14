@@ -110,11 +110,11 @@ export class DiplomasService {
             }
 
             // Student Name: Dynamic font size to fit the line
-            let nameFontSize = 38;
+            let nameFontSize = 34;
             doc.font('Times-Bold').fontSize(nameFontSize);
-            const maxNameWidth = 550;
+            const maxNameWidth = 480;
             
-            while (doc.widthOfString(diploma.student_name) > maxNameWidth && nameFontSize > 20) {
+            while (doc.widthOfString(diploma.student_name) > maxNameWidth && nameFontSize > 18) {
                 nameFontSize -= 1;
                 doc.fontSize(nameFontSize);
             }
