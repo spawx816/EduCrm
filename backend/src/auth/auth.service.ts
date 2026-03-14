@@ -114,8 +114,8 @@ export class AuthService {
     }
 
     async updateUser(id: string, updateData: any, isProfileUpdate = false) {
-        const { roleId, isActive, first_name, last_name, phone, address, avatar_url } = updateData;
-        
+        const { roleId, isActive, first_name, last_name, phone, address, avatar_url, email, password } = updateData;
+
         if (isProfileUpdate) {
             const res = await this.pool.query(
                 `UPDATE users 
@@ -131,9 +131,32 @@ export class AuthService {
             return res.rows[0];
         }
 
+        // Admin-level update
+        // Check email conflict if changing email
+        if (email) {
+            const emailCheck = await this.pool.query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, id]);
+            if (emailCheck.rows.length > 0) {
+                throw new ConflictException('Email already in use by another user');
+            }
+        }
+
+        let passwordHash = undefined;
+        if (password) {
+            const salt = await bcrypt.genSalt();
+            passwordHash = await bcrypt.hash(password, salt);
+        }
+
         const res = await this.pool.query(
-            'UPDATE users SET role_id = COALESCE($1, role_id), is_active = COALESCE($2, is_active), updated_at = NOW() WHERE id = $3 RETURNING id, email',
-            [roleId, isActive, id]
+            `UPDATE users 
+             SET role_id = COALESCE($1, role_id), 
+                 is_active = COALESCE($2, is_active),
+                 email = COALESCE($3, email),
+                 first_name = COALESCE($4, first_name),
+                 last_name = COALESCE($5, last_name),
+                 password_hash = COALESCE($6, password_hash),
+                 updated_at = NOW() 
+             WHERE id = $7 RETURNING id, email, first_name, last_name`,
+            [roleId, isActive, email, first_name, last_name, passwordHash, id]
         );
         return res.rows[0];
     }

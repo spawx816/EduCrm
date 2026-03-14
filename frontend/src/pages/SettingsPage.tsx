@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Settings, Users, Save, Globe, Shield, RefreshCw } from 'lucide-react';
+import { Settings, Users, Save, Globe, Shield, RefreshCw, Edit2, X, Lock } from 'lucide-react';
 import apiClient from '../lib/api-client';
 
 export function SettingsPage() {
@@ -31,6 +31,19 @@ export function SettingsPage() {
         email: '',
         password: '',
         roleId: ''
+    });
+
+    // Edit User Modal State
+    const [isEditUserModalOpen, setIsEditUserModalOpen] = useState(false);
+    const [isUpdatingUser, setIsUpdatingUser] = useState(false);
+    const [selectedUser, setSelectedUser] = useState<any>(null);
+    const [editUserForm, setEditUserForm] = useState({
+        first_name: '',
+        last_name: '',
+        email: '',
+        password: '',
+        roleId: '',
+        isActive: true
     });
 
     useEffect(() => {
@@ -152,6 +165,51 @@ export function SettingsPage() {
         } finally {
             setIsCreatingUser(false);
         }
+    };
+
+    const handleUpdateUserDetailed = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!selectedUser) return;
+        setIsUpdatingUser(true);
+        setMessage(null);
+
+        try {
+            const dataToUpdate: any = {
+                first_name: editUserForm.first_name,
+                last_name: editUserForm.last_name,
+                email: editUserForm.email,
+                roleId: editUserForm.roleId,
+                isActive: editUserForm.isActive
+            };
+
+            if (editUserForm.password) {
+                dataToUpdate.password = editUserForm.password;
+            }
+
+            await apiClient.patch(`/auth/users/${selectedUser.id}`, dataToUpdate);
+
+            setMessage({ type: 'success', text: 'Usuario actualizado exitosamente' });
+            setIsEditUserModalOpen(false);
+            fetchData();
+        } catch (error: any) {
+            console.error('Error updating user:', error);
+            setMessage({ type: 'error', text: error.response?.data?.message || 'Error al actualizar el usuario' });
+        } finally {
+            setIsUpdatingUser(false);
+        }
+    };
+
+    const openEditModal = (user: any) => {
+        setSelectedUser(user);
+        setEditUserForm({
+            first_name: user.first_name,
+            last_name: user.last_name,
+            email: user.email,
+            password: '',
+            roleId: roles.find(r => r.name === user.role_name)?.id || '',
+            isActive: user.is_active
+        });
+        setIsEditUserModalOpen(true);
     };
 
     if (isLoading) {
@@ -377,7 +435,7 @@ export function SettingsPage() {
                                         <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Usuario</th>
                                         <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Rol actual</th>
                                         <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado</th>
-                                        <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest">Acciones</th>
+                                        <th className="px-6 py-4 text-[10px] font-black text-slate-500 uppercase tracking-widest text-right">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/50">
@@ -419,7 +477,16 @@ export function SettingsPage() {
                                                 </button>
                                             </td>
                                             <td className="px-8 py-6 text-right">
-                                                <span className="text-[8px] font-black text-slate-700 uppercase tracking-[0.2em] italic">Persistencia Instantánea</span>
+                                                <div className="flex items-center justify-end space-x-3">
+                                                    <button 
+                                                        onClick={() => openEditModal(u)}
+                                                        className="p-2 bg-indigo-500/10 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-lg transition-all border border-indigo-500/20"
+                                                        title="Editar Datos Completos"
+                                                    >
+                                                        <Edit2 className="w-4 h-4" />
+                                                    </button>
+                                                    <span className="text-[8px] font-black text-slate-700 uppercase tracking-[0.2em] italic">Persistencia Instantánea</span>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
@@ -440,7 +507,7 @@ export function SettingsPage() {
                                 onClick={() => setIsAddUserModalOpen(false)}
                                 className="text-slate-400 hover:text-white transition-colors"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
+                                <X className="w-6 h-6" />
                             </button>
                         </div>
                         <div className="p-6">
@@ -520,6 +587,127 @@ export function SettingsPage() {
                                         className={`px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg shadow-blue-900/20 transition-all active:scale-[0.98] flex items-center space-x-2 ${isCreatingUser || !newUserForm.roleId ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-500'}`}
                                     >
                                         <span>{isCreatingUser ? 'Creando...' : 'Crear Usuario'}</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal de Editar Usuario */}
+            {isEditUserModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#020617]/80 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl">
+                        <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+                            <div>
+                                <h3 className="text-xl font-black text-white uppercase tracking-tight">Editar Usuario</h3>
+                                <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest mt-1">ID: {selectedUser?.id?.substring(0, 8)}</p>
+                            </div>
+                            <button
+                                onClick={() => setIsEditUserModalOpen(false)}
+                                className="text-slate-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="p-6">
+                            <form onSubmit={handleUpdateUserDetailed} className="space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Nombre</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={editUserForm.first_name}
+                                            onChange={(e) => setEditUserForm({ ...editUserForm, first_name: e.target.value })}
+                                            className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Apellido</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={editUserForm.last_name}
+                                            onChange={(e) => setEditUserForm({ ...editUserForm, last_name: e.target.value })}
+                                            className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Correo Electrónico</label>
+                                    <input
+                                        type="email"
+                                        required
+                                        value={editUserForm.email}
+                                        onChange={(e) => setEditUserForm({ ...editUserForm, email: e.target.value })}
+                                        className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 flex items-center justify-between">
+                                        Nueva Contraseña
+                                        <span className="text-[8px] text-slate-600 font-bold lowercase tracking-normal bg-black/30 px-2 py-0.5 rounded-full">Dejar en blanco para no cambiar</span>
+                                    </label>
+                                    <div className="relative">
+                                        <input
+                                            type="password"
+                                            minLength={6}
+                                            value={editUserForm.password}
+                                            onChange={(e) => setEditUserForm({ ...editUserForm, password: e.target.value })}
+                                            className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium pl-10"
+                                            placeholder="••••••••"
+                                        />
+                                        <Lock className="w-4 h-4 text-slate-700 absolute left-4 top-1/2 -translate-y-1/2" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Rol del Usuario</label>
+                                    <select
+                                        required
+                                        value={editUserForm.roleId}
+                                        onChange={(e) => setEditUserForm({ ...editUserForm, roleId: e.target.value })}
+                                        className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium appearance-none"
+                                    >
+                                        <option value="">Seleccione un rol...</option>
+                                        {roles.map(r => (
+                                            <option key={r.id} value={r.id} className="bg-slate-900">{r.display_name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div className="flex items-center space-x-3 p-4 bg-slate-950/50 rounded-2xl border border-slate-800">
+                                    <input 
+                                        type="checkbox" 
+                                        id="edit-is-active"
+                                        checked={editUserForm.isActive}
+                                        onChange={(e) => setEditUserForm({ ...editUserForm, isActive: e.target.checked })}
+                                        className="w-5 h-5 rounded-lg bg-slate-900 border-slate-800 text-indigo-600 focus:ring-0 cursor-pointer"
+                                    />
+                                    <label htmlFor="edit-is-active" className="text-xs font-black text-white uppercase tracking-widest cursor-pointer">
+                                        {editUserForm.isActive ? 'Cuenta Activa' : 'Cuenta Bloqueada'}
+                                    </label>
+                                </div>
+
+                                <div className="pt-4 flex justify-end space-x-3">
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsEditUserModalOpen(false)}
+                                        className="px-6 py-3 rounded-xl font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        disabled={isUpdatingUser}
+                                        className={`px-6 py-3 bg-indigo-600 text-white font-bold rounded-xl shadow-lg shadow-indigo-900/20 transition-all active:scale-[0.98] flex items-center space-x-2 ${isUpdatingUser ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-500'}`}
+                                    >
+                                        <Save className={`w-4 h-4 ${isUpdatingUser ? 'animate-spin' : ''}`} />
+                                        <span>{isUpdatingUser ? 'Actualizando...' : 'Guardar Cambios'}</span>
                                     </button>
                                 </div>
                             </form>
