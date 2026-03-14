@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import Joyride, { Step, CallBackProps, STATUS } from 'react-joyride';
+import Joyride, { type Step, type CallBackProps, STATUS } from 'react-joyride';
 import { HelpCircle } from 'lucide-react';
 
 interface PlatformTourProps {
