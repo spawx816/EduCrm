@@ -119,7 +119,7 @@ export class DiplomasService {
                 doc.fontSize(nameFontSize);
             }
 
-            doc.fillColor('#000000').text(diploma.student_name, 60, 285, {
+            doc.fillColor('#000000').text(diploma.student_name, 60, 288, {
                 width: 721.89,
                 align: 'center'
             });

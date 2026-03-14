@@ -3,11 +3,11 @@ import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
 import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X } from 'lucide-react';
 import { StudentExams } from '../components/exams/StudentExams';
 
-type ViewMode = 'DASHBOARD' | 'EXAMS';
+type ViewMode = 'DASHBOARD' | 'EXAMS' | 'DIPLOMAS';
 
 export function PortalMain() {
     const { student, logout } = usePortalAuth();
-    const { profile, invoices, academic, attendance, grades, exams } = usePortalData(student?.id);
+    const { profile, invoices, academic, attendance, grades, exams, diplomas } = usePortalData(student?.id);
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('DASHBOARD');
     const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
@@ -100,6 +100,12 @@ export function PortalMain() {
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'EXAMS' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                             >
                                 Exámenes
+                            </button>
+                            <button
+                                onClick={() => setViewMode('DIPLOMAS')}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'DIPLOMAS' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                Diplomas
                             </button>
                         </div>
 
@@ -348,8 +354,59 @@ export function PortalMain() {
                             </div>
                         </div>
                     </>
-                ) : (
+                ) : viewMode === 'EXAMS' ? (
                     <StudentExams studentId={student?.id} cohortId={currentCohortId} />
+                ) : (
+                    <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-xl font-black uppercase text-white tracking-[0.2em] flex items-center">
+                                <Trophy className="w-6 h-6 mr-3 text-amber-500" />
+                                Mis Diplomas & Certificados
+                            </h3>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {diplomas.data?.map((diploma: any) => (
+                                <div key={diploma.id} className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-8 rounded-[2.5rem] relative overflow-hidden group hover:-translate-y-2 hover:border-blue-500/50 transition-all duration-500 shadow-2xl">
+                                    <div className="absolute -right-8 -bottom-8 opacity-5 group-hover:scale-110 group-hover:opacity-10 transition-all duration-700">
+                                        <Trophy className="w-48 h-48 text-blue-400 rotate-12" />
+                                    </div>
+                                    
+                                    <div className="relative z-10 space-y-6">
+                                        <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400 border border-blue-500/20 group-hover:scale-110 transition-transform duration-500">
+                                            <Trophy className="w-8 h-8" />
+                                        </div>
+                                        
+                                        <div>
+                                            <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mb-1">Título Obtenido</p>
+                                            <h4 className="text-lg font-black text-white leading-tight uppercase tracking-tight">{diploma.course_name}</h4>
+                                        </div>
+
+                                        <div className="pt-4 border-t border-slate-800/50">
+                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-4">Emitido el {new Date(diploma.created_at).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                            
+                                            <button 
+                                                onClick={() => window.open(`${import.meta.env.VITE_API_URL}/diplomas/${diploma.id}/pdf`, '_blank')}
+                                                className="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] hover:bg-blue-500 hover:text-white hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300 transform active:scale-95"
+                                            >
+                                                Descargar Diploma
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+
+                            {(diplomas.data?.length === 0 || !diplomas.data) && (
+                                <div className="col-span-full py-24 text-center bg-slate-900/40 rounded-[3rem] border border-dashed border-slate-800">
+                                    <div className="w-20 h-20 bg-slate-800/50 rounded-full flex items-center justify-center mx-auto mb-6">
+                                        <Trophy className="w-10 h-10 text-slate-600" />
+                                    </div>
+                                    <h4 className="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Aún no tienes diplomas disponibles</h4>
+                                    <p className="text-[10px] text-slate-600 mt-2 font-bold uppercase">Se generarán automáticamente al completar tus pagos de graduación.</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 )}
             </main>
 
