@@ -7,6 +7,7 @@ interface AuthContextType {
     user: any;
     login: any;
     logout: () => void;
+    updateProfile: any;
     isAuthenticated: boolean;
 }
 
@@ -73,8 +74,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         };
     }, [user, logout]);
 
+    const updateProfile = useMutation({
+        mutationFn: async (data: any) => {
+            const { data: updated } = await apiClient.patch('/auth/profile', data);
+            return updated;
+        },
+        onSuccess: (updatedUser) => {
+            // Update local user state but preserve anything not returned by PATCH
+            const newUser = { ...user, ...updatedUser };
+            localStorage.setItem('crm_user', JSON.stringify(newUser));
+            setUser(newUser);
+        }
+    });
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, isAuthenticated: !!user }}>
+        <AuthContext.Provider value={{ user, login, logout, updateProfile, isAuthenticated: !!user }}>
             {children}
         </AuthContext.Provider>
     );

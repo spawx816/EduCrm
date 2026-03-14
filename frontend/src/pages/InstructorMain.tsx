@@ -1,15 +1,29 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth.tsx';
 import { useInstructorCohorts } from '../hooks/useInstructor';
-import { GraduationCap, Users, Clock, ChevronRight, LogOut, Layout, Wallet, Hash } from 'lucide-react';
+import { GraduationCap, Users, Clock, ChevronRight, LogOut, Layout, Wallet, Hash, User, Mail, Phone, MapPin, Download, Edit2, Save, Check, ShieldCheck, UserCircle, TrendingUp, Calendar as CalendarIcon } from 'lucide-react';
 import { InstructorCohortDetail } from '../components/academic/InstructorCohortDetail.tsx';
 import { useInstructorPayments } from '../hooks/useBilling.ts';
+import { toast } from 'react-hot-toast';
 
 export function InstructorMain() {
-    const { user, logout } = useAuth();
+    const { user, logout, updateProfile } = useAuth();
     const { data: cohorts, isLoading } = useInstructorCohorts(user?.id);
     const [selectedCohort, setSelectedCohort] = useState<any>(null);
-    const [viewMode, setViewMode] = useState<'COHORTS' | 'PAYMENTS'>('COHORTS');
+    const [viewMode, setViewMode] = useState<'COHORTS' | 'PAYMENTS' | 'PROFILE'>('COHORTS');
+    const [editMode, setEditMode] = useState(false);
+    const [profileForm, setProfileForm] = useState<any>({});
+
+    const handleUpdateProfile = async (e: React.FormEvent) => {
+        e.preventDefault();
+        try {
+            await updateProfile.mutateAsync(profileForm);
+            setEditMode(false);
+            toast.success('Perfil actualizado correctamente');
+        } catch (error) {
+            toast.error('Error al actualizar perfil');
+        }
+    };
 
     if (isLoading) return (
         <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center text-indigo-500 font-black animate-pulse uppercase tracking-[0.3em]">
@@ -37,18 +51,32 @@ export function InstructorMain() {
                     </div>
 
                     <div className="flex items-center space-x-6">
-                        <div className="flex items-center bg-slate-800/50 p-1 rounded-xl border border-slate-700/50 mr-4">
+                        <div className="flex items-center bg-slate-800/30 p-1.5 rounded-2xl border border-slate-700/50 mr-4">
                             <button
                                 onClick={() => setViewMode('COHORTS')}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'COHORTS' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === 'COHORTS' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'}`}
                             >
                                 Académico
                             </button>
                             <button
                                 onClick={() => setViewMode('PAYMENTS')}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'PAYMENTS' ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === 'PAYMENTS' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'}`}
                             >
                                 Pagos
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setViewMode('PROFILE');
+                                    setProfileForm({
+                                        first_name: user?.firstName || user?.first_name,
+                                        last_name: user?.lastName || user?.last_name,
+                                        phone: user?.phone,
+                                        address: user?.address
+                                    });
+                                }}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === 'PROFILE' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                Mi Perfil
                             </button>
                         </div>
 
@@ -135,8 +163,178 @@ export function InstructorMain() {
                             </div>
                         )}
                     </>
-                ) : (
+                ) : viewMode === 'PAYMENTS' ? (
                     <InstructorPaymentsView teacherId={user?.id} />
+                ) : (
+                    <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-10 duration-700">
+                        {/* Header Profile */}
+                        <div className="bg-gradient-to-r from-indigo-900/30 via-slate-900 to-blue-900/30 border border-slate-800 p-10 rounded-[3rem] shadow-2xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 p-12 opacity-[0.02] group-hover:scale-110 group-hover:rotate-12 transition-all duration-1000">
+                               <ShieldCheck className="w-64 h-64 text-indigo-400" />
+                           </div>
+                           
+                           <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start space-y-6 md:space-y-0 md:space-x-8">
+                                <div className="relative">
+                                    <div className="w-32 h-32 bg-slate-800 rounded-[2.5rem] flex items-center justify-center border-4 border-slate-700 group-hover:border-indigo-500/50 transition-colors shadow-2xl shadow-black/50 overflow-hidden">
+                                        {user?.avatar_url ? (
+                                            <img src={`${import.meta.env.VITE_API_URL}${user.avatar_url}`} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <UserCircle className="w-16 h-16 text-slate-600" />
+                                        )}
+                                    </div>
+                                    <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-indigo-500 border-4 border-[#020617] rounded-2xl flex items-center justify-center text-white shadow-lg animate-pulse">
+                                        <Check className="w-5 h-5" />
+                                    </div>
+                                </div>
+
+                                <div className="text-center md:text-left flex-1">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between">
+                                        <div>
+                                            <h2 className="text-3xl font-black text-white tracking-tight leading-none uppercase">{user?.firstName || user?.first_name} {user?.lastName || user?.last_name}</h2>
+                                            <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-4">
+                                                <div className="bg-indigo-600/20 text-indigo-400 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-indigo-500/20">
+                                                    ID: {user?.id?.slice(0, 8)}
+                                                </div>
+                                                <div className="bg-emerald-600/20 text-emerald-400 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border border-emerald-500/20">
+                                                    Estatus: ACTIVO
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <button 
+                                            onClick={() => setEditMode(!editMode)}
+                                            className="mt-6 md:mt-0 px-6 py-3 bg-slate-800 hover:bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all flex items-center justify-center border border-slate-700 hover:border-indigo-400 group/btn shadow-xl"
+                                        >
+                                            <Edit2 className="w-3.5 h-3.5 mr-2 group-hover/btn:rotate-12 transition-transform" />
+                                            {editMode ? 'Cancelar Edición' : 'Editar Mi Perfil'}
+                                        </button>
+                                    </div>
+                                </div>
+                           </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="bg-slate-900/60 border border-slate-800 p-10 rounded-[3rem] shadow-xl group">
+                                <h4 className="text-xs font-black text-indigo-400 uppercase tracking-[0.3em] mb-10 flex items-center">
+                                    <User className="w-4 h-4 mr-2" /> Información de docente
+                                </h4>
+                                
+                                <form onSubmit={handleUpdateProfile} className="space-y-8">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Nombre</label>
+                                            <div className="bg-slate-950/50 border border-slate-800 p-2 rounded-[1.5rem] focus-within:border-indigo-500/50 transition-all">
+                                                <input 
+                                                    type="text"
+                                                    disabled={!editMode}
+                                                    value={profileForm.first_name || ''}
+                                                    onChange={e => setProfileForm({ ...profileForm, first_name: e.target.value })}
+                                                    className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 px-3"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Apellido</label>
+                                            <div className="bg-slate-950/50 border border-slate-800 p-2 rounded-[1.5rem] focus-within:border-indigo-500/50 transition-all">
+                                                <input 
+                                                    type="text"
+                                                    disabled={!editMode}
+                                                    value={profileForm.last_name || ''}
+                                                    onChange={e => setProfileForm({ ...profileForm, last_name: e.target.value })}
+                                                    className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 px-3"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Teléfono / Celular</label>
+                                        <div className="bg-slate-950/50 border border-slate-800 p-2 rounded-[1.5rem] flex items-center px-4 focus-within:border-emerald-500/50 transition-all">
+                                            <Phone className="w-4 h-4 text-emerald-500 mr-4" />
+                                            <input 
+                                                type="text"
+                                                disabled={!editMode}
+                                                value={profileForm.phone || ''}
+                                                onChange={e => setProfileForm({ ...profileForm, phone: e.target.value })}
+                                                className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0"
+                                                placeholder="Tu número de contacto"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-2 block">Dirección de Vivienda</label>
+                                        <div className="bg-slate-950/50 border border-slate-800 p-2 rounded-[1.5rem] flex items-center px-4 focus-within:border-blue-500/50 transition-all">
+                                            <MapPin className="w-4 h-4 text-blue-500 mr-4" />
+                                            <textarea 
+                                                disabled={!editMode}
+                                                rows={1}
+                                                value={profileForm.address || ''}
+                                                onChange={e => setProfileForm({ ...profileForm, address: e.target.value })}
+                                                className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 resize-none pt-2"
+                                                placeholder="Dirección física"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {editMode && (
+                                        <button 
+                                            type="submit"
+                                            disabled={updateProfile.isPending}
+                                            className="w-full py-5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-[1.5rem] font-black uppercase text-[10px] tracking-[0.3em] transition-all shadow-2xl shadow-indigo-500/20 flex items-center justify-center space-x-3 active:scale-95"
+                                        >
+                                            {updateProfile.isPending ? 'Guardando...' : (
+                                                <>
+                                                    <Save className="w-4 h-4" />
+                                                    <span>Actualizar Información</span>
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </form>
+                            </div>
+
+                            <div className="space-y-8">
+                                <div className="bg-slate-900/60 border border-slate-800 p-8 rounded-[3rem] shadow-xl">
+                                    <h4 className="text-xs font-black text-emerald-400 uppercase tracking-[0.3em] mb-8 flex items-center">
+                                        <ShieldCheck className="w-4 h-4 mr-2" /> Seguridad & Cuenta
+                                    </h4>
+                                    
+                                    <div className="space-y-4">
+                                        <div className="p-6 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-between group-hover:bg-slate-950 transition-all">
+                                            <div className="flex items-center space-x-4">
+                                                <Mail className="w-5 h-5 text-indigo-500" />
+                                                <div>
+                                                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Correo Institucional</p>
+                                                    <p className="text-xs font-bold text-white">{user?.email}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-6 bg-indigo-600/5 border border-indigo-500/10 rounded-2xl">
+                                            <p className="text-[10px] text-indigo-400 leading-relaxed font-bold uppercase tracking-wider">
+                                                Como docente, tu cuenta tiene acceso a expedientes académicos confidenciales. Mantén tus credenciales seguras.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-gradient-to-br from-[#0f172a] to-slate-950 border border-slate-800 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                                     <h4 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-8 flex items-center">
+                                         <TrendingUp className="w-4 h-4 mr-2" /> Resumen de Actividad
+                                     </h4>
+                                     <div className="space-y-6">
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Grupos Asignados</span>
+                                            <span className="text-xl font-black text-white">{cohorts?.length || 0}</span>
+                                        </div>
+                                        <div className="h-2 bg-slate-800 rounded-full overflow-hidden">
+                                            <div className="h-full bg-indigo-500 w-[65%]" />
+                                        </div>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </main>
         </div>
@@ -198,8 +396,16 @@ function InstructorPaymentsView({ teacherId }: { teacherId: string }) {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <span className="text-lg font-black text-emerald-400 tracking-tighter">RD${parseFloat(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                                        </span>
+                                        <div className="flex items-center justify-end space-x-3">
+                                            <span className="text-lg font-black text-emerald-400 tracking-tighter mr-4">RD${parseFloat(payment.amount).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                                            <button 
+                                                onClick={() => window.open(`${import.meta.env.VITE_API_URL}/billing/instructor-payments/${payment.id}/pdf`, '_blank')}
+                                                className="p-3 bg-indigo-600/10 text-indigo-400 hover:bg-indigo-600 hover:text-white rounded-xl transition-all border border-indigo-500/20"
+                                                title="Descargar Comprobante"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}

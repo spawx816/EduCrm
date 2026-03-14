@@ -113,10 +113,26 @@ export class AuthService {
         return res.rows;
     }
 
-    async updateUser(id: string, updateData: any) {
-        const { roleId, isActive } = updateData;
+    async updateUser(id: string, updateData: any, isProfileUpdate = false) {
+        const { roleId, isActive, first_name, last_name, phone, address, avatar_url } = updateData;
+        
+        if (isProfileUpdate) {
+            const res = await this.pool.query(
+                `UPDATE users 
+                 SET first_name = COALESCE($1, first_name), 
+                     last_name = COALESCE($2, last_name),
+                     phone = COALESCE($3, phone),
+                     address = COALESCE($4, address),
+                     avatar_url = COALESCE($5, avatar_url),
+                     updated_at = NOW() 
+                 WHERE id = $6 RETURNING id, email, first_name, last_name, phone, address, avatar_url`,
+                [first_name, last_name, phone, address, avatar_url, id]
+            );
+            return res.rows[0];
+        }
+
         const res = await this.pool.query(
-            'UPDATE users SET role_id = $1, is_active = $2, updated_at = NOW() WHERE id = $3 RETURNING id, email',
+            'UPDATE users SET role_id = COALESCE($1, role_id), is_active = COALESCE($2, is_active), updated_at = NOW() WHERE id = $3 RETURNING id, email',
             [roleId, isActive, id]
         );
         return res.rows[0];
