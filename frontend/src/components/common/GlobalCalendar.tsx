@@ -21,7 +21,6 @@ interface GlobalCalendarProps {
 export function GlobalCalendar({ isAdmin = false }: GlobalCalendarProps) {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [events, setEvents] = useState<CalendarEvent[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [newEvent, setNewEvent] = useState({
         title: '',
@@ -32,15 +31,12 @@ export function GlobalCalendar({ isAdmin = false }: GlobalCalendarProps) {
     });
 
     const fetchEvents = async () => {
-        setIsLoading(true);
         try {
             const res = await apiClient.get('/calendar');
             setEvents(res.data);
         } catch (error) {
             console.error('Error fetching calendar events:', error);
             toast.error('Error al cargar el calendario');
-        } finally {
-            setIsLoading(false);
         }
     };
 
