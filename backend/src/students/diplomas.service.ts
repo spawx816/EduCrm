@@ -109,9 +109,17 @@ export class DiplomasService {
                 doc.image(templatePath, 0, 0, { width: 841.89, height: 595.28 });
             }
 
-            // Name: After "A:" - Center it on the first line
-            doc.font('Times-Bold').fontSize(36).fillColor('#000000');
-            doc.text(diploma.student_name, 60, 285, {
+            // Student Name: Dynamic font size to fit the line
+            let nameFontSize = 38;
+            doc.font('Times-Bold').fontSize(nameFontSize);
+            const maxNameWidth = 550;
+            
+            while (doc.widthOfString(diploma.student_name) > maxNameWidth && nameFontSize > 20) {
+                nameFontSize -= 1;
+                doc.fontSize(nameFontSize);
+            }
+
+            doc.fillColor('#000000').text(diploma.student_name, 60, 285, {
                 width: 721.89,
                 align: 'center'
             });
