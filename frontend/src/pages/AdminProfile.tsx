@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { toProperCase } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth';
-import { User, Mail, Phone, MapPin, Save, Edit2, Check, ShieldCheck, UserCircle, Bell, Key, Globe, RefreshCw } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Save, Edit2, Check, ShieldCheck, UserCircle, Bell, Key, Globe, RefreshCw, TrendingUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { GlobalCalendar } from '../components/common/GlobalCalendar';
 
 export function AdminProfile() {
     const { user, updateProfile } = useAuth();
@@ -106,7 +108,7 @@ export function AdminProfile() {
                                                     type="text"
                                                     disabled={!editMode}
                                                     value={profileForm.first_name}
-                                                    onChange={e => setProfileForm({ ...profileForm, first_name: e.target.value })}
+                                                    onChange={e => setProfileForm({ ...profileForm, first_name: toProperCase(e.target.value) })}
                                                     className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0"
                                                 />
                                             </div>
@@ -118,7 +120,7 @@ export function AdminProfile() {
                                                     type="text"
                                                     disabled={!editMode}
                                                     value={profileForm.last_name}
-                                                    onChange={e => setProfileForm({ ...profileForm, last_name: e.target.value })}
+                                                    onChange={e => setProfileForm({ ...profileForm, last_name: toProperCase(e.target.value) })}
                                                     className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0"
                                                 />
                                             </div>
@@ -173,6 +175,11 @@ export function AdminProfile() {
                                     )}
                                 </form>
                             </div>
+
+                            {/* Global Calendar Section */}
+                            <div className="mt-8">
+                                <GlobalCalendar isAdmin={true} />
+                            </div>
                         </div>
 
                         {/* Sidebar Widgets */}
@@ -198,24 +205,31 @@ export function AdminProfile() {
                                 </div>
                             </div>
 
-                            {/* Preferences */}
-                            <div className="bg-gradient-to-br from-indigo-900/10 to-slate-900 border border-slate-800 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                            {/* System Health Widget */}
+                            <div className="bg-slate-900 border border-slate-800 p-8 rounded-[3rem] shadow-xl relative overflow-hidden group">
                                 <h3 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-8 flex items-center">
-                                    <Bell className="w-4 h-4 mr-3" /> Preferencias
+                                    <TrendingUp className="w-4 h-4 mr-3" /> Salud del Sistema
                                 </h3>
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center space-x-3">
-                                            <Globe className="w-4 h-4 text-slate-500" />
-                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Idioma del Sistema</span>
+                                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base de Datos</span>
                                         </div>
-                                        <span className="text-[10px] font-black text-white">ES-LATAM</span>
+                                        <span className="text-[10px] font-black text-emerald-500 uppercase">ÓPTIMO</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Usuarios Activos</span>
+                                        <span className="text-sm font-black text-white">124</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Leads Hoy</span>
+                                        <span className="text-sm font-black text-emerald-400">+12</span>
                                     </div>
                                     <div className="pt-4 border-t border-slate-800">
-                                        <div className="flex items-center justify-between opacity-50">
-                                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Estado de Cuenta</span>
-                                            <span className="text-[10px] font-black text-emerald-500">VERIFICADA</span>
-                                        </div>
+                                        <button className="w-full py-4 text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-300 transition-colors flex items-center justify-center">
+                                            <RefreshCw className="w-3 h-3 mr-2" /> Actualizar Estadísticas
+                                        </button>
                                     </div>
                                 </div>
                             </div>

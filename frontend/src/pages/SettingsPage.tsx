@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Settings, Users, Save, Globe, Shield, RefreshCw, Edit2, X, Lock } from 'lucide-react';
 import apiClient from '../lib/api-client';
+import { toProperCase } from '../lib/utils';
 
 export function SettingsPage() {
     const [activeTab, setActiveTab] = useState<'company' | 'users'>('company');
@@ -519,7 +520,7 @@ export function SettingsPage() {
                                             type="text"
                                             required
                                             value={newUserForm.first_name}
-                                            onChange={(e) => setNewUserForm({ ...newUserForm, first_name: e.target.value })}
+                                            onChange={(e) => setNewUserForm({ ...newUserForm, first_name: toProperCase(e.target.value) })}
                                             className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
                                         />
                                     </div>
@@ -529,7 +530,7 @@ export function SettingsPage() {
                                             type="text"
                                             required
                                             value={newUserForm.last_name}
-                                            onChange={(e) => setNewUserForm({ ...newUserForm, last_name: e.target.value })}
+                                            onChange={(e) => setNewUserForm({ ...newUserForm, last_name: toProperCase(e.target.value) })}
                                             className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
                                         />
                                     </div>
@@ -620,7 +621,7 @@ export function SettingsPage() {
                                             type="text"
                                             required
                                             value={editUserForm.first_name}
-                                            onChange={(e) => setEditUserForm({ ...editUserForm, first_name: e.target.value })}
+                                            onChange={(e) => setEditUserForm({ ...editUserForm, first_name: toProperCase(e.target.value) })}
                                             className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
                                         />
                                     </div>
@@ -630,7 +631,7 @@ export function SettingsPage() {
                                             type="text"
                                             required
                                             value={editUserForm.last_name}
-                                            onChange={(e) => setEditUserForm({ ...editUserForm, last_name: e.target.value })}
+                                            onChange={(e) => setEditUserForm({ ...editUserForm, last_name: toProperCase(e.target.value) })}
                                             className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all font-medium"
                                         />
                                     </div>

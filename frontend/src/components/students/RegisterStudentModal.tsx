@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X, User, Mail, Phone, MapPin, GraduationCap, ChevronRight, IdCard } from 'lucide-react';
+import { toProperCase } from '../../lib/utils';
 import { useCreateStudent, useEnrollStudent } from '../../hooks/useStudents';
 import { usePrograms, useCohorts } from '../../hooks/useAcademic';
 import { useScholarships } from '../../hooks/useBilling';
@@ -175,7 +176,7 @@ export function RegisterStudentModal({ isOpen, onClose, initialData, onSuccess }
                                             type="text"
                                             required={step === 1}
                                             value={formData.first_name}
-                                            onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                                            onChange={(e) => setFormData({ ...formData, first_name: toProperCase(e.target.value) })}
                                             className="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-xl bg-slate-900/50 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all shadow-inner"
                                             placeholder="Juan"
                                         />
@@ -191,7 +192,7 @@ export function RegisterStudentModal({ isOpen, onClose, initialData, onSuccess }
                                             type="text"
                                             required={step === 1}
                                             value={formData.last_name}
-                                            onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                                            onChange={(e) => setFormData({ ...formData, last_name: toProperCase(e.target.value) })}
                                             className="block w-full pl-10 pr-3 py-3 border border-slate-700 rounded-xl bg-slate-900/50 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all shadow-inner"
                                             placeholder="Pérez"
                                         />

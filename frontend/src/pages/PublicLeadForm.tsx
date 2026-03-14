@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toProperCase } from '../lib/utils';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'react-hot-toast';
 import apiClient, { getStaticUrl } from '../lib/api-client';
@@ -129,7 +130,7 @@ export function PublicLeadForm() {
                                         required
                                         type="text"
                                         value={formData.firstName}
-                                        onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                                        onChange={e => setFormData({ ...formData, firstName: toProperCase(e.target.value) })}
                                         className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                         placeholder="Ej: Juan"
                                     />
@@ -140,7 +141,7 @@ export function PublicLeadForm() {
                                         required
                                         type="text"
                                         value={formData.lastName}
-                                        onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                                        onChange={e => setFormData({ ...formData, lastName: toProperCase(e.target.value) })}
                                         className="w-full bg-slate-900 border border-slate-800 rounded-2xl px-4 py-3 text-white text-sm outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                                         placeholder="Ej: Pérez"
                                     />

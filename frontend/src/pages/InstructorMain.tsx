@@ -1,17 +1,19 @@
 import { useState } from 'react';
+import { toProperCase } from '../lib/utils';
 import { useAuth } from '../hooks/useAuth.tsx';
 import { useInstructorCohorts } from '../hooks/useInstructor';
-import { GraduationCap, Users, Clock, ChevronRight, LogOut, Layout, Wallet, Hash, User, Mail, Phone, MapPin, Download, Edit2, Save, Check, ShieldCheck, UserCircle, TrendingUp } from 'lucide-react';
+import { GraduationCap, Users, Clock, ChevronRight, LogOut, Layout, Wallet, Hash, User, Mail, Phone, MapPin, Download, Edit2, Save, Check, ShieldCheck, UserCircle, TrendingUp, Bell } from 'lucide-react';
 import { InstructorCohortDetail } from '../components/academic/InstructorCohortDetail.tsx';
 import { useInstructorPayments } from '../hooks/useBilling.ts';
 import { toast } from 'react-hot-toast';
 import { PlatformTour } from '../components/common/PlatformTour.tsx';
+import { GlobalCalendar } from '../components/common/GlobalCalendar.tsx';
 
 export function InstructorMain() {
     const { user, logout, updateProfile } = useAuth();
     const { data: cohorts, isLoading } = useInstructorCohorts(user?.id);
     const [selectedCohort, setSelectedCohort] = useState<any>(null);
-    const [viewMode, setViewMode] = useState<'COHORTS' | 'PAYMENTS' | 'PROFILE'>('COHORTS');
+    const [viewMode, setViewMode] = useState<'COHORTS' | 'PAYMENTS' | 'PROFILE' | 'CALENDAR'>('COHORTS');
     const [editMode, setEditMode] = useState(false);
     const [profileForm, setProfileForm] = useState<any>({});
 
@@ -54,6 +56,12 @@ export function InstructorMain() {
 
                     <div className="flex items-center space-x-6">
                         <div className="flex items-center bg-slate-800/30 p-1.5 rounded-2xl border border-slate-700/50 mr-4">
+                            <button
+                                onClick={() => setViewMode('CALENDAR')}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${viewMode === 'CALENDAR' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                Calendario
+                            </button>
                             <button
                                 id="tour-instructor-academic"
                                 onClick={() => setViewMode('COHORTS')}
@@ -110,12 +118,38 @@ export function InstructorMain() {
                             </div>
                             <div className="flex bg-slate-900/50 p-2 rounded-2xl border border-slate-800 backdrop-blur-sm">
                                 <div className="px-6 py-2 border-r border-slate-800">
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Rendimiento Aula</p>
+                                    <p className="text-xl font-black text-emerald-400">88.5%</p>
+                                </div>
+                                <div className="px-6 py-2 border-r border-slate-800">
                                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Grupos Activos</p>
                                     <p className="text-xl font-black text-white">{cohorts?.length || 0}</p>
                                 </div>
                                 <div className="px-6 py-2">
-                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Ciclo Actual</p>
-                                    <p className="text-xl font-black text-indigo-400">2026-Q1</p>
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Pendientes</p>
+                                    <p className="text-xl font-black text-amber-500">3</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Quick Alerts Section */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-6 bg-indigo-600/5 border border-indigo-500/10 rounded-3xl flex items-center space-x-6">
+                                <div className="w-12 h-12 bg-indigo-600/20 rounded-2xl flex items-center justify-center text-indigo-400">
+                                    <Bell className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-widest">Aviso Académico</p>
+                                    <p className="text-sm font-bold text-white mt-1">Recuerda subir las calificaciones del Módulo 3 antes del viernes.</p>
+                                </div>
+                            </div>
+                            <div className="p-6 bg-emerald-600/5 border border-emerald-500/10 rounded-3xl flex items-center space-x-6">
+                                <div className="w-12 h-12 bg-emerald-600/20 rounded-2xl flex items-center justify-center text-emerald-400">
+                                    <TrendingUp className="w-6 h-6" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Rendimiento</p>
+                                    <p className="text-sm font-bold text-white mt-1">El grupo "Desarrollo Web A" ha subido un 5% su promedio general.</p>
                                 </div>
                             </div>
                         </div>
@@ -168,6 +202,10 @@ export function InstructorMain() {
                             </div>
                         )}
                     </>
+                ) : viewMode === 'CALENDAR' ? (
+                    <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
+                        <GlobalCalendar isAdmin={false} />
+                    </div>
                 ) : viewMode === 'PAYMENTS' ? (
                     <InstructorPaymentsView teacherId={user?.id} />
                 ) : (
@@ -232,7 +270,7 @@ export function InstructorMain() {
                                                     type="text"
                                                     disabled={!editMode}
                                                     value={profileForm.first_name || ''}
-                                                    onChange={e => setProfileForm({ ...profileForm, first_name: e.target.value })}
+                                                    onChange={e => setProfileForm({ ...profileForm, first_name: toProperCase(e.target.value) })}
                                                     className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 px-3"
                                                 />
                                             </div>
@@ -244,7 +282,7 @@ export function InstructorMain() {
                                                     type="text"
                                                     disabled={!editMode}
                                                     value={profileForm.last_name || ''}
-                                                    onChange={e => setProfileForm({ ...profileForm, last_name: e.target.value })}
+                                                    onChange={e => setProfileForm({ ...profileForm, last_name: toProperCase(e.target.value) })}
                                                     className="bg-transparent border-none text-sm font-bold text-white w-full focus:ring-0 px-3"
                                                 />
                                             </div>

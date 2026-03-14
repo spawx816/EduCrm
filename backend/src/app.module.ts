@@ -14,6 +14,7 @@ import { IntegrationsModule } from './integrations/integrations.module';
 import { ExamsModule } from './exams/exams.module';
 import { SettingsModule } from './settings/settings.module';
 import { CommonModule } from './common/common.module';
+import { CalendarModule } from './calendar/calendar.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { CommonModule } from './common/common.module';
     IntegrationsModule,
     ExamsModule,
     SettingsModule,
+    CalendarModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -1,11 +1,50 @@
 import { useState } from 'react';
 import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
-import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save } from 'lucide-react';
+import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save, Bell } from 'lucide-react';
 import { StudentExams } from '../components/exams/StudentExams';
 import { toast } from 'react-hot-toast';
 import { PlatformTour } from '../components/common/PlatformTour.tsx';
+import { GlobalCalendar } from '../components/common/GlobalCalendar.tsx';
 
-type ViewMode = 'DASHBOARD' | 'EXAMS' | 'DIPLOMAS' | 'PROFILE';
+type ViewMode = 'DASHBOARD' | 'EXAMS' | 'DIPLOMAS' | 'PROFILE' | 'CALENDAR';
+
+const CircularProgress = ({ value, label }: { value: number, label: string }) => {
+    const radius = 36;
+    const circumference = 2 * Math.PI * radius;
+    const offset = circumference - (value / 100) * circumference;
+
+    return (
+        <div className="relative flex items-center justify-center group">
+            <svg className="w-24 h-24 transform -rotate-90">
+                <circle
+                    className="text-slate-800"
+                    strokeWidth="8"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r={radius}
+                    cx="48"
+                    cy="48"
+                />
+                <circle
+                    className="text-blue-500 transition-all duration-1000 ease-out"
+                    strokeWidth="8"
+                    strokeDasharray={circumference}
+                    strokeDashoffset={offset}
+                    strokeLinecap="round"
+                    stroke="currentColor"
+                    fill="transparent"
+                    r={radius}
+                    cx="48"
+                    cy="48"
+                />
+            </svg>
+            <div className="absolute flex flex-col items-center">
+                <span className="text-xl font-black text-white">{value}%</span>
+                <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
+            </div>
+        </div>
+    );
+};
 
 export function PortalMain() {
     const { student, logout } = usePortalAuth();
@@ -126,6 +165,12 @@ export function PortalMain() {
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'DIPLOMAS' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                             >
                                 Diplomas
+                            </button>
+                            <button
+                                onClick={() => setViewMode('CALENDAR')}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'CALENDAR' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                Calendario
                             </button>
                             <button
                                 id="tour-student-profile"
@@ -567,42 +612,72 @@ export function PortalMain() {
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div className="bg-gradient-to-br from-[#0f172a] to-slate-950 border border-slate-800 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
-                                     <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
-                                     <h4 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-8 relative z-10 flex items-center">
+                                             <div className="bg-gradient-to-br from-[#0f172a] to-slate-950 border border-slate-800 p-10 rounded-[3rem] shadow-xl relative overflow-hidden group">
+                                      <div className="absolute inset-0 bg-grid-white/[0.02] pointer-events-none" />
+                                      <h4 className="text-xs font-black text-blue-400 uppercase tracking-[0.3em] mb-8 relative z-10 flex items-center">
                                          <GraduationCap className="w-4 h-4 mr-2" /> Avance de Carrera
                                      </h4>
+                                      <div className="relative z-10 flex flex-col items-center">
+                                          <CircularProgress 
+                                            value={attendancePct} 
+                                            label="Asistencia"
+                                          />
+                                          <div className="mt-8 w-full space-y-4">
+                                              <div className="flex items-center justify-between">
+                                                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Carga Académica</span>
+                                                  <span className="text-xs font-black text-white">{academic.data?.length === 1 ? '1 Programa' : `${academic.data?.length} Programas`}</span>
+                                              </div>
+                                              <div className="flex items-center justify-between pt-4 border-t border-slate-800/50">
+                                                  <div className="flex items-center space-x-3">
+                                                      <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                                          <Check className="w-4 h-4" />
+                                                      </div>
+                                                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Módulos Completados</p>
+                                                  </div>
+                                                  <span className="text-xl font-black text-white">{Object.keys(gradesByModule).length}</span>
+                                              </div>
+                                          </div>
+                                      </div>
+                                 </div>
 
-                                     <div className="space-y-8 relative z-10">
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Carga Académica</span>
-                                                <span className="text-xs font-black text-white">{academic.data?.length === 1 ? '1 Programa' : `${academic.data?.length} Programas`}</span>
-                                            </div>
-                                            <div className="h-4 bg-slate-800/50 rounded-full overflow-hidden border border-slate-700/50">
-                                                <div 
-                                                    className="h-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-[0_0_15px_rgba(37,99,235,0.4)] transition-all duration-1000 ease-out"
-                                                    style={{ width: `${Math.min((presentCount / (attendanceRecords.length || 1)) * 100, 100)}%` }}
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-6 border-t border-slate-800/50 space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                                                        <Check className="w-4 h-4" />
-                                                    </div>
-                                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Módulos Completados</p>
+                                 {/* Badges Section */}
+                                 <div className="bg-slate-900/40 border border-slate-800 p-8 rounded-[3rem] shadow-xl">
+                                    <h4 className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] mb-6 flex items-center">
+                                        <Trophy className="w-4 h-4 mr-2" /> Logros Obtenidos
+                                    </h4>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {attendancePct >= 90 && (
+                                            <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl flex flex-col items-center text-center group/badge">
+                                                <div className="w-10 h-10 bg-emerald-500/20 rounded-full flex items-center justify-center text-emerald-500 mb-2 group-hover/badge:scale-110 transition-transform">
+                                                    <UserCheck className="w-5 h-5" />
                                                 </div>
-                                                <span className="text-xl font-black text-white">{Object.keys(gradesByModule).length}</span>
+                                                <span className="text-[9px] font-black text-white uppercase leading-tight">Asistencia Perfecta</span>
                                             </div>
-                                        </div>
-                                     </div>
-                                </div>
+                                        )}
+                                        {Number(avgGrade) >= 90 && (
+                                            <div className="p-4 bg-amber-500/5 border border-amber-500/10 rounded-2xl flex flex-col items-center text-center group/badge">
+                                                <div className="w-10 h-10 bg-amber-500/20 rounded-full flex items-center justify-center text-amber-500 mb-2 group-hover/badge:scale-110 transition-transform">
+                                                    <Trophy className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[9px] font-black text-white uppercase leading-tight">Excelencia Académica</span>
+                                            </div>
+                                        )}
+                                        {Object.keys(gradesByModule).length >= 1 && (
+                                            <div className="p-4 bg-blue-500/5 border border-blue-500/10 rounded-2xl flex flex-col items-center text-center group/badge">
+                                                <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center text-blue-500 mb-2 group-hover/badge:scale-110 transition-transform">
+                                                    <GraduationCap className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[9px] font-black text-white uppercase leading-tight">Primer Paso</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                 </div>
                             </div>
                         </div>
+                    </div>
+                ) : viewMode === 'CALENDAR' ? (
+                    <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
+                        <GlobalCalendar isAdmin={false} />
                     </div>
                 ) : (
                     <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
