@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { driver } from "driver.js";
+import { driver, type DriveStep } from "driver.js";
 import "driver.js/dist/driver.css";
 import { HelpCircle } from 'lucide-react';
 
@@ -13,7 +13,6 @@ export function PlatformTour({ role }: PlatformTourProps) {
         const driverObj = driver({
             showProgress: true,
             animate: true,
-            container: '#root',
             nextBtnText: 'Siguiente',
             prevBtnText: 'Atrás',
             doneBtnText: 'Finalizar',
@@ -28,7 +27,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
         driverObj.drive();
     };
 
-    const getSteps = () => {
+    const getSteps = (): DriveStep[] => {
         if (role === 'admin') {
             return [
                 {
@@ -36,7 +35,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'INSTITUCIÓN',
                         description: '¡Bienvenido Administrador! Aquí puedes ver la identidad de tu institución.',
-                        side: "bottom",
+                        side: "bottom" as any,
                         align: 'start'
                     }
                 },
@@ -45,7 +44,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'DASHBOARD',
                         description: 'El Dashboard te ofrece una vista rápida de métricas clave, como prospectos y estudiantes activos.',
-                        side: "right"
+                        side: "right" as any
                     }
                 },
                 {
@@ -53,7 +52,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'PROSPECTOS (LEADS)',
                         description: 'Aquí gestionas los nuevos leads. Puedes arrastrarlos entre etapas hasta que se inscriban.',
-                        side: "right"
+                        side: "right" as any
                     }
                 },
                 {
@@ -61,7 +60,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'DIRECTORIO',
                         description: 'Directorio completo de alumnos. Desde aquí puedes ver perfiles, notas y asistencias.',
-                        side: "right"
+                        side: "right" as any
                     }
                 },
                 {
@@ -69,7 +68,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'ACADÉMICO',
                         description: 'Configura tus programas de estudio y las cohortes (grupos) activas.',
-                        side: "right"
+                        side: "right" as any
                     }
                 },
                 {
@@ -77,7 +76,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'FACTURACIÓN',
                         description: 'Módulo de finanzas. Gestiona facturas y métodos de pago de los alumnos.',
-                        side: "right"
+                        side: "right" as any
                     }
                 },
                 {
@@ -85,7 +84,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'NÓMINA DOCENTE',
                         description: 'Registra y descarga los comprobantes de pago para tus profesores.',
-                        side: "right"
+                        side: "right" as any
                     }
                 },
                 {
@@ -93,7 +92,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'CONFIGURACIÓN',
                         description: 'Configuración global: Logo, colores y gestión de otros usuarios admin.',
-                        side: "right"
+                        side: "right" as any
                     }
                 },
                 {
@@ -101,7 +100,7 @@ export function PlatformTour({ role }: PlatformTourProps) {
                     popover: {
                         title: 'TU PERFIL',
                         description: 'Tu perfil personal como administrador. Cambia tus datos de contacto aquí.',
-                        side: "top"
+                        side: "top" as any
                     }
                 }
             ];
