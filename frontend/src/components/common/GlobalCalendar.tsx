@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, Plus, X, GraduationCap, PartyPopper, Bell } from 'lucide-react';
 import { format, addMonths, subMonths, startOfMonth, endOfMonth, startOfWeek, endOfWeek, isSameMonth, isSameDay, addDays, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { apiClient } from '../../lib/api';
+import apiClient from '../../lib/api-client';
 import { toast } from 'react-hot-toast';
 
 interface CalendarEvent {
