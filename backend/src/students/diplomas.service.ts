@@ -106,7 +106,7 @@ export class DiplomasService {
 
             // Course: Under "Por haber completado satisfactoriamente el curso de"
             doc.font('Times-Bold').fontSize(28).fillColor('#000000');
-            doc.text(diploma.course_name, 60, 359, {
+            doc.text(diploma.course_name, 60, 357, {
                 width: 721.89,
                 align: 'center'
             });
