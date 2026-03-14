@@ -8,6 +8,7 @@ export const DiplomasManager: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCohort, setSelectedCohort] = useState('ALL');
+    const [selectedProgram, setSelectedProgram] = useState('ALL');
 
     const fetchDiplomas = async () => {
         setLoading(true);
@@ -27,6 +28,7 @@ export const DiplomasManager: React.FC = () => {
     }, []);
 
     const cohorts = Array.from(new Set(diplomas.map(d => d.cohort_name || 'Sin Cohorte'))).sort();
+    const programs = Array.from(new Set(diplomas.map(d => d.course_name))).sort();
 
     const filteredDiplomas = diplomas.filter(d => {
         const matchesSearch = 
@@ -35,8 +37,9 @@ export const DiplomasManager: React.FC = () => {
             d.course_name.toLowerCase().includes(searchTerm.toLowerCase());
         
         const matchesCohort = selectedCohort === 'ALL' || (d.cohort_name || 'Sin Cohorte') === selectedCohort;
+        const matchesProgram = selectedProgram === 'ALL' || d.course_name === selectedProgram;
         
-        return matchesSearch && matchesCohort;
+        return matchesSearch && matchesCohort && matchesProgram;
     });
 
     const handleDownload = (diplomaId: string) => {
@@ -64,9 +67,27 @@ export const DiplomasManager: React.FC = () => {
                 </div>
 
                 <div className="flex items-center space-x-4">
+                    {/* Program Filter */}
                     <div className="flex items-center space-x-2 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700">
                         <div className="px-3">
                             <Filter className="w-4 h-4 text-slate-500" />
+                        </div>
+                        <select 
+                            className="bg-transparent border-none text-sm font-bold text-slate-300 focus:ring-0 cursor-pointer pr-10"
+                            value={selectedProgram}
+                            onChange={(e) => setSelectedProgram(e.target.value)}
+                        >
+                            <option value="ALL">Todos los Cursos</option>
+                            {programs.map(prog => (
+                                <option key={prog} value={prog}>{prog}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Cohort Filter */}
+                    <div className="flex items-center space-x-2 bg-slate-800/50 p-1.5 rounded-2xl border border-slate-700">
+                        <div className="px-3">
+                            <Calendar className="w-4 h-4 text-slate-500" />
                         </div>
                         <select 
                             className="bg-transparent border-none text-sm font-bold text-slate-300 focus:ring-0 cursor-pointer pr-10"

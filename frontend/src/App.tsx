@@ -17,7 +17,7 @@ import { LeadInboxList } from './components/students/LeadInboxList.tsx';
 import { useAuth, AuthProvider } from './hooks/useAuth.tsx';
 import { InstructorMain } from './pages/InstructorMain.tsx';
 import { Login } from './pages/Login.tsx';
-import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Link, Wallet, Package, Settings as SettingsIcon, LogOut, Contact } from 'lucide-react';
+import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Wallet, Package, Settings as SettingsIcon, LogOut, Contact } from 'lucide-react';
 import { InstructorPayrollManager } from './components/academic/InstructorPayrollManager.tsx';
 import { ChatInbox } from './pages/ChatInbox.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
@@ -54,7 +54,6 @@ function DashboardLayout() {
     { id: 'billing', label: 'Facturación', icon: Receipt },
     { id: 'inventory', label: 'Inventario', icon: Package },
     { id: 'expenses', label: 'Gastos', icon: Wallet, adminOnly: true },
-    { id: 'integrations', label: 'Integraciones', icon: Link },
     { id: 'settings', label: 'Configuración', icon: SettingsIcon, adminOnly: true },
   ];
 
