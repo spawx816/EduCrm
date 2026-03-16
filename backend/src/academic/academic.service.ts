@@ -128,11 +128,41 @@ export class AcademicService {
 
   async createModule(data: { program_id: string; name: string; description?: string; order_index?: number; price?: number }) {
     const { program_id, name, description, order_index = 0, price = 0 } = data;
-    const res = await this.pool.query(
-      'INSERT INTO academic_modules (program_id, name, description, order_index, price) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [program_id, name, description, order_index, price]
-    );
-    return res.rows[0];
+    const client = await this.pool.connect();
+    try {
+      await client.query('BEGIN');
+      const res = await client.query(
+        'INSERT INTO academic_modules (program_id, name, description, order_index, price) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+        [program_id, name, description, order_index, price]
+      );
+      const module = res.rows[0];
+
+      // Check if this program is "AGENTES DE AEROLINEAS" to add default grade types
+      const programRes = await client.query('SELECT name FROM academic_programs WHERE id = $1', [program_id]);
+      if (programRes.rows.length > 0 && programRes.rows[0].name.toUpperCase().includes('AEROLINEAS')) {
+        const defaultTypes = [
+          { name: 'Asistencia', weight: 0.10 },
+          { name: 'Careo', weight: 0.25 },
+          { name: 'Exposicion', weight: 0.25 },
+          { name: 'Examenes', weight: 0.40 }
+        ];
+
+        for (const type of defaultTypes) {
+          await client.query(
+            'INSERT INTO grade_types (program_id, module_id, name, weight, is_individual) VALUES ($1, $2, $3, $4, $5)',
+            [program_id, module.id, type.name, type.weight, false]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+      return module;
+    } catch (e) {
+      await client.query('ROLLBACK');
+      throw e;
+    } finally {
+      client.release();
+    }
   }
 
   async updateModule(id: string, data: { name?: string; description?: string; order_index?: number; price?: number }) {
