@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useCohortStudents, useAttendance, useRegisterAttendance, useCohortModules } from '../../hooks/useAcademic.ts';
-import { Check, X, Clock, Save, ArrowLeft, Calendar as CalendarIcon, Users, BookOpen } from 'lucide-react';
+import { Check, X, Clock, Save, ArrowLeft, Calendar as CalendarIcon, Users, BookOpen, ExternalLink } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { StudentHistoryModal } from './StudentHistoryModal';
 
 interface AttendanceManagerProps {
     cohortId: string;
@@ -15,6 +16,11 @@ export function AttendanceManager({ cohortId, onBack, initialModuleId, available
     const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
     const [selectedModuleId, setSelectedModuleId] = useState<string>(initialModuleId || '');
     const [records, setRecords] = useState<Record<string, { status: string; remarks: string }>>({});
+    const [historyModal, setHistoryModal] = useState<{ isOpen: boolean, studentId: string, studentName: string }>({
+        isOpen: false,
+        studentId: '',
+        studentName: ''
+    });
 
     const { data: students, isLoading: loadingStudents } = useCohortStudents(cohortId);
     const { data: cohortModules, isLoading: loadingModules } = useCohortModules(cohortId);
@@ -141,7 +147,20 @@ export function AttendanceManager({ cohortId, onBack, initialModuleId, available
                                             <span className="text-xs font-black text-white">{student.first_name[0]}{student.last_name[0]}</span>
                                         </div>
                                         <div>
-                                            <p className="font-bold text-white text-sm">{student.last_name}, {student.first_name}</p>
+                                            <div className="flex items-center space-x-2">
+                                                <p className="font-bold text-white text-sm">{student.last_name}, {student.first_name}</p>
+                                                <button 
+                                                    onClick={() => setHistoryModal({ 
+                                                        isOpen: true, 
+                                                        studentId: student.id, 
+                                                        studentName: `${student.first_name} ${student.last_name}` 
+                                                    })}
+                                                    className="p-1 hover:bg-white/10 rounded transition-all text-blue-400"
+                                                    title="Ver Historial"
+                                                >
+                                                    <ExternalLink className="w-3 h-3" />
+                                                </button>
+                                            </div>
                                             <p className="text-[10px] text-slate-500 font-mono tracking-tighter uppercase">{student.email}</p>
                                         </div>
                                     </div>
@@ -196,6 +215,12 @@ export function AttendanceManager({ cohortId, onBack, initialModuleId, available
                     </div>
                 </div>
             )}
+            <StudentHistoryModal 
+                isOpen={historyModal.isOpen}
+                onClose={() => setHistoryModal({ ...historyModal, isOpen: false })}
+                studentId={historyModal.studentId}
+                studentName={historyModal.studentName}
+            />
         </div>
     );
 }

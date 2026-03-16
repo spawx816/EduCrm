@@ -6,6 +6,7 @@ import { ArrowLeft, Users, Trophy, Calendar, BookOpen, ChevronRight, GraduationC
 import { AttendanceManager } from './AttendanceManager';
 import { GradesManager } from './GradesManager';
 import { ExamManager } from '../exams/ExamManager';
+import { StudentHistoryModal } from './StudentHistoryModal';
 
 interface InstructorCohortDetailProps {
     cohort: any;
@@ -21,6 +22,11 @@ export function InstructorCohortDetail({ cohort, onBack }: InstructorCohortDetai
 
     const [selectedModuleId, setSelectedModuleId] = useState<string>('');
     const [viewMode, setViewMode] = useState<ViewMode>('OVERVIEW');
+    const [historyModal, setHistoryModal] = useState<{ isOpen: boolean, studentId: string, studentName: string }>({
+        isOpen: false,
+        studentId: '',
+        studentName: ''
+    });
 
     if (modulesLoading || studentsLoading) return (
         <div className="p-20 text-center text-indigo-500 font-black animate-pulse uppercase tracking-widest">
@@ -180,8 +186,20 @@ export function InstructorCohortDetail({ cohort, onBack }: InstructorCohortDetai
                                                 <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">{student.email}</p>
                                             </div>
                                         </div>
-                                        <div className="px-3 py-1 bg-slate-950 rounded-full border border-slate-800 text-[8px] font-mono text-slate-600">
-                                            {student.matricula}
+                                        <div className="flex items-center space-x-3">
+                                            <button 
+                                                onClick={() => setHistoryModal({ 
+                                                    isOpen: true, 
+                                                    studentId: student.id, 
+                                                    studentName: `${student.first_name} ${student.last_name}` 
+                                                })}
+                                                className="px-3 py-1.5 bg-slate-800 hover:bg-indigo-600 text-slate-400 hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all"
+                                            >
+                                                Ver Historial
+                                            </button>
+                                            <div className="px-3 py-1 bg-slate-950 rounded-full border border-slate-800 text-[8px] font-mono text-slate-600">
+                                                {student.matricula}
+                                            </div>
                                         </div>
                                     </div>
                                 ))}
@@ -190,6 +208,13 @@ export function InstructorCohortDetail({ cohort, onBack }: InstructorCohortDetai
                     )}
                 </div>
             </div>
+
+            <StudentHistoryModal 
+                isOpen={historyModal.isOpen}
+                onClose={() => setHistoryModal({ ...historyModal, isOpen: false })}
+                studentId={historyModal.studentId}
+                studentName={historyModal.studentName}
+            />
         </div>
     );
 }

@@ -262,23 +262,38 @@ export class AcademicService {
   }
 
   // Grades (Updated for Modules)
-  async findGradeTypes(programId: string, module_id?: string) {
+  async findGradeTypes(programId: string, module_id?: string, studentId?: string) {
     let query = 'SELECT * FROM grade_types WHERE program_id = $1';
     const params: any[] = [programId];
     if (module_id) {
       params.push(module_id);
       query += ` AND module_id = $${params.length}`;
     }
+
+    if (studentId) {
+      params.push(studentId);
+      query += ` AND (is_individual = FALSE OR student_id = $${params.length})`;
+    } else {
+      query += ' AND is_individual = FALSE';
+    }
+
     query += ' ORDER BY created_at ASC';
     const res = await this.pool.query(query, params);
     return res.rows;
   }
 
-  async createGradeType(data: { program_id: string; module_id?: string; name: string; weight?: number }) {
-    const { program_id, module_id, name, weight = 1.0 } = data;
+  async createGradeType(data: { 
+    program_id: string; 
+    module_id?: string; 
+    name: string; 
+    weight?: number;
+    is_individual?: boolean;
+    student_id?: string;
+  }) {
+    const { program_id, module_id, name, weight = 1.0, is_individual = false, student_id = null } = data;
     const res = await this.pool.query(
-      'INSERT INTO grade_types (program_id, module_id, name, weight) VALUES ($1, $2, $3, $4) RETURNING *',
-      [program_id, module_id, name, weight]
+      'INSERT INTO grade_types (program_id, module_id, name, weight, is_individual, student_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [program_id, module_id, name, weight, is_individual, student_id]
     );
     return res.rows[0];
   }

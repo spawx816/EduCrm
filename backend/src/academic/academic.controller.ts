@@ -124,8 +124,8 @@ export class AcademicController {
 
   // Grades
   @Get('grade-types/:programId')
-  async findGradeTypes(@Param('programId') programId: string, @Query('moduleId') moduleId?: string) {
-    return this.academicService.findGradeTypes(programId, moduleId);
+  async findGradeTypes(@Param('programId') programId: string, @Query('moduleId') moduleId?: string, @Query('studentId') studentId?: string) {
+    return this.academicService.findGradeTypes(programId, moduleId, studentId);
   }
 
   @Post('grade-types')

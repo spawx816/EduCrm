@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useCohortStudents, useGradeTypes, useGrades, useRegisterGrades, useCreateGradeType, useCohortModules } from '../../hooks/useAcademic.ts';
-import { Save, ArrowLeft, Trophy, Plus, Users, BookOpen } from 'lucide-react';
+import { Save, ArrowLeft, Trophy, Plus, Users, BookOpen, Clock, Star, PlusCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+import { StudentHistoryModal } from './StudentHistoryModal';
 
 interface GradesManagerProps {
     cohortId: string;
@@ -17,6 +18,15 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
     const [scores, setScores] = useState<Record<string, { value: number; remarks: string }>>({});
     const [isAddingType, setIsAddingType] = useState(false);
     const [newTypeName, setNewTypeName] = useState('');
+    const [historyModal, setHistoryModal] = useState<{ isOpen: boolean, studentId: string, studentName: string }>({
+        isOpen: false,
+        studentId: '',
+        studentName: ''
+    });
+
+    const [addingExtraFor, setAddingExtraFor] = useState<string | null>(null);
+    const [extraTaskName, setExtraTaskName] = useState('');
+    const [extraTaskValue, setExtraTaskValue] = useState<string>('0');
 
     const { data: students, isLoading: loadingStudents } = useCohortStudents(cohortId);
     const { data: cohortModules, isLoading: loadingModules } = useCohortModules(cohortId);
@@ -82,6 +92,45 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
             toast.success('Calificaciones registradas');
         } catch (error) {
             toast.error('Error al registrar notas');
+        }
+    };
+
+    const handleAddExtra = async (studentId: string) => {
+        if (!extraTaskName || !selectedModuleId) {
+            toast.error('Indique el nombre de la actividad');
+            return;
+        }
+
+        try {
+            const val = parseFloat(extraTaskValue);
+            // 1. Create individual grade type
+            const gt = await createTypeMutation.mutateAsync({
+                program_id: programId,
+                module_id: selectedModuleId,
+                name: extraTaskName,
+                weight: 0, // Las actividades extra suelen ser adicionales
+                is_individual: true,
+                student_id: studentId
+            } as any);
+
+            // 2. Register grade
+            await registerMutation.mutateAsync({
+                cohort_id: cohortId,
+                module_id: selectedModuleId,
+                grade_type_id: gt.id,
+                records: [{
+                    student_id: studentId,
+                    value: isNaN(val) ? 0 : val,
+                    remarks: 'Actividad individual exclusiva'
+                }]
+            });
+
+            setExtraTaskName('');
+            setExtraTaskValue('0');
+            setAddingExtraFor(null);
+            toast.success('Actividad extra asignada correctamente');
+        } catch (error) {
+            toast.error('Error al asignar actividad');
         }
     };
 
@@ -197,9 +246,71 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
                                     </div>
                                     <div>
                                         <p className="font-bold text-white text-sm">{student.last_name}, {student.first_name}</p>
-                                        <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{student.email}</p>
+                                        <div className="flex items-center space-x-2">
+                                            <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{student.email}</p>
+                                            <button 
+                                                onClick={() => setHistoryModal({ 
+                                                    isOpen: true, 
+                                                    studentId: student.id, 
+                                                    studentName: `${student.first_name} ${student.last_name}` 
+                                                })}
+                                                className="text-[9px] text-blue-500 hover:text-blue-400 font-black uppercase tracking-widest flex items-center bg-blue-500/10 px-2 py-0.5 rounded"
+                                            >
+                                                <Clock className="w-3 h-3 mr-1" /> Ver Historial
+                                            </button>
+                                            <button 
+                                                onClick={() => setAddingExtraFor(addingExtraFor === student.id ? null : student.id)}
+                                                className={`text-[9px] font-black uppercase tracking-widest flex items-center px-2 py-0.5 rounded transition-all ${addingExtraFor === student.id ? 'bg-amber-500 text-slate-950' : 'bg-amber-500/10 text-amber-500 hover:bg-amber-500/20'}`}
+                                            >
+                                                <Star className="w-3 h-3 mr-1" /> Asignar Extra
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {addingExtraFor === student.id && (
+                                    <div className="mx-6 mb-6 p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl animate-in slide-in-from-top-2 duration-300">
+                                        <div className="flex flex-col md:flex-row gap-4 items-end">
+                                            <div className="flex-1 space-y-2">
+                                                <label className="text-[8px] font-black uppercase text-amber-500 tracking-widest flex items-center">
+                                                    <PlusCircle className="w-3 h-3 mr-1" /> Nombre de Actividad Exclusiva
+                                                </label>
+                                                <input 
+                                                    type="text"
+                                                    value={extraTaskName}
+                                                    onChange={(e) => setExtraTaskName(e.target.value)}
+                                                    placeholder="Ej: Trabajo de Recuperación, Bono 2 pts..."
+                                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:border-amber-500 outline-none"
+                                                />
+                                            </div>
+                                            <div className="w-24 space-y-2">
+                                                <label className="text-[8px] font-black uppercase text-amber-500 tracking-widest">Nota</label>
+                                                <input 
+                                                    type="number"
+                                                    step="0.1"
+                                                    value={extraTaskValue}
+                                                    onChange={(e) => setExtraTaskValue(e.target.value)}
+                                                    className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white text-right font-bold focus:border-amber-500 outline-none"
+                                                />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => setAddingExtraFor(null)}
+                                                    className="px-3 py-2 text-[10px] font-bold text-slate-500 hover:text-white uppercase tracking-widest"
+                                                >
+                                                    Cancelar
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleAddExtra(student.id)}
+                                                    disabled={createTypeMutation.isPending || registerMutation.isPending}
+                                                    className="px-4 py-2 bg-amber-500 text-slate-950 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 transition-all shadow-lg shadow-amber-500/10"
+                                                >
+                                                    {createTypeMutation.isPending ? 'Creando...' : 'Asignar'}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col items-end">
@@ -239,9 +350,14 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
                             <span>{registerMutation.isPending ? 'Guardando...' : 'Guardar Calificaciones del Módulo'}</span>
                         </button>
                     </div>
-                </div >
-            )
-            }
-        </div >
+                </div>
+            )}
+            <StudentHistoryModal
+                isOpen={historyModal.isOpen}
+                onClose={() => setHistoryModal({ ...historyModal, isOpen: false })}
+                studentId={historyModal.studentId}
+                studentName={historyModal.studentName}
+            />
+        </div>
     );
 }
