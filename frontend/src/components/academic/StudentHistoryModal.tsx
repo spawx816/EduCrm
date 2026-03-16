@@ -58,8 +58,12 @@ export function StudentHistoryModal({ isOpen, onClose, studentId, studentName }:
                                 <div className="grid gap-4">
                                     {enrollment.modules?.map((module: any) => {
                                         const isExpanded = expandedModule === `${enrollment.id}-${module.id}`;
-                                        const avgGrade = module.grades.length > 0
-                                            ? (module.grades.reduce((acc: number, g: any) => acc + parseFloat(g.value), 0) / module.grades.length).toFixed(1)
+                                        const validGrades = module.grades.filter((g: any) => g.value !== null);
+                                        const sumWeight = validGrades.reduce((acc: number, g: any) => acc + (parseFloat(g.weight) || 0), 0);
+                                        const avgGrade = validGrades.length > 0
+                                            ? sumWeight > 0
+                                                ? (validGrades.reduce((acc: number, g: any) => acc + (parseFloat(g.value) * (parseFloat(g.weight) || 0)), 0) / sumWeight).toFixed(1)
+                                                : (validGrades.reduce((acc: number, g: any) => acc + parseFloat(g.value), 0) / validGrades.length).toFixed(1)
                                             : null;
                                         
                                         const presentCount = module.attendance.filter((a: any) => a.status === 'PRESENT').length;

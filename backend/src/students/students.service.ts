@@ -322,7 +322,7 @@ export class StudentsService {
        SELECT COALESCE(json_agg(row_to_json(m_data)), '[]'::json) FROM (
                SELECT am.*, 
                COALESCE((SELECT json_agg(row_to_json(g_data)) FROM (
-                   SELECT g.*, gt.name as grade_type_name, gt.is_individual
+                   SELECT g.*, gt.name as grade_type_name, gt.is_individual, gt.weight
                    FROM grades g
                    JOIN grade_types gt ON g.grade_type_id = gt.id
                    WHERE g.student_id = $1 AND g.module_id = am.id AND g.cohort_id = e.cohort_id

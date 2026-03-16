@@ -190,7 +190,7 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
                         >
                             <option value="">Selecciona evaluación...</option>
                             {Array.isArray(gradeTypes) && gradeTypes.map((gt: any) => (
-                                <option key={gt.id} value={gt.id}>{gt.name}</option>
+                                <option key={gt.id} value={gt.id}>{gt.name} ({Math.round((parseFloat(gt.weight) || 0) * 100)}%)</option>
                             ))}
                         </select>
                         <button
