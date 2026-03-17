@@ -41,8 +41,18 @@ export function CohortGradesReport({ cohortId, onBack }: CohortGradesReportProps
             let possiblePoints = 0;
 
             studentGrades.forEach((g: any) => {
-                const weight = parseFloat(g.weight) || 0;
+                let weight = parseFloat(g.weight);
                 const val = parseFloat(g.value) || 0;
+                const name = (g.grade_type_name || '').toLowerCase();
+
+                // FALLBACK LOGIC
+                if (!weight || weight <= 1.0) {
+                    if (name.includes('asistencia')) weight = 10;
+                    else if (name.includes('careo')) weight = 25;
+                    else if (name.includes('exposic')) weight = 25;
+                    else if (name.includes('examen')) weight = 40;
+                    else weight = weight || 0;
+                }
                 
                 if (weight > 1) {
                     totalEarned += val;
@@ -93,9 +103,10 @@ export function CohortGradesReport({ cohortId, onBack }: CohortGradesReportProps
             };
         });
 
-        // 3. General Average of the whole cohort (normalized to 100 if all modules)
-        const totalPointsSum = studentStats.reduce((acc: number, s: any) => acc + s.totalEarned, 0);
-        const generalAvg = studentStats.length > 0 ? (totalPointsSum / studentStats.length) : 0;
+        // 3. General Average of the whole cohort (avg of students WHO HAVE grades)
+        const gradedStudents = studentStats.filter((s: any) => s.gradesCount > 0);
+        const totalPointsSum = gradedStudents.reduce((acc: number, s: any) => acc + s.totalEarned, 0);
+        const generalAvg = gradedStudents.length > 0 ? (totalPointsSum / gradedStudents.length) : 0;
 
         return { studentStats, moduleStats, generalAvg };
     }, [students, allGrades, modules, filteredStudents, selectedModuleId]);

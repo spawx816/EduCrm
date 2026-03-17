@@ -109,20 +109,28 @@ export function PortalMain() {
     let totalHasGrades = false;
 
     allScores.forEach((g: any) => {
-        const weight = parseFloat(g.weight) || 0;
+        let weight = parseFloat(g.weight);
         const value = parseFloat(g.value) || 0;
-        
-        // Ensure we mark that we have grades to avoid default '0.0'
-        totalHasGrades = true;
+        const name = (g.grade_type_name || '').toLowerCase();
 
-        if (weight > 1) {
-            // Points-based (e.g., Careo 25p)
-            totalEarnedPoints += value;
-            totalPossibleWeight += weight;
-        } else if (weight > 0) {
-            // Percentage-based (weight is 0.25 for 25%)
-            totalEarnedPoints += (value * weight);
-            totalPossibleWeight += (weight * 100);
+        // FALLBACK: If weight is missing, 0, or 1.0 (default), try to infer from name
+        if (!weight || weight <= 1.0) {
+            if (name.includes('asistencia')) weight = 10;
+            else if (name.includes('careo')) weight = 25;
+            else if (name.includes('exposic')) weight = 25;
+            else if (name.includes('examen')) weight = 40;
+            else weight = weight || 0; // Keep 0 if no match
+        }
+        
+        if (weight > 0) {
+            totalHasGrades = true;
+            if (weight > 1) {
+                totalEarnedPoints += value;
+                totalPossibleWeight += weight;
+            } else {
+                totalEarnedPoints += (value * weight);
+                totalPossibleWeight += (weight * 100);
+            }
         }
     });
 

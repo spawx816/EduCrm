@@ -51,7 +51,7 @@ conn.on('ready', () => {
 
     function startUpdate() {
         console.log('--- ACTUALIZANDO PESOS EN DB ---');
-        const sql = `UPDATE grade_types SET weight = CASE WHEN name ILIKE '%Asistencia%' THEN 10 WHEN name ILIKE '%Careo%' THEN 25 WHEN name ILIKE '%Exposic%' THEN 25 WHEN name ILIKE '%Examen%' THEN 40 ELSE weight END WHERE program_id IN (SELECT id FROM academic_programs WHERE name ILIKE '%AGENTES%AEROLÍNEAS%');`;
+        const sql = `UPDATE grade_types SET weight = CASE WHEN name ILIKE '%Asistencia%' THEN 10 WHEN name ILIKE '%Careo%' THEN 25 WHEN name ILIKE '%Exposic%' THEN 25 WHEN name ILIKE '%Examen%' THEN 40 ELSE weight END WHERE program_id IN (SELECT id FROM academic_programs WHERE name ILIKE '%AGENTES%AEROL%AS%');`;
         
         const cmd = `PGPASSWORD="EducrmSecurePass2026!" psql -h localhost -U educrm_user -d educrm -c "${sql}"`;
         
