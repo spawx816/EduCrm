@@ -84,7 +84,7 @@ export function CohortGradesReport({ cohortId, onBack }: CohortGradesReportProps
             });
 
             const totalsArray = Object.values(studentTotals);
-            const avgPoints = totalsArray.reduce((a, b) => a + b, 0) / (students.length || 1);
+            const avgPoints = totalsArray.reduce((a: number, b: number) => a + b, 0) / (students.length || 1);
 
             return {
                 ...mod,
@@ -94,7 +94,7 @@ export function CohortGradesReport({ cohortId, onBack }: CohortGradesReportProps
         });
 
         // 3. General Average of the whole cohort (normalized to 100 if all modules)
-        const totalPointsSum = studentStats.reduce((acc, s) => acc + s.totalEarned, 0);
+        const totalPointsSum = studentStats.reduce((acc: number, s: any) => acc + s.totalEarned, 0);
         const generalAvg = studentStats.length > 0 ? (totalPointsSum / studentStats.length) : 0;
 
         return { studentStats, moduleStats, generalAvg };
