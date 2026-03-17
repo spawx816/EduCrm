@@ -38,11 +38,19 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
     const createTypeMutation = useCreateGradeType();
     const registerMutation = useRegisterGrades();
 
+    const selectedGTObject = gradeTypes?.find((gt: any) => gt.id === selectedGradeType);
+
     const handleScoreChange = (studentId: string, value: string) => {
         const numValue = parseFloat(value);
+        const weight = parseFloat(selectedGTObject?.weight || "0");
+        const maxVal = weight > 1 ? weight : 100;
+        
+        // Prevent values higher than max
+        const finalValue = isNaN(numValue) ? 0 : Math.min(numValue, maxVal);
+
         setScores(prev => ({
             ...prev,
-            [studentId]: { ...prev[studentId], value: isNaN(numValue) ? 0 : numValue }
+            [studentId]: { ...prev[studentId], value: finalValue }
         }));
     };
 
@@ -189,9 +197,14 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
                             className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition-colors disabled:opacity-50"
                         >
                             <option value="">Selecciona evaluación...</option>
-                            {Array.isArray(gradeTypes) && gradeTypes.map((gt: any) => (
-                                <option key={gt.id} value={gt.id}>{gt.name} ({Math.round((parseFloat(gt.weight) || 0) * 100)}%)</option>
-                            ))}
+                            {Array.isArray(gradeTypes) && gradeTypes.map((gt: any) => {
+                                const weight = parseFloat(gt.weight) || 0;
+                                // If weight is > 1 it's interpreted as points, if <= 1 it's percentage
+                                const weightDisplay = weight > 1 ? `${weight} pts` : `${Math.round(weight * 100)}%`;
+                                return (
+                                    <option key={gt.id} value={gt.id}>{gt.name} ({weightDisplay})</option>
+                                );
+                            })}
                         </select>
                         <button
                             onClick={() => setIsAddingType(true)}
@@ -312,17 +325,22 @@ export function GradesManager({ cohortId, programId, onBack, initialModuleId, av
                                     </div>
                                 )}
 
-                                <div className="flex items-center gap-4">
+                                 <div className="flex items-center gap-4">
                                     <div className="flex flex-col items-end">
-                                        <label className="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Calificación (0-5.0)</label>
+                                        <label className="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">
+                                            {selectedGTObject?.name.includes('Asistencia') || selectedGTObject?.name.includes('Examen') 
+                                                ? 'Calculado automáticamente' 
+                                                : `Calificación (0-${parseFloat(selectedGTObject?.weight || "0") > 1 ? selectedGTObject?.weight : '100'})`}
+                                        </label>
                                         <input
                                             type="number"
-                                            step="0.1"
+                                            step="0.5"
                                             min="0"
-                                            max="5"
+                                            max={parseFloat(selectedGTObject?.weight || "0") > 1 ? selectedGTObject?.weight : 100}
+                                            disabled={selectedGTObject?.name.includes('Asistencia') || selectedGTObject?.name.includes('Examen')}
                                             value={scores[student.id]?.value || 0}
                                             onChange={(e) => handleScoreChange(student.id, e.target.value)}
-                                            className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-right font-black focus:border-amber-500 outline-none w-24"
+                                            className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-white text-right font-black focus:border-amber-500 outline-none w-24 disabled:opacity-50 disabled:cursor-not-allowed"
                                         />
                                     </div>
                                     <div className="flex flex-col flex-1 min-w-[150px]">

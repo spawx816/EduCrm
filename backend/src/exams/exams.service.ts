@@ -323,6 +323,50 @@ export class ExamsService {
                 [totalScore, attemptId]
             );
 
+            // 4. Sync with academic grades table
+            // Fetch assignment info to get cohort and module
+            const assignRes = await client.query(
+                `SELECT ea.cohort_id, ea.module_id, at.student_id 
+                 FROM exam_assignments ea 
+                 JOIN exam_attempts at ON at.assignment_id = ea.id 
+                 WHERE at.id = $1`,
+                [attemptId]
+            );
+            
+            if (assignRes.rows.length > 0) {
+                const { cohort_id, module_id, student_id } = assignRes.rows[0];
+                
+                // Find the "Examenes" grade type for this module
+                const gtRes = await client.query(
+                    `SELECT id, weight FROM grade_types 
+                     WHERE (module_id = $1 OR (module_id IS NULL AND program_id = (SELECT program_id FROM academic_modules WHERE id = $1)))
+                     AND name ILIKE '%Examen%'
+                     LIMIT 1`,
+                    [module_id]
+                );
+
+                if (gtRes.rows.length > 0) {
+                    const gradeTypeId = gtRes.rows[0].id;
+                    const weight = parseFloat(gtRes.rows[0].weight) || 0;
+                    
+                    let finalValue = totalScore;
+                    // If points system (weight > 1) and score seems out of 100 (traditional grading)
+                    // but weight is something like 40, convert it.
+                    if (weight > 1 && totalScore > weight) {
+                        finalValue = (totalScore / 100) * weight;
+                    }
+
+                    // Upsert the grade
+                    await client.query(
+                        `INSERT INTO grades (student_id, cohort_id, module_id, grade_type_id, value)
+                         VALUES ($1, $2, $3, $4, $5)
+                         ON CONFLICT (student_id, cohort_id, module_id, grade_type_id)
+                         DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+                        [student_id, cohort_id, module_id, gradeTypeId, finalValue]
+                    );
+                }
+            }
+
             await client.query('COMMIT');
             return attemptRes.rows[0];
         } catch (e) {

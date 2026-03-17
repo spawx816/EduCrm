@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useCohorts, useDeleteCohort } from '../../hooks/useAcademic.ts';
-import { Layers, Calendar, Edit2, Trash2, Plus, ArrowLeft, CheckSquare, Trophy, UserPlus, Tag, ClipboardList } from 'lucide-react';
+import { Layers, Calendar, Edit2, Trash2, Plus, ArrowLeft, CheckSquare, Trophy, UserPlus, Tag, ClipboardList, TrendingUp } from 'lucide-react';
 import { CohortModal } from './CohortModal.tsx';
 import { AttendanceManager } from './AttendanceManager.tsx';
 import { GradesManager } from './GradesManager.tsx';
 import { CohortModuleManager } from './CohortModuleManager.tsx';
 import { ModulePricingManager } from './ModulePricingManager.tsx';
 import { AdminExamWorkspace } from './AdminExamWorkspace.tsx';
+import { CohortGradesReport } from './CohortGradesReport.tsx';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 import type { Cohort, AcademicProgram } from '../../types';
@@ -22,7 +23,7 @@ export function CohortList({ program, onBack }: CohortListProps) {
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(null);
-    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'exams', cohort?: Cohort }>({ mode: 'list' });
+    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'exams' | 'report', cohort?: Cohort }>({ mode: 'list' });
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         title: string;
@@ -94,6 +95,16 @@ export function CohortList({ program, onBack }: CohortListProps) {
     if (viewMode.mode === 'exams' && viewMode.cohort) {
         return (
             <AdminExamWorkspace
+                cohortId={viewMode.cohort.id}
+                programId={program.id}
+                onBack={() => setViewMode({ mode: 'list' })}
+            />
+        );
+    }
+
+    if (viewMode.mode === 'report' && viewMode.cohort) {
+        return (
+            <CohortGradesReport
                 cohortId={viewMode.cohort.id}
                 programId={program.id}
                 onBack={() => setViewMode({ mode: 'list' })}
@@ -234,6 +245,13 @@ export function CohortList({ program, onBack }: CohortListProps) {
                             >
                                 <UserPlus className="w-3.5 h-3.5" />
                                 <span className="text-[9px] font-black uppercase tracking-widest">Docentes Modular</span>
+                            </button>
+                            <button
+                                onClick={() => setViewMode({ mode: 'report', cohort })}
+                                className="col-span-2 flex items-center justify-center space-x-2 py-3 bg-indigo-900/20 hover:bg-indigo-600 text-white rounded-xl transition-all border border-indigo-500/30 group/report shadow-lg shadow-indigo-900/20"
+                            >
+                                <TrendingUp className="w-4 h-4 text-indigo-400 group-hover/report:text-white transition-colors" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">Reporte Académico General</span>
                             </button>
                         </div>
                     </div>

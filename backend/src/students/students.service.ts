@@ -300,7 +300,7 @@ export class StudentsService {
 
   async getPortalGrades(studentId: string) {
     const res = await this.pool.query(
-      `SELECT g.*, gt.name as grade_type_name, c.name as cohort_name, m.name as module_name,
+      `SELECT g.*, gt.name as grade_type_name, gt.weight, c.name as cohort_name, m.name as module_name,
               u.first_name as teacher_first_name, u.last_name as teacher_last_name
        FROM grades g
        JOIN grade_types gt ON g.grade_type_id = gt.id

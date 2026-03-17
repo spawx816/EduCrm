@@ -97,14 +97,36 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                             const attendanceRate = attendanceCount > 0 ? (presentCount / attendanceCount) * 100 : 0;
 
                             const completedExams = (Array.isArray(module.exams) ? module.exams : []).filter((ex: any) => ex.attempt_status === 'COMPLETED');
-                            const allModuleScores = [
-                                ...(module.grades || []).map((g: any) => parseFloat(g.value)),
-                                ...completedExams.map((ex: any) => parseFloat(ex.score))
-                            ];
+                            
+                            // Weighted Calculation
+                            // Note: module.grades already contains "Examenes" if we sync'd it, 
+                            // but we also have module.exams for display.
+                            const grades = module.grades || [];
+                            let earnedPoints = 0;
+                            let totalWeight = 0;
+                            let hasGrades = false;
 
-                            const averageGrade = allModuleScores.length > 0
-                                ? (allModuleScores.reduce((acc, val) => acc + val, 0) / allModuleScores.length).toFixed(1)
-                                : null;
+                             grades.forEach((g: any) => {
+                                 const weight = parseFloat(g.weight) || 0;
+                                 const value = parseFloat(g.value) || 0;
+                                 if (weight > 0) {
+                                     if (weight > 1) {
+                                         // Points system: value is directly the earned points
+                                         earnedPoints += value;
+                                         totalWeight += weight;
+                                     } else {
+                                         // Percentage system: weight is 0.25 (25%), value is 0-100
+                                         earnedPoints += value * weight;
+                                         totalWeight += weight * 100;
+                                     }
+                                     hasGrades = true;
+                                 }
+                             });
+
+                            // Determine if we should show it as /100 or a simple average
+                            // If total weight is > 1.0 (e.g. 100), it's the "puntos" system
+                            const averageGrade = hasGrades ? earnedPoints.toFixed(1) : null;
+                            const isPointsSystem = totalWeight > 1;
 
                             return (
                                 <div key={module.id} className="relative group">
@@ -139,10 +161,10 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                                                 <div className="px-4 py-3 bg-slate-950/60 rounded-xl border border-slate-800/50 flex flex-col items-center justify-center min-w-[90px]">
                                                     <div className="flex items-center text-slate-600 mb-1">
                                                         <Trophy className="w-3 h-3 mr-1" />
-                                                        <span className="text-[8px] font-black uppercase tracking-widest">Nota Final</span>
+                                                        <span className="text-[8px] font-black uppercase tracking-widest">{isPointsSystem ? 'Puntos' : 'Nota Final'}</span>
                                                     </div>
-                                                    <p className={`text-sm font-black ${averageGrade && parseFloat(averageGrade) < 3.5 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                                                        {averageGrade || '--'}
+                                                    <p className={`text-sm font-black ${averageGrade && parseFloat(averageGrade) < (isPointsSystem ? 70 : 3.5) ? 'text-rose-400' : 'text-emerald-400'}`}>
+                                                        {averageGrade || '--'}{isPointsSystem ? '/100' : ''}
                                                     </p>
                                                 </div>
 
@@ -177,11 +199,21 @@ export function StudentAcademicHistory({ studentId }: StudentAcademicHistoryProp
                                                         <span className={`text-[8px] uppercase font-black tracking-[0.15em] mb-1 truncate flex items-center ${g.is_individual ? 'text-amber-500' : 'text-slate-600'}`}>
                                                             {g.is_individual && <Star className="w-2 h-2 mr-1 fill-amber-500" />}
                                                             {g.grade_type_name}
+                                                            {parseFloat(g.weight) > 0 && <span className="ml-1 opacity-50">({parseFloat(g.weight)}p)</span>}
                                                         </span>
-                                                        <span className={`text-xs font-black ${parseFloat(g.value) < 3.5 ? 'text-rose-500' : (g.is_individual ? 'text-amber-400' : 'text-slate-300')}`}>{g.value}</span>
+                                                        <div className="flex items-baseline justify-between">
+                                                            <span className={`text-xs font-black ${parseFloat(g.value) < 70 ? 'text-rose-500' : (g.is_individual ? 'text-amber-400' : 'text-slate-300')}`}>{g.value}</span>
+                                                             {parseFloat(g.weight) > 0 && (
+                                                                <span className="text-[10px] text-slate-500 font-bold ml-2">
+                                                                    = {parseFloat(g.weight) > 1 
+                                                                        ? parseFloat(g.value).toFixed(1)
+                                                                        : (parseFloat(g.value) * parseFloat(g.weight)).toFixed(1)}
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 ))}
-                                                {(Array.isArray(module.exams) ? module.exams : []).filter((ex: any) => ex.attempt_status === 'COMPLETED').map((ex: any, idx: number) => (
+                                                {completedExams.map((ex: any, idx: number) => (
                                                     <div key={idx} className="flex flex-col px-3 py-2 bg-blue-500/5 rounded-xl border border-blue-500/10">
                                                         <span className="text-[8px] text-blue-500/60 uppercase font-black tracking-[0.15em] mb-1 truncate">Examen: {ex.exam_title}</span>
                                                         <span className="text-xs font-black text-blue-400">{ex.score}</span>

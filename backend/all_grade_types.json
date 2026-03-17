@@ -1,0 +1,122 @@
+[
+  {
+    "name": "Examenes",
+    "weight": "0.40",
+    "module_name": "MODULO 1",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Exposicion",
+    "weight": "0.25",
+    "module_name": "MODULO 1",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Careo",
+    "weight": "0.25",
+    "module_name": "MODULO 1",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Asistencia",
+    "weight": "0.10",
+    "module_name": "MODULO 1",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Examenes",
+    "weight": "0.40",
+    "module_name": "MODULO 2",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Exposicion",
+    "weight": "0.25",
+    "module_name": "MODULO 2",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Careo",
+    "weight": "0.25",
+    "module_name": "MODULO 2",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Asistencia",
+    "weight": "0.10",
+    "module_name": "MODULO 2",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Examenes",
+    "weight": "0.40",
+    "module_name": "MODULO 3",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Exposicion",
+    "weight": "0.25",
+    "module_name": "MODULO 3",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Careo",
+    "weight": "0.25",
+    "module_name": "MODULO 3",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Asistencia",
+    "weight": "0.10",
+    "module_name": "MODULO 3",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Examenes",
+    "weight": "0.40",
+    "module_name": "MODULO 4",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Exposicion",
+    "weight": "0.25",
+    "module_name": "MODULO 4",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Careo",
+    "weight": "0.25",
+    "module_name": "MODULO 4",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Asistencia",
+    "weight": "0.10",
+    "module_name": "MODULO 4",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Examenes",
+    "weight": "0.40",
+    "module_name": "MODULO 5",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Exposicion",
+    "weight": "0.25",
+    "module_name": "MODULO 5",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Careo",
+    "weight": "0.25",
+    "module_name": "MODULO 5",
+    "program_name": "AGENTES DE AEROLINEAS"
+  },
+  {
+    "name": "Asistencia",
+    "weight": "0.10",
+    "module_name": "MODULO 5",
+    "program_name": "AGENTES DE AEROLINEAS"
+  }
+]

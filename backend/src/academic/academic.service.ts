@@ -139,12 +139,12 @@ export class AcademicService {
 
       // Check if this program is "AGENTES DE AEROLINEAS" to add default grade types
       const programRes = await client.query('SELECT name FROM academic_programs WHERE id = $1', [program_id]);
-      if (programRes.rows.length > 0 && programRes.rows[0].name.toUpperCase().includes('AEROLINEAS')) {
+      if (programRes.rows.length > 0 && (programRes.rows[0].name.toUpperCase().includes('AEROLINEAS') || programRes.rows[0].name.toUpperCase().includes('AEROLÍNEAS'))) {
         const defaultTypes = [
-          { name: 'Asistencia', weight: 0.10 },
-          { name: 'Careo', weight: 0.25 },
-          { name: 'Exposicion', weight: 0.25 },
-          { name: 'Examenes', weight: 0.40 }
+          { name: 'Asistencia', weight: 10 },
+          { name: 'Careo', weight: 25 },
+          { name: 'Exposicion', weight: 25 },
+          { name: 'Examenes', weight: 40 }
         ];
 
         for (const type of defaultTypes) {
@@ -264,6 +264,52 @@ export class AcademicService {
         );
       }
       await client.query('COMMIT');
+
+      // Sync with grades if program is Aerolineas
+      const moduleRes = await this.pool.query(
+        `SELECT p.name as program_name, p.id as program_id 
+         FROM academic_modules m 
+         JOIN academic_programs p ON m.program_id = p.id 
+         WHERE m.id = $1`,
+        [module_id]
+      );
+
+      const progName = moduleRes.rows[0]?.program_name || '';
+      if (progName.toUpperCase().includes('AEROLINEAS') || progName.toUpperCase().includes('AEROLÍNEAS')) {
+        const program_id = moduleRes.rows[0].program_id;
+        
+        // Find "Asistencia" grade type
+        const gtRes = await this.pool.query(
+          'SELECT id, weight FROM grade_types WHERE module_id = $1 AND name ILIKE $2',
+          [module_id, '%Asistencia%']
+        );
+
+        if (gtRes.rows.length > 0) {
+          const gradeTypeId = gtRes.rows[0].id;
+          
+          for (const record of records) {
+            // Calculate attendance grade: (days present / 4 days) * 100
+            const countRes = await this.pool.query(
+              "SELECT COUNT(*) as count FROM attendance WHERE cohort_id = $1 AND module_id = $2 AND student_id = $3 AND status = 'PRESENT'",
+              [cohort_id, module_id, record.student_id]
+            );
+            const presentDays = parseInt(countRes.rows[0].count);
+            // If weight > 1 (e.g. 10), we save points directly. If <= 1 (e.g. 0.1), we save 0-100.
+            const weight = parseFloat(gtRes.rows[0].weight) || 0;
+            const maxVal = weight > 1 ? weight : 100;
+            const attendanceGradeValue = Math.min(maxVal, (presentDays / 4) * maxVal);
+
+            await this.pool.query(
+              `INSERT INTO grades (student_id, cohort_id, module_id, grade_type_id, value)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (student_id, cohort_id, module_id, grade_type_id)
+               DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+              [record.student_id, cohort_id, module_id, gradeTypeId, attendanceGradeValue]
+            );
+          }
+        }
+      }
+
       return { success: true, count: records.length };
     } catch (e) {
       await client.query('ROLLBACK');
@@ -355,7 +401,7 @@ export class AcademicService {
 
   async getCohortGrades(cohortId: string, module_id?: string) {
     let query = `
-       SELECT g.*, s.first_name, s.last_name, gt.name as grade_type_name
+       SELECT g.*, s.first_name, s.last_name, gt.name as grade_type_name, gt.weight
        FROM grades g
        JOIN students s ON g.student_id = s.id
        JOIN grade_types gt ON g.grade_type_id = gt.id

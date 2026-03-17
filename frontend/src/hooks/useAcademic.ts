@@ -320,7 +320,19 @@ export const useRegisterGrades = () => {
         },
         onSuccess: (_, variables) => {
             queryClient.invalidateQueries({ queryKey: ['grades', variables.cohort_id, variables.module_id] });
+            queryClient.invalidateQueries({ queryKey: ['grades', variables.cohort_id] });
         }
+    });
+};
+
+export const useCohortAllGrades = (cohortId?: string) => {
+    return useQuery({
+        queryKey: ['grades', cohortId],
+        queryFn: async () => {
+            const res = await apiClient.get(`/academic/grades/${cohortId}`);
+            return res.data;
+        },
+        enabled: !!cohortId
     });
 };
 

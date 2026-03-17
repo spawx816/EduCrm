@@ -103,9 +103,35 @@ export function PortalMain() {
             return acc;
         }, {});
 
-    const avgGrade = allScores.length
-        ? (allScores.reduce((acc: number, g: any) => acc + Number(g.value || 0), 0) / allScores.length).toFixed(1)
-        : '0.0';
+    // Weighted calculation for average grade
+    let totalEarnedPoints = 0;
+    let totalPossibleWeight = 0;
+    let totalHasGrades = false;
+
+    allScores.forEach((g: any) => {
+        const weight = parseFloat(g.weight) || 0;
+        const value = parseFloat(g.value) || 0;
+        
+        // Ensure we mark that we have grades to avoid default '0.0'
+        totalHasGrades = true;
+
+        if (weight > 1) {
+            // Points-based (e.g., Careo 25p)
+            totalEarnedPoints += value;
+            totalPossibleWeight += weight;
+        } else if (weight > 0) {
+            // Percentage-based (weight is 0.25 for 25%)
+            totalEarnedPoints += (value * weight);
+            totalPossibleWeight += (weight * 100);
+        }
+    });
+
+    // Final result should be raw earned points for points systems
+    // but weighted average for pure percentage systems. 
+    // For this app, we usually target a 0-100 total.
+    const avgGrade = totalHasGrades ? totalEarnedPoints.toFixed(1) : '0.0';
+    const isPointsSystem = totalPossibleWeight > 1.1; 
+
 
     const attendanceRecords = (attendance.data || []).filter((a: any) => a.cohort_id === currentCohortId);
     const presentCount = attendanceRecords.filter((a: any) => a.status === 'PRESENT').length;
@@ -236,9 +262,9 @@ export function PortalMain() {
                                 <div className="relative z-10">
                                     <p className="text-[10px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2 flex items-center">
                                         <Trophy className="w-3 h-3 mr-2 text-amber-500" />
-                                        Promedio General
+                                        {isPointsSystem ? 'Puntos Totales' : 'Promedio General'}
                                     </p>
-                                    <h3 className="text-4xl font-black text-white tracking-tighter">{avgGrade}</h3>
+                                    <h3 className="text-4xl font-black text-white tracking-tighter">{avgGrade}{isPointsSystem ? '/100' : ''}</h3>
                                     <div className="mt-3 flex items-center justify-between w-full">
                                         <div className="flex items-center text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded-md">
                                             <TrendingUp className="w-3 h-3 mr-1" /> Excelencia
@@ -299,7 +325,28 @@ export function PortalMain() {
                                     </h3>
 
                                     {Object.entries(gradesByModule).map(([moduleName, data]: [string, any]) => {
-                                        const moduleAvg = (data.grades.reduce((acc: number, g: any) => acc + Number(g.value || 0), 0) / data.grades.length).toFixed(1);
+                                         let moduleEarned = 0;
+                                        let moduleWeight = 0;
+                                        let moduleHasGrades = false;
+
+                                         data.grades.forEach((g: any) => {
+                                            const weight = parseFloat(g.weight) || 0;
+                                            const value = parseFloat(g.value) || 0;
+                                            
+                                            moduleHasGrades = true;
+                                            
+                                            if (weight > 1) {
+                                                moduleEarned += value;
+                                                moduleWeight += weight;
+                                            } else if (weight > 0) {
+                                                moduleEarned += (value * weight);
+                                                moduleWeight += (weight * 100);
+                                            }
+                                        });
+
+                                        const moduleTotal = moduleHasGrades ? moduleEarned.toFixed(1) : '0';
+                                        const isModPoints = moduleWeight > 1.1;
+
                                         return (
                                             <div key={moduleName} className="bg-gradient-to-br from-slate-900/80 to-slate-900/40 border border-slate-800 rounded-[2rem] overflow-hidden shadow-xl shadow-black/20">
                                                 <div className="p-6 border-b border-slate-800/50 bg-slate-800/20 flex items-center justify-between">
@@ -312,8 +359,10 @@ export function PortalMain() {
                                                         )}
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">Promedio Módulo</p>
-                                                        <span className={`text-2xl font-black ${Number(moduleAvg) >= 60 ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.3)]'}`}>{moduleAvg}</span>
+                                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-[0.2em] mb-1">{isModPoints ? 'PUNTOS GANADOS' : 'PROMEDIO MÓDULO'}</p>
+                                                        <span className={`text-2xl font-black ${Number(moduleTotal) >= (isModPoints ? 70 : 60) ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.3)]' : 'text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.3)]'}`}>
+                                                            {moduleTotal}{isModPoints ? '/100' : ''}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div className="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -323,8 +372,9 @@ export function PortalMain() {
                                                                 <p className="text-[11px] text-slate-300 font-bold uppercase tracking-wider">{grade.grade_type_name}</p>
                                                                 <p className="text-[9px] text-slate-600 font-mono mt-1 uppercase tracking-widest">{new Date(grade.created_at).toLocaleDateString()}</p>
                                                             </div>
-                                                            <div className={`px-4 py-2 rounded-xl text-xl font-black ${Number(grade.value || 0) >= 60 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
-                                                                {Number(grade.value || 0).toFixed(0)}
+                                                            <div className={`px-4 py-2 rounded-xl text-xl font-black ${Number(grade.value || 0) >= (parseFloat(grade.weight) > 1 ? (parseFloat(grade.weight) * 0.7) : 70) ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                                                {parseFloat(grade.weight) > 1 ? Number(grade.value || 0).toFixed(1) : Number(grade.value || 0).toFixed(0)}
+                                                                {parseFloat(grade.weight) > 1 && <span className="text-[8px] opacity-40 ml-1">/{parseFloat(grade.weight)}p</span>}
                                                             </div>
                                                         </div>
                                                     ))}

@@ -59,12 +59,38 @@ export function StudentHistoryModal({ isOpen, onClose, studentId, studentName }:
                                     {enrollment.modules?.map((module: any) => {
                                         const isExpanded = expandedModule === `${enrollment.id}-${module.id}`;
                                         const validGrades = module.grades.filter((g: any) => g.value !== null);
-                                        const sumWeight = validGrades.reduce((acc: number, g: any) => acc + (parseFloat(g.weight) || 0), 0);
-                                        const avgGrade = validGrades.length > 0
-                                            ? sumWeight > 0
-                                                ? (validGrades.reduce((acc: number, g: any) => acc + (parseFloat(g.value) * (parseFloat(g.weight) || 0)), 0) / sumWeight).toFixed(1)
-                                                : (validGrades.reduce((acc: number, g: any) => acc + parseFloat(g.value), 0) / validGrades.length).toFixed(1)
-                                            : null;
+                                         let earnedPoints = 0;
+                                        let totalWeight = 0;
+                                        let hasGrades = false;
+
+                                        validGrades.forEach((g: any) => {
+                                            const weight = parseFloat(g.weight) || 0;
+                                            const value = parseFloat(g.value) || 0;
+                                            if (weight > 0) {
+                                                if (weight > 1) { // Points-based system (e.g., 100 points total)
+                                                    earnedPoints += value;
+                                                    totalWeight += weight; // Sum of max points for each grade
+                                                } else { // Percentage-based system (e.g., 0.2 for 20%)
+                                                    earnedPoints += value * weight;
+                                                    totalWeight += weight; // Sum of weights for weighted average
+                                                }
+                                                hasGrades = true;
+                                            }
+                                        });
+
+                                        let avgGrade = null;
+                                        let isPoints = false;
+
+                                        if (hasGrades) {
+                                            if (totalWeight > 1.1) { // Heuristic: if totalWeight is significantly > 1, assume points system
+                                                avgGrade = (earnedPoints / totalWeight * 100).toFixed(1); // Convert to percentage
+                                                isPoints = true;
+                                            } else if (totalWeight > 0) { // Weighted average for percentage system
+                                                avgGrade = (earnedPoints / totalWeight).toFixed(1);
+                                            } else if (validGrades.length > 0) { // Simple average if no weights or weights sum to 0
+                                                avgGrade = (validGrades.reduce((acc: number, g: any) => acc + parseFloat(g.value), 0) / validGrades.length).toFixed(1);
+                                            }
+                                        }
                                         
                                         const presentCount = module.attendance.filter((a: any) => a.status === 'PRESENT').length;
                                         const totalAttendance = module.attendance.length;
@@ -84,8 +110,8 @@ export function StudentHistoryModal({ isOpen, onClose, studentId, studentName }:
                                                             <h4 className="font-bold text-white text-sm">{module.name}</h4>
                                                             <div className="flex items-center space-x-3 mt-1">
                                                                 {avgGrade && (
-                                                                    <span className="text-[9px] font-black uppercase text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md flex items-center">
-                                                                        <Trophy className="w-3 h-3 mr-1" /> Nota: {avgGrade}
+                                                                    <span className={`text-[9px] font-black uppercase ${parseFloat(avgGrade) >= (isPoints ? 70 : 3.5) ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'} px-2 py-0.5 rounded-md flex items-center`}>
+                                                                        <Trophy className="w-3 h-3 mr-1" /> {isPoints ? 'Puntos' : 'Nota'}: {avgGrade}{isPoints ? '%' : ''}
                                                                     </span>
                                                                 )}
                                                                 {attendancePct !== null && (
