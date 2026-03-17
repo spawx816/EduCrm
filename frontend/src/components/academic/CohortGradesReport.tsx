@@ -79,14 +79,27 @@ export function CohortGradesReport({ cohortId, onBack }: CohortGradesReportProps
 
         // 2. Calculate per-module stats (averages)
         const moduleStats = (modules || []).map((mod: any) => {
-            const modGrades = (allGrades || []).filter((g: any) => g.module_id === mod.module_id);
+            const moduleId = mod.module_id || mod.id;
+            const modGrades = (allGrades || []).filter((g: any) => g.module_id === moduleId);
+            
             if (modGrades.length === 0) return { ...mod, avgPoints: 0, studentCount: 0 };
 
-            // Group by student to get their total in this module, then average those totals
+            // Group points by student in this module
             const studentTotals: Record<string, number> = {};
             modGrades.forEach((g: any) => {
+                let weight = parseFloat(g.weight);
                 const val = parseFloat(g.value) || 0;
-                const weight = parseFloat(g.weight) || 0;
+                const name = (g.grade_type_name || '').toLowerCase();
+
+                // FALLBACK LOGIC
+                if (!weight || weight <= 1.0) {
+                    if (name.includes('asistencia')) weight = 10;
+                    else if (name.includes('careo')) weight = 25;
+                    else if (name.includes('exposic')) weight = 25;
+                    else if (name.includes('examen')) weight = 40;
+                    else weight = weight || 0;
+                }
+
                 if (!studentTotals[g.student_id]) studentTotals[g.student_id] = 0;
                 
                 if (weight > 1) studentTotals[g.student_id] += val;
@@ -94,7 +107,8 @@ export function CohortGradesReport({ cohortId, onBack }: CohortGradesReportProps
             });
 
             const totalsArray = Object.values(studentTotals);
-            const avgPoints = totalsArray.reduce((a: number, b: number) => a + b, 0) / (students.length || 1);
+            // Average = Sum of student totals in this module / Count of students who actually have grades in this module
+            const avgPoints = totalsArray.reduce((a: number, b: number) => a + b, 0) / (totalsArray.length || 1);
 
             return {
                 ...mod,
