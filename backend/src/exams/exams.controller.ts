@@ -43,6 +43,12 @@ export class ExamsController {
     }
 
     @Roles('admin', 'director')
+    @Delete(':id')
+    async deleteExam(@Param('id') id: string) {
+        return this.examsService.deleteExam(id);
+    }
+
+    @Roles('admin', 'director')
     @Put('questions/:id')
     async updateQuestion(@Param('id') id: string, @Body() data: any) {
         return this.examsService.updateQuestion(id, data);

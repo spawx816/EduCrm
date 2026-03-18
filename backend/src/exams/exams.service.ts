@@ -213,6 +213,57 @@ export class ExamsService {
         }
     }
 
+    async deleteExam(examId: string) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            
+            // Due to unknown CASCADE setup, safely order deletes from child to parent
+            // 1. Delete answers
+            await client.query(`
+                DELETE FROM exam_answers 
+                WHERE attempt_id IN (
+                    SELECT id FROM exam_attempts WHERE assignment_id IN (
+                        SELECT id FROM exam_assignments WHERE exam_id = $1
+                    )
+                )
+            `, [examId]);
+            
+            // 2. Delete attempts
+            await client.query(`
+                DELETE FROM exam_attempts 
+                WHERE assignment_id IN (
+                    SELECT id FROM exam_assignments WHERE exam_id = $1
+                )
+            `, [examId]);
+
+            // 3. Delete assignments
+            await client.query('DELETE FROM exam_assignments WHERE exam_id = $1', [examId]);
+
+            // 4. Delete options
+            await client.query(`
+                DELETE FROM exam_options 
+                WHERE question_id IN (
+                    SELECT id FROM exam_questions WHERE exam_id = $1
+                )
+            `, [examId]);
+
+            // 5. Delete questions
+            await client.query('DELETE FROM exam_questions WHERE exam_id = $1', [examId]);
+
+            // 6. Delete exam
+            await client.query('DELETE FROM exams WHERE id = $1', [examId]);
+
+            await client.query('COMMIT');
+            return { success: true };
+        } catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        } finally {
+            client.release();
+        }
+    }
+
     async deleteQuestion(questionId: string) {
         await this.pool.query('DELETE FROM exam_questions WHERE id = $1', [questionId]);
         return { success: true };

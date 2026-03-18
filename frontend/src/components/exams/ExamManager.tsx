@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { useModuleExams, useCohortExamAssignments, useAssignExam, useAssignmentResults, useUpdateAssignmentSchedule } from '../../hooks/useExams';
+import { useModuleExams, useCohortExamAssignments, useAssignExam, useAssignmentResults, useUpdateAssignmentSchedule, useDeleteExam } from '../../hooks/useExams';
 import { useAuth } from '../../hooks/useAuth';
-import { ClipboardList, Plus, Calendar, Clock, CheckCircle2, Eye, X, User, Edit3, Settings } from 'lucide-react';
+import { ClipboardList, Plus, Calendar, Clock, CheckCircle2, Eye, X, User, Edit3, Settings, Trash2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ExamBuilder } from './ExamBuilder';
+import { ConfirmModal } from '../shared/ConfirmModal';
 
 interface ExamManagerProps {
     cohortId: string;
@@ -24,9 +25,22 @@ export function ExamManager({ cohortId, moduleId }: ExamManagerProps) {
     const [schedulingAssignment, setSchedulingAssignment] = useState<any>(null);
     const [assignDates, setAssignDates] = useState({ start: '', end: '' });
     const [viewResultsId, setViewResultsId] = useState<string | null>(null);
+    const [examToDelete, setExamToDelete] = useState<any>(null);
 
     const assignMutation = useAssignExam();
     const scheduleMutation = useUpdateAssignmentSchedule();
+    const deleteMutation = useDeleteExam();
+
+    const handleDeleteExam = async () => {
+        if (!examToDelete) return;
+        try {
+            await deleteMutation.mutateAsync({ id: examToDelete.id });
+            toast.success('Examen eliminado correctamente');
+            setExamToDelete(null);
+        } catch (error) {
+            toast.error('Error al eliminar el examen');
+        }
+    };
 
     const handleAssign = async () => {
         try {
@@ -134,6 +148,14 @@ export function ExamManager({ cohortId, moduleId }: ExamManagerProps) {
                                                 <Edit3 className="w-4 h-4" />
                                             </button>
 
+                                            <button
+                                                onClick={() => setExamToDelete(exam)}
+                                                className="p-2 bg-slate-950 text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg border border-slate-800 transition-all ml-1"
+                                                title="Eliminar examen"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+
                                             {!isAssigned && (
                                                 <button
                                                     onClick={() => setAssigningExam(exam)}
@@ -226,6 +248,15 @@ export function ExamManager({ cohortId, moduleId }: ExamManagerProps) {
             </div>
 
             {/* Modals */}
+            <ConfirmModal
+                isOpen={!!examToDelete}
+                title="Eliminar Examen"
+                message={`¿Estás seguro de que deseas eliminar el examen "${examToDelete?.title}"? Esta acción eliminará irremediablemente el examen, sus preguntas y los resultados asociados.`}
+                onConfirm={handleDeleteExam}
+                onCancel={() => setExamToDelete(null)}
+                isLoading={deleteMutation.isPending}
+            />
+
             {viewResultsId && (
                 <AssignmentResultsView
                     assignmentId={viewResultsId}

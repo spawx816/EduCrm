@@ -74,6 +74,19 @@ export function useAddQuestion() {
     });
 }
 
+export function useDeleteExam() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: async ({ id }: { id: string }) => {
+            const { data: res } = await apiClient.delete(`/exams/${id}`);
+            return res;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['exams'] });
+        },
+    });
+}
+
 export function useUpdateQuestion() {
     const queryClient = useQueryClient();
     return useMutation({
