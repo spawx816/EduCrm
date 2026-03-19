@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { PlusCircle, Users, GraduationCap, Receipt, X, ArrowRight } from 'lucide-react';
+import { PlusCircle, Users, GraduationCap, Receipt, X } from 'lucide-react';
 
 interface QuickActionsProps {
     onAction: (tab: string) => void;
