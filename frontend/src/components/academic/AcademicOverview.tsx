@@ -76,12 +76,8 @@ export function AcademicOverview() {
                                         </div>
                                         <button 
                                             onClick={() => {
-                                                // Need to find the program for this cohort to open CohortList correctly
-                                                // For now, let's keep it simple or expand the API
                                                 setSelectedProgram({ id: cohort.program_id, name: cohort.program_name } as any);
-                                                // Actually we can't easily open CohortList without the full program object
-                                                // Let's just go to all programs for now until we refine
-                                                setView('all_programs');
+                                                setView('program_detail');
                                             }}
                                             className="w-10 h-10 bg-slate-800 rounded-xl flex items-center justify-center text-slate-400 hover:bg-blue-600 hover:text-white transition-all shadow-lg"
                                         >
