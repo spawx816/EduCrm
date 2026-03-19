@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCohorts, useDeleteCohort } from '../../hooks/useAcademic.ts';
 import { Layers, Calendar, Edit2, Trash2, Plus, ArrowLeft, CheckSquare, Trophy, UserPlus, Tag, ClipboardList, TrendingUp } from 'lucide-react';
 import { CohortModal } from './CohortModal.tsx';
@@ -15,15 +15,37 @@ import type { Cohort, AcademicProgram } from '../../types';
 interface CohortListProps {
     program: AcademicProgram;
     onBack: () => void;
+    initialCohortId?: string;
+    initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'exams' | 'report';
 }
 
-export function CohortList({ program, onBack }: CohortListProps) {
+export function CohortList({ program, onBack, initialCohortId, initialMode }: CohortListProps) {
     const { data: cohorts, isLoading } = useCohorts(program.id);
     const deleteCohort = useDeleteCohort();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(null);
     const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'exams' | 'report', cohort?: Cohort }>({ mode: 'list' });
+    
+    // Auto-open if initial props are provided
+    useState(() => {
+        if (initialCohortId && initialMode && cohorts) {
+            const cohort = cohorts.find(c => c.id === initialCohortId);
+            if (cohort) {
+                setViewMode({ mode: initialMode, cohort });
+            }
+        }
+    });
+
+    // Effect to handle cohorts loading after component mount
+    useEffect(() => {
+        if (initialCohortId && initialMode && cohorts && viewMode.mode === 'list') {
+            const cohort = cohorts.find(c => c.id === initialCohortId);
+            if (cohort) {
+                setViewMode({ mode: initialMode, cohort });
+            }
+        }
+    }, [cohorts, initialCohortId, initialMode]);
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean;
         title: string;
