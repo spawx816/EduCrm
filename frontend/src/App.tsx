@@ -7,9 +7,7 @@ import { DashboardOverview } from './pages/DashboardOverview.tsx';
 import { StudentProfile } from './pages/StudentProfile.tsx';
 import { PublicLeadForm } from './pages/PublicLeadForm.tsx';
 import { IntegrationsPage } from './pages/IntegrationsPage.tsx';
-import { ProgramList } from './components/academic/ProgramList.tsx';
-import { CohortList } from './components/academic/CohortList.tsx';
-import type { AcademicProgram } from './types/index.ts';
+import { AcademicOverview } from './components/academic/AcademicOverview.tsx';
 import { PortalLogin } from './pages/PortalLogin.tsx';
 import { PortalMain } from './pages/PortalMain.tsx';
 import { usePortalAuth, PortalProvider } from './hooks/usePortal.tsx';
@@ -17,12 +15,13 @@ import { LeadInboxList } from './components/students/LeadInboxList.tsx';
 import { useAuth, AuthProvider } from './hooks/useAuth.tsx';
 import { InstructorMain } from './pages/InstructorMain.tsx';
 import { Login } from './pages/Login.tsx';
-import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Wallet, Package, Settings as SettingsIcon, LogOut, Contact, ClipboardList } from 'lucide-react';
+import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Wallet, Package, Settings as SettingsIcon, LogOut, Contact, ClipboardList, Layers, Search } from 'lucide-react';
 import { InstructorPayrollManager } from './components/academic/InstructorPayrollManager.tsx';
 import { ChatInbox } from './pages/ChatInbox.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
 import { AdminProfile } from './pages/AdminProfile.tsx';
 import { PlatformTour } from './components/common/PlatformTour.tsx';
+import { QuickActions } from './components/common/QuickActions.tsx';
 
 import { InventoryManager } from './components/billing/InventoryManager.tsx';
 import { ExpenseManager } from './components/billing/ExpenseManager.tsx';
@@ -34,33 +33,47 @@ import apiClient, { getStaticUrl } from './lib/api-client';
 function DashboardLayout() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'exams' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets' | 'diplomas' | 'profile'>('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  const [selectedProgram, setSelectedProgram] = useState<AcademicProgram | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, logout } = useAuth(); // ADDED useAuth to get the current user
+  const { user, logout } = useAuth();
+  const [pendingLeadsCount, setPendingLeadsCount] = useState(0);
 
-  type NavItemType = {
+  type NavItem = {
     id: string;
     label: string;
     icon: React.ElementType;
     adminOnly?: boolean;
+    badge?: number;
   };
 
-  const navItems: NavItemType[] = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'prospects', label: 'Prospectos / Leads', icon: Users },
-    { id: 'students', label: 'Directorio Estudiantes', icon: GraduationCap },
-    { id: 'carnets', label: 'Carnetización', icon: Contact },
-    { id: 'diplomas', label: 'Diplomas', icon: GraduationCap },
-    { id: 'academic', label: 'Académico', icon: GraduationCap },
-    { id: 'exams', label: 'Exámenes', icon: ClipboardList, adminOnly: true },
-    { id: 'billing', label: 'Facturación', icon: Receipt },
-    { id: 'inventory', label: 'Inventario', icon: Package },
-    { id: 'expenses', label: 'Gastos', icon: Wallet, adminOnly: true },
-    { id: 'settings', label: 'Configuración', icon: SettingsIcon, adminOnly: true },
+  const groups: { title: string; items: NavItem[] }[] = [
+    {
+      title: 'Gestión Comercial',
+      items: [
+        { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
+        { id: 'prospects', label: 'Solicitudes Web', icon: Users, badge: pendingLeadsCount },
+        { id: 'students', label: 'Directorio Alumnos', icon: GraduationCap },
+      ]
+    },
+    {
+      title: 'Académico',
+      items: [
+        { id: 'academic', label: 'Programas & Grupos', icon: Layers },
+        { id: 'exams', label: 'Evaluaciones', icon: ClipboardList, adminOnly: true },
+        { id: 'carnets', label: 'Carnetización', icon: Contact },
+        { id: 'diplomas', label: 'Títulos & Certificados', icon: GraduationCap },
+      ]
+    },
+    {
+      title: 'Administración',
+      items: [
+        { id: 'billing', label: 'Finanzas & Facturas', icon: Receipt },
+        { id: 'payroll', label: 'Nómina Docente', icon: Wallet },
+        { id: 'inventory', label: 'Inventario', icon: Package },
+        { id: 'expenses', label: 'Egresos', icon: Wallet, adminOnly: true },
+        { id: 'settings', label: 'Configuración', icon: SettingsIcon, adminOnly: true },
+      ]
+    }
   ];
-
-
-  const [pendingLeadsCount, setPendingLeadsCount] = useState(0);
 
   useEffect(() => {
     const fetchLeadCount = async () => {
@@ -119,18 +132,11 @@ function DashboardLayout() {
       );
       case 'academic': return (
         <div className="flex flex-col h-full bg-[#0f172a] overflow-hidden">
-          <header className="h-16 border-b border-slate-800 flex items-center px-6 shrink-0 bg-[#0f172a]/80 backdrop-blur-sm z-10 w-full">
-            <h1 className="text-lg font-bold text-white tracking-tight">Oferta Académica</h1>
+          <header className="h-16 border-b border-white/5 flex items-center px-10 shrink-0 bg-[#0f172a]/80 backdrop-blur-md z-10 w-full">
+            <h1 className="text-lg font-black text-white tracking-widest uppercase italic shadow-sm shadow-blue-500/10">Centro Académico</h1>
           </header>
-          <div className="flex-1 overflow-y-auto p-6 text-white font-sans">
-            {selectedProgram ? (
-              <CohortList
-                program={selectedProgram}
-                onBack={() => setSelectedProgram(null)}
-              />
-            ) : (
-              <ProgramList onSelectProgram={setSelectedProgram} />
-            )}
+          <div className="flex-1 overflow-y-auto p-10 text-white font-sans scrollbar-hide">
+            <AcademicOverview />
           </div>
         </div>
       );
@@ -222,49 +228,49 @@ function DashboardLayout() {
         </div>
 
 
-        <nav className="flex-1 px-4 space-y-1 mt-4">
-          <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Principal</p>
-          {navItems
-            .filter(item => !item.adminOnly || user?.role === 'admin') // Filter based on adminOnly property
-            .map((item) => (
-              <button
-                key={item.id}
-                id={`tour-nav-${item.id}`}
-                onClick={() => {
-                  setActiveTab(item.id as any);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${activeTab === item.id
-                  ? 'bg-blue-600/10 text-blue-400 shadow-sm'
-                  : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
-                  }`}
-              >
-                <item.icon className={`w-5 h-5 transition-colors ${activeTab === item.id ? 'text-blue-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
-                <span className="text-sm font-bold tracking-tight">{item.label}</span>
-                {item.id === 'prospects' && pendingLeadsCount > 0 && (
-                  <span className="ml-auto w-5 h-5 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center animate-pulse shadow-lg shadow-red-900/20">
-                    {pendingLeadsCount > 99 ? '99+' : pendingLeadsCount}
-                  </span>
-                )}
-              </button>
-            ))}
+        <div className="p-4 px-6 pb-2">
+            <div className="relative group">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-blue-500 transition-colors" />
+                <input 
+                    type="text" 
+                    placeholder="Búsqueda rápida..." 
+                    className="w-full bg-slate-900 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-[10px] font-bold text-white outline-none focus:border-blue-500 transition-all font-sans"
+                />
+            </div>
+        </div>
 
-          <p className="px-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 mt-6">Administración</p>
-          <button
-            onClick={() => {
-              setActiveTab('payroll');
-              setIsMobileMenuOpen(false);
-            }}
-            id="tour-nav-payroll"
-            className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl transition-all duration-200 group ${activeTab === 'payroll'
-              ? 'bg-indigo-600/10 text-indigo-400 shadow-sm'
-              : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
-              }`}
-          >
-            <Wallet className={`w-5 h-5 transition-colors ${activeTab === 'payroll' ? 'text-indigo-400' : 'text-slate-500 group-hover:text-slate-300'}`} />
-            <span className="text-sm font-bold tracking-tight">Nómina Docente</span>
-          </button>
-        </nav>
+        <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8 custom-scrollbar">
+          {groups.map((group, idx) => (
+            <div key={idx} className="space-y-2">
+              <h3 className="px-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-4 opacity-50">{group.title}</h3>
+              <div className="space-y-1">
+                {group.items
+                  .filter(item => !item.adminOnly || user?.role === 'admin')
+                  .map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id as any);
+                        setIsMobileMenuOpen(false);
+                      }}
+                      className={`w-full flex items-center space-x-3 px-4 py-3 rounded-2xl transition-all duration-300 group ${activeTab === item.id
+                        ? 'bg-blue-600 text-white shadow-xl shadow-blue-900/40 ring-1 ring-blue-400/30'
+                        : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200'
+                        }`}
+                    >
+                      <item.icon className={`w-5 h-5 transition-colors ${activeTab === item.id ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                      <span className="text-sm font-black tracking-tight">{item.label}</span>
+                      {item.badge ? (
+                        <span className={`ml-auto px-2 py-0.5 rounded-lg text-[9px] font-black ${activeTab === item.id ? 'bg-white/20 text-white' : 'bg-red-500 text-white animate-pulse'}`}>
+                          {item.badge}
+                        </span>
+                      ) : null}
+                    </button>
+                  ))}
+              </div>
+            </div>
+          ))}
+        </div>
 
         <div className="px-4 mb-4">
           <a
@@ -322,6 +328,7 @@ function DashboardLayout() {
         </header>
 
         {renderContent()}
+        <QuickActions onAction={(tab) => setActiveTab(tab as any)} />
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
@@ -331,7 +338,7 @@ function DashboardLayout() {
               <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 hover:bg-slate-800 rounded-lg"><X /></button>
             </div>
             <nav className="space-y-4">
-              {navItems
+              {groups.flatMap(g => g.items)
                 .filter(item => !item.adminOnly || user?.role === 'admin')
                 .map((item) => (
                   <button
