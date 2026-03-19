@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useCohorts, useDeleteCohort } from '../../hooks/useAcademic.ts';
-import { Layers, Calendar, Edit2, Trash2, Plus, ArrowLeft, CheckSquare, Trophy, UserPlus, Tag, TrendingUp } from 'lucide-react';
+import { Layers, Calendar, Edit2, Trash2, Plus, ArrowLeft, CheckSquare, Trophy, UserPlus, Tag, TrendingUp, Users } from 'lucide-react';
 import { CohortModal } from './CohortModal.tsx';
 import { AttendanceManager } from './AttendanceManager.tsx';
 import { GradesManager } from './GradesManager.tsx';
 import { CohortModuleManager } from './CohortModuleManager.tsx';
 import { ModulePricingManager } from './ModulePricingManager.tsx';
 import { CohortGradesReport } from './CohortGradesReport.tsx';
+import { CohortStudentList } from './CohortStudentList.tsx';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 import type { Cohort, AcademicProgram } from '../../types';
@@ -15,7 +16,7 @@ interface CohortListProps {
     program: AcademicProgram;
     onBack: () => void;
     initialCohortId?: string;
-    initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report';
+    initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report' | 'students';
 }
 
 export function CohortList({ program, onBack, initialCohortId, initialMode }: CohortListProps) {
@@ -24,7 +25,7 @@ export function CohortList({ program, onBack, initialCohortId, initialMode }: Co
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(null);
-    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report', cohort?: Cohort }>({ mode: 'list' });
+    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report' | 'students', cohort?: Cohort }>({ mode: 'list' });
     
     // Auto-open if initial props are provided
     useState(() => {
@@ -119,6 +120,16 @@ export function CohortList({ program, onBack, initialCohortId, initialMode }: Co
             <CohortGradesReport
                 cohortId={viewMode.cohort.id}
                 programId={program.id}
+                onBack={() => setViewMode({ mode: 'list' })}
+            />
+        );
+    }
+
+    if (viewMode.mode === 'students' && viewMode.cohort) {
+        return (
+            <CohortStudentList
+                cohortId={viewMode.cohort.id}
+                cohortName={viewMode.cohort.name}
                 onBack={() => setViewMode({ mode: 'list' })}
             />
         );
@@ -219,12 +230,15 @@ export function CohortList({ program, onBack, initialCohortId, initialMode }: Co
                                     {new Date(cohort.start_date).toLocaleDateString('es-ES', { day: '2-digit', month: 'long', year: 'numeric' })}
                                 </p>
                             </div>
-                            <div className="space-y-1">
-                                <span className="text-[9px] uppercase font-bold text-slate-500 tracking-wider flex items-center">
-                                    <Calendar className="w-3 h-3 mr-1.5" /> Estudiantes
+                            <div 
+                                className="space-y-1 cursor-pointer"
+                                onClick={() => setViewMode({ mode: 'students', cohort })}
+                            >
+                                <span className="text-[9px] uppercase font-bold text-blue-500 tracking-wider flex items-center group-hover:underline underline-offset-4 transition-all">
+                                    <Users className="w-3.5 h-3.5 mr-1.5" /> Ver Inscritos
                                 </span>
-                                <p className="text-slate-300 text-xs font-medium">
-                                    Sincronizado
+                                <p className="text-slate-300 text-[10px] font-black uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                                    Consultar Listado
                                 </p>
                             </div>
                         </div>
