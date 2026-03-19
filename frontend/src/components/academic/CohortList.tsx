@@ -114,15 +114,6 @@ export function CohortList({ program, onBack, initialCohortId, initialMode }: Co
         );
     }
 
-    if (viewMode.mode === 'exams' && viewMode.cohort) {
-        return (
-            <AdminExamWorkspace
-                cohortId={viewMode.cohort.id}
-                programId={program.id}
-                onBack={() => setViewMode({ mode: 'list' })}
-            />
-        );
-    }
 
     if (viewMode.mode === 'report' && viewMode.cohort) {
         return (
@@ -253,13 +244,6 @@ export function CohortList({ program, onBack, initialCohortId, initialMode }: Co
                             >
                                 <Trophy className="w-3.5 h-3.5" />
                                 <span className="text-[9px] font-black uppercase tracking-widest">Calificaciones</span>
-                            </button>
-                            <button
-                                onClick={() => setViewMode({ mode: 'exams', cohort })}
-                                className="flex items-center justify-center space-x-2 py-3 bg-slate-800 hover:bg-blue-600/20 hover:text-blue-400 rounded-xl transition-all border border-slate-700/50"
-                            >
-                                <ClipboardList className="w-3.5 h-3.5" />
-                                <span className="text-[9px] font-black uppercase tracking-widest">Exámenes</span>
                             </button>
                             <button
                                 onClick={() => setViewMode({ mode: 'instructors', cohort })}
