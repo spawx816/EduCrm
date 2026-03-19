@@ -22,6 +22,9 @@ let ExamsController = class ExamsController {
     constructor(examsService) {
         this.examsService = examsService;
     }
+    async getAllExams() {
+        return this.examsService.getAllExams();
+    }
     async createExam(data, req) {
         return this.examsService.createExam({ ...data, created_by: req.user.id });
     }
@@ -55,6 +58,9 @@ let ExamsController = class ExamsController {
     async updateAssignmentSchedule(id, data) {
         return this.examsService.updateAssignmentSchedule(id, data.start_date, data.end_date);
     }
+    async getAllAssignments() {
+        return this.examsService.getAllAssignments();
+    }
     async getCohortAssignments(cohortId) {
         return this.examsService.getCohortAssignments(cohortId);
     }
@@ -72,6 +78,13 @@ let ExamsController = class ExamsController {
     }
 };
 exports.ExamsController = ExamsController;
+__decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
+    (0, common_1.Get)(),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ExamsController.prototype, "getAllExams", null);
 __decorate([
     (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Post)(),
@@ -162,6 +175,13 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "updateAssignmentSchedule", null);
+__decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
+    (0, common_1.Get)('assignments'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", Promise)
+], ExamsController.prototype, "getAllAssignments", null);
 __decorate([
     (0, common_1.Get)('cohort/:cohortId/assignments'),
     __param(0, (0, common_1.Param)('cohortId')),

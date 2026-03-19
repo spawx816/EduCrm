@@ -7,6 +7,16 @@ export class ExamsService {
     constructor(@Inject(PG_POOL) private pool: Pool) { }
 
     // --- Exams CRUD ---
+    
+    async getAllExams() {
+        const res = await this.pool.query(
+            `SELECT e.*, am.name as module_name 
+             FROM exams e
+             LEFT JOIN academic_modules am ON e.module_id = am.id
+             ORDER BY e.created_at DESC`
+        );
+        return res.rows;
+    }
 
     async createExam(data: { module_id: string; title: string; description?: string; time_limit_minutes?: number; passing_score?: number; created_by: string }) {
         const res = await this.pool.query(
@@ -292,6 +302,20 @@ export class ExamsService {
             [start_date, end_date, id]
         );
         return res.rows[0];
+    }
+
+    async getAllAssignments() {
+        const res = await this.pool.query(
+            `SELECT ea.*, e.title as exam_title, c.name as cohort_name, am.name as module_name, p.name as program_name
+             FROM exam_assignments ea
+             JOIN exams e ON ea.exam_id = e.id
+             JOIN cohorts c ON ea.cohort_id = c.id
+             JOIN academic_modules am ON ea.module_id = am.id
+             JOIN academic_programs p ON c.program_id = p.id
+             WHERE ea.is_active = TRUE
+             ORDER BY ea.created_at DESC`
+        );
+        return res.rows;
     }
 
     async getCohortAssignments(cohortId: string) {

@@ -10,6 +10,12 @@ export class ExamsController {
     constructor(private readonly examsService: ExamsService) { }
 
     @Roles('admin', 'director')
+    @Get()
+    async getAllExams() {
+        return this.examsService.getAllExams();
+    }
+
+    @Roles('admin', 'director')
     @Post()
     async createExam(@Body() data: any, @Request() req: any) {
         return this.examsService.createExam({ ...data, created_by: req.user.id });
@@ -70,6 +76,12 @@ export class ExamsController {
     @Patch('assignments/:id/schedule')
     async updateAssignmentSchedule(@Param('id') id: string, @Body() data: { start_date: string; end_date: string }) {
         return this.examsService.updateAssignmentSchedule(id, data.start_date, data.end_date);
+    }
+
+    @Roles('admin', 'director')
+    @Get('assignments')
+    async getAllAssignments() {
+        return this.examsService.getAllAssignments();
     }
 
     @Get('cohort/:cohortId/assignments')

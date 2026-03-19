@@ -1,6 +1,26 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import apiClient from '../lib/api-client';
 
+export function useAllExams() {
+    return useQuery({
+        queryKey: ['exams', 'all'],
+        queryFn: async () => {
+            const { data } = await apiClient.get('/exams');
+            return data;
+        }
+    });
+}
+
+export function useAllAssignments() {
+    return useQuery({
+        queryKey: ['exams', 'assignments', 'all'],
+        queryFn: async () => {
+            const { data } = await apiClient.get('/exams/assignments');
+            return data;
+        }
+    });
+}
+
 export function useModuleExams(moduleId?: string) {
     return useQuery({
         queryKey: ['exams', 'module', moduleId],

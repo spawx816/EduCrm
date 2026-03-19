@@ -20,6 +20,13 @@ let ExamsService = class ExamsService {
     constructor(pool) {
         this.pool = pool;
     }
+    async getAllExams() {
+        const res = await this.pool.query(`SELECT e.*, am.name as module_name 
+             FROM exams e
+             LEFT JOIN academic_modules am ON e.module_id = am.id
+             ORDER BY e.created_at DESC`);
+        return res.rows;
+    }
     async createExam(data) {
         const res = await this.pool.query(`INSERT INTO exams (module_id, title, description, time_limit_minutes, passing_score, created_by)
        VALUES ($1, $2, $3, $4, $5, $6)
@@ -228,6 +235,17 @@ let ExamsService = class ExamsService {
        WHERE id = $3
        RETURNING *`, [start_date, end_date, id]);
         return res.rows[0];
+    }
+    async getAllAssignments() {
+        const res = await this.pool.query(`SELECT ea.*, e.title as exam_title, c.name as cohort_name, am.name as module_name, p.name as program_name
+             FROM exam_assignments ea
+             JOIN exams e ON ea.exam_id = e.id
+             JOIN cohorts c ON ea.cohort_id = c.id
+             JOIN academic_modules am ON ea.module_id = am.id
+             JOIN academic_programs p ON c.program_id = p.id
+             WHERE ea.is_active = TRUE
+             ORDER BY ea.created_at DESC`);
+        return res.rows;
     }
     async getCohortAssignments(cohortId) {
         const res = await this.pool.query(`SELECT ea.*, e.title as exam_title, e.time_limit_minutes, am.name as module_name

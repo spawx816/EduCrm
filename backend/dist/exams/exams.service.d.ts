@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 export declare class ExamsService {
     private pool;
     constructor(pool: Pool);
+    getAllExams(): Promise<any[]>;
     createExam(data: {
         module_id: string;
         title: string;
@@ -49,6 +50,7 @@ export declare class ExamsService {
         end_date?: string;
     }): Promise<any>;
     updateAssignmentSchedule(id: string, start_date: string, end_date: string): Promise<any>;
+    getAllAssignments(): Promise<any[]>;
     getCohortAssignments(cohortId: string): Promise<any[]>;
     startAttempt(studentId: string, assignmentId: string): Promise<any>;
     submitAttempt(attemptId: string, answers: {
