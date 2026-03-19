@@ -589,11 +589,22 @@ export class BillingService {
 
 
     // Instructor Payroll
-    async getInstructorPayments(teacherId?: string) {
-        const query = teacherId
-            ? 'SELECT ip.*, u.first_name, u.last_name FROM instructor_payments ip JOIN users u ON ip.teacher_id = u.id WHERE ip.teacher_id = $1 ORDER BY ip.payment_date DESC'
-            : 'SELECT ip.*, u.first_name, u.last_name FROM instructor_payments ip JOIN users u ON ip.teacher_id = u.id ORDER BY ip.payment_date DESC';
-        const res = await this.pool.query(query, teacherId ? [teacherId] : []);
+    async getInstructorPayments(teacherId?: string, year?: string) {
+        let query = 'SELECT ip.*, u.first_name, u.last_name FROM instructor_payments ip JOIN users u ON ip.teacher_id = u.id WHERE 1=1';
+        const params: any[] = [];
+
+        if (teacherId) {
+            params.push(teacherId);
+            query += ` AND ip.teacher_id = $${params.length}`;
+        }
+
+        if (year) {
+            params.push(year);
+            query += ` AND EXTRACT(YEAR FROM ip.payment_date) = $${params.length}`;
+        }
+
+        query += ' ORDER BY ip.payment_date DESC';
+        const res = await this.pool.query(query, params);
         return res.rows;
     }
 

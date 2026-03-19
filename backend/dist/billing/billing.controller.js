@@ -81,8 +81,8 @@ let BillingController = class BillingController {
     async registerPayment(data) {
         return this.billingService.registerPayment(data);
     }
-    async getInstructorPayments(teacherId) {
-        return this.billingService.getInstructorPayments(teacherId);
+    async getInstructorPayments(teacherId, year) {
+        return this.billingService.getInstructorPayments(teacherId, year);
     }
     async registerInstructorPayment(data) {
         return this.billingService.registerInstructorPayment(data);
@@ -250,8 +250,9 @@ __decorate([
 __decorate([
     (0, common_1.Get)('instructor-payments'),
     __param(0, (0, common_1.Query)('teacherId')),
+    __param(1, (0, common_1.Query)('year')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String]),
     __metadata("design:returntype", Promise)
 ], BillingController.prototype, "getInstructorPayments", null);
 __decorate([

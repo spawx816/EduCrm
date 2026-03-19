@@ -75,7 +75,7 @@ export declare class BillingService {
         applies_to_monthly?: boolean;
     }): Promise<any>;
     deleteScholarship(id: string): Promise<any>;
-    getInstructorPayments(teacherId?: string): Promise<any[]>;
+    getInstructorPayments(teacherId?: string, year?: string): Promise<any[]>;
     registerInstructorPayment(data: any): Promise<any>;
     deleteInstructorPayment(id: string): Promise<any>;
     voidInstructorPayment(id: string): Promise<any>;

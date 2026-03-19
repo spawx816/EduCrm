@@ -112,8 +112,8 @@ export class BillingController {
 
     // Instructor Payroll
     @Get('instructor-payments')
-    async getInstructorPayments(@Query('teacherId') teacherId?: string) {
-        return this.billingService.getInstructorPayments(teacherId);
+    async getInstructorPayments(@Query('teacherId') teacherId?: string, @Query('year') year?: string) {
+        return this.billingService.getInstructorPayments(teacherId, year);
     }
 
     @Post('instructor-payments')

@@ -36,7 +36,7 @@ export declare class BillingController {
     createInvoice(data: any, req: any): Promise<any>;
     getPayments(invoiceId: string): Promise<any[]>;
     registerPayment(data: any): Promise<any>;
-    getInstructorPayments(teacherId?: string): Promise<any[]>;
+    getInstructorPayments(teacherId?: string, year?: string): Promise<any[]>;
     registerInstructorPayment(data: any): Promise<any>;
     downloadInstructorPdf(id: string, res: Response): Promise<void>;
     voidInstructorPayment(id: string): Promise<any>;
