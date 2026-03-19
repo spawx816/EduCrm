@@ -30,7 +30,7 @@ export class StudentsService {
 
     if (filters?.search) {
       params.push(`%${filters.search}%`);
-      query += ` AND (first_name ILIKE $${params.length} OR last_name ILIKE $${params.length} OR email ILIKE $${params.length} OR matricula ILIKE $${params.length})`;
+      query += ` AND (unaccent(first_name) ILIKE unaccent($${params.length}) OR unaccent(last_name) ILIKE unaccent($${params.length}) OR email ILIKE $${params.length} OR matricula ILIKE $${params.length})`;
     }
 
     query += ' ORDER BY created_at DESC';
