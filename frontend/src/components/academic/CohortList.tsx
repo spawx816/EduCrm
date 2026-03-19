@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useCohorts, useDeleteCohort } from '../../hooks/useAcademic.ts';
-import { Layers, Calendar, Edit2, Trash2, Plus, ArrowLeft, CheckSquare, Trophy, UserPlus, Tag, ClipboardList, TrendingUp } from 'lucide-react';
+import { Layers, Calendar, Edit2, Trash2, Plus, ArrowLeft, CheckSquare, Trophy, UserPlus, Tag, TrendingUp } from 'lucide-react';
 import { CohortModal } from './CohortModal.tsx';
 import { AttendanceManager } from './AttendanceManager.tsx';
 import { GradesManager } from './GradesManager.tsx';
 import { CohortModuleManager } from './CohortModuleManager.tsx';
 import { ModulePricingManager } from './ModulePricingManager.tsx';
-import { AdminExamWorkspace } from './AdminExamWorkspace.tsx';
 import { CohortGradesReport } from './CohortGradesReport.tsx';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../shared/ConfirmModal.tsx';
@@ -16,7 +15,7 @@ interface CohortListProps {
     program: AcademicProgram;
     onBack: () => void;
     initialCohortId?: string;
-    initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'exams' | 'report';
+    initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report';
 }
 
 export function CohortList({ program, onBack, initialCohortId, initialMode }: CohortListProps) {
@@ -25,7 +24,7 @@ export function CohortList({ program, onBack, initialCohortId, initialMode }: Co
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(null);
-    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'exams' | 'report', cohort?: Cohort }>({ mode: 'list' });
+    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report', cohort?: Cohort }>({ mode: 'list' });
     
     // Auto-open if initial props are provided
     useState(() => {
