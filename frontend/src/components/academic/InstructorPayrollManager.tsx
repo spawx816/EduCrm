@@ -15,12 +15,19 @@ const PAYMENT_METHODS: Record<string, string> = {
 
 export function InstructorPayrollManager() {
     const { data: instructors } = useInstructors();
-    const { data: payments, isLoading } = useInstructorPayments();
     const registerPayment = useRegisterInstructorPayment();
     const deletePayment = useDeleteInstructorPayment();
     const voidPayment = useVoidInstructorPayment();
 
     const [isAdding, setIsAdding] = useState(false);
+    const [selectedTeacherId, setSelectedTeacherId] = useState('');
+    const [selectedYear, setSelectedYear] = useState(new Date().getFullYear().toString());
+
+    const { data: payments, isLoading } = useInstructorPayments({ 
+        teacherId: selectedTeacherId, 
+        year: selectedYear 
+    });
+
     const [formData, setFormData] = useState({
         teacherId: '',
         amount: '',
@@ -130,22 +137,73 @@ export function InstructorPayrollManager() {
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
                     <h2 className="text-3xl font-black text-white tracking-tighter flex items-center">
                         <Wallet className="w-10 h-10 mr-4 text-indigo-500" />
-                        Nómina de <span className="text-indigo-500 italic ml-2">Docentes</span>
+                        Historial de <span className="text-indigo-500 italic ml-2">Pagos</span>
                     </h2>
-                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mt-2">Gestión y control de honorarios académicos</p>
+                    <p className="text-[10px] text-slate-500 font-black uppercase tracking-[0.3em] mt-2">Gestión y control de honorarios académicos por año</p>
                 </div>
 
-                <button
-                    onClick={() => setIsAdding(true)}
-                    className="flex items-center space-x-3 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl shadow-xl shadow-indigo-600/20 transition-all font-black text-[10px] uppercase tracking-widest"
-                >
-                    <Plus className="w-4 h-4" />
-                    <span>Registrar Pago</span>
-                </button>
+                <div className="flex items-center gap-4">
+                    <div className="flex bg-slate-900/50 border border-slate-800 rounded-2xl p-1 backdrop-blur-sm">
+                        <select
+                            value={selectedYear}
+                            onChange={(e) => setSelectedYear(e.target.value)}
+                            className="bg-transparent text-white font-black text-[10px] uppercase tracking-widest px-4 py-2 outline-none cursor-pointer"
+                        >
+                            {[2023, 2024, 2025, 2026].map(y => (
+                                <option key={y} value={y.toString()} className="bg-slate-950">{y}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <div className="flex bg-slate-900/50 border border-slate-800 rounded-2xl p-1 backdrop-blur-sm grow max-w-[200px]">
+                        <select
+                            value={selectedTeacherId}
+                            onChange={(e) => setSelectedTeacherId(e.target.value)}
+                            className="bg-transparent text-white font-black text-[10px] uppercase tracking-widest px-4 py-2 outline-none cursor-pointer w-full truncate"
+                        >
+                            <option value="" className="bg-slate-950 italic text-slate-500 font-normal">Todos los Docentes</option>
+                            {Array.isArray(instructors) && instructors.map((inst: any) => (
+                                <option key={inst.id} value={inst.id} className="bg-slate-950">{inst.first_name} {inst.last_name}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    <button
+                        onClick={() => setIsAdding(true)}
+                        className="flex items-center space-x-3 px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl shadow-xl shadow-indigo-600/20 transition-all font-black text-[10px] uppercase tracking-widest"
+                    >
+                        <Plus className="w-4 h-4" />
+                        <span>Registrar Pago</span>
+                    </button>
+                </div>
+            </div>
+
+            {/* Resumen Histórico Card */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                 <div className="bg-indigo-600/10 border border-indigo-500/20 rounded-[2rem] p-6 backdrop-blur-sm">
+                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1.5">Total Pagado en {selectedYear}</p>
+                    <h4 className="text-3xl font-black text-white tracking-tighter">
+                        RD$ {Array.isArray(payments) 
+                            ? payments.filter((p: any) => p.status !== 'VOIDED').reduce((acc: number, curr: any) => acc + parseFloat(curr.amount), 0).toLocaleString('en-US', { minimumFractionDigits: 2 })
+                            : '0.00'}
+                    </h4>
+                </div>
+                <div className="bg-emerald-600/10 border border-emerald-500/20 rounded-[2rem] p-6 backdrop-blur-sm">
+                    <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1.5">Pagos Registrados</p>
+                    <h4 className="text-3xl font-black text-white tracking-tighter">
+                        {Array.isArray(payments) ? payments.length : 0} <span className="text-xs text-slate-500 font-bold uppercase tracking-widest ml-1">Registros</span>
+                    </h4>
+                </div>
+                <div className="bg-rose-600/10 border border-rose-500/20 rounded-[2rem] p-6 backdrop-blur-sm">
+                    <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1.5">Anulaciones</p>
+                    <h4 className="text-3xl font-black text-white tracking-tighter">
+                        {Array.isArray(payments) ? payments.filter((p: any) => p.status === 'VOIDED').length : 0}
+                    </h4>
+                </div>
             </div>
 
             {isAdding && (

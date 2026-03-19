@@ -93,12 +93,12 @@ export function useRegisterPayment() {
     });
 }
 
-export function useInstructorPayments(teacherId?: string) {
+export function useInstructorPayments(filters: { teacherId?: string; year?: string } = {}) {
     return useQuery({
-        queryKey: ['instructorPayments', { teacherId }],
+        queryKey: ['instructorPayments', filters],
         queryFn: async () => {
             const res = await apiClient.get('/billing/instructor-payments', {
-                params: { teacherId }
+                params: filters
             });
             return res.data;
         }
