@@ -213,11 +213,18 @@ let AcademicService = class AcademicService {
                 if (gtRes.rows.length > 0) {
                     const gradeTypeId = gtRes.rows[0].id;
                     for (const record of records) {
-                        const countRes = await this.pool.query("SELECT COUNT(*) as count FROM attendance WHERE cohort_id = $1 AND module_id = $2 AND student_id = $3 AND status = 'PRESENT'", [cohort_id, module_id, record.student_id]);
-                        const presentDays = parseInt(countRes.rows[0].count);
-                        const weight = parseFloat(gtRes.rows[0].weight) || 0;
+                        const countRes = await this.pool.query(`SELECT 
+                SUM(CASE 
+                  WHEN status = 'PRESENT' THEN 1.0 
+                  WHEN status = 'LATE' THEN 0.5 
+                  ELSE 0 
+                END) as total_attendance_points
+               FROM attendance 
+               WHERE cohort_id = $1 AND module_id = $2 AND student_id = $3`, [cohort_id, module_id, record.student_id]);
+                        const attendancePoints = parseFloat(countRes.rows[0].total_attendance_points || '0');
+                        const weight = parseFloat(gtRes.rows[0].weight) || 10;
                         const maxVal = weight > 1 ? weight : 100;
-                        const attendanceGradeValue = Math.min(maxVal, (presentDays / 4) * maxVal);
+                        const attendanceGradeValue = Math.min(maxVal, (attendancePoints / 4) * maxVal);
                         await this.pool.query(`INSERT INTO grades (student_id, cohort_id, module_id, grade_type_id, value)
                VALUES ($1, $2, $3, $4, $5)
                ON CONFLICT (student_id, cohort_id, module_id, grade_type_id)

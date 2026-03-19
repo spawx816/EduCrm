@@ -288,16 +288,25 @@ export class AcademicService {
           const gradeTypeId = gtRes.rows[0].id;
           
           for (const record of records) {
-            // Calculate attendance grade: (days present / 4 days) * 100
+            // Calculate attendance points: PRESENT = 1.0, LATE = 0.5, ABSENT = 0
             const countRes = await this.pool.query(
-              "SELECT COUNT(*) as count FROM attendance WHERE cohort_id = $1 AND module_id = $2 AND student_id = $3 AND status = 'PRESENT'",
+              `SELECT 
+                SUM(CASE 
+                  WHEN status = 'PRESENT' THEN 1.0 
+                  WHEN status = 'LATE' THEN 0.5 
+                  ELSE 0 
+                END) as total_attendance_points
+               FROM attendance 
+               WHERE cohort_id = $1 AND module_id = $2 AND student_id = $3`,
               [cohort_id, module_id, record.student_id]
             );
-            const presentDays = parseInt(countRes.rows[0].count);
-            // If weight > 1 (e.g. 10), we save points directly. If <= 1 (e.g. 0.1), we save 0-100.
-            const weight = parseFloat(gtRes.rows[0].weight) || 0;
+            
+            const attendancePoints = parseFloat(countRes.rows[0].total_attendance_points || '0');
+            const weight = parseFloat(gtRes.rows[0].weight) || 10; // Default to 10 points if not set
             const maxVal = weight > 1 ? weight : 100;
-            const attendanceGradeValue = Math.min(maxVal, (presentDays / 4) * maxVal);
+            
+            // Assuming 4 classes as specified by the user
+            const attendanceGradeValue = Math.min(maxVal, (attendancePoints / 4) * maxVal);
 
             await this.pool.query(
               `INSERT INTO grades (student_id, cohort_id, module_id, grade_type_id, value)
