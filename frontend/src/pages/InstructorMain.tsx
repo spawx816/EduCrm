@@ -385,7 +385,7 @@ export function InstructorMain() {
 }
 
 function InstructorPaymentsView({ teacherId }: { teacherId: string }) {
-    const { data: payments, isLoading } = useInstructorPayments(teacherId);
+    const { data: payments, isLoading } = useInstructorPayments({ teacherId });
 
     if (isLoading) return (
         <div className="p-20 text-center font-black animate-pulse text-indigo-500 uppercase tracking-widest">
