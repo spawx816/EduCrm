@@ -598,10 +598,11 @@ export class BillingService {
     }
 
     async registerInstructorPayment(data: any) {
+        const paymentDate = data.date || null;
         const res = await this.pool.query(
-            `INSERT INTO instructor_payments (teacher_id, amount, payment_method, reference_number, notes)
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-            [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes]
+            `INSERT INTO instructor_payments (teacher_id, amount, payment_method, reference_number, notes, payment_date)
+             VALUES ($1, $2, $3, $4, $5, COALESCE($6, NOW())) RETURNING *`,
+            [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes, paymentDate]
         );
         return res.rows[0];
     }

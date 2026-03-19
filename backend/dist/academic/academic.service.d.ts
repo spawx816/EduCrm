@@ -79,12 +79,14 @@ export declare class AcademicService {
         count: number;
     }>;
     getCohortAttendance(cohortId: string, module_id?: string, date?: string): Promise<any[]>;
-    findGradeTypes(programId: string, module_id?: string): Promise<any[]>;
+    findGradeTypes(programId: string, module_id?: string, studentId?: string): Promise<any[]>;
     createGradeType(data: {
         program_id: string;
         module_id?: string;
         name: string;
         weight?: number;
+        is_individual?: boolean;
+        student_id?: string;
     }): Promise<any>;
     registerGrades(data: {
         cohort_id: string;

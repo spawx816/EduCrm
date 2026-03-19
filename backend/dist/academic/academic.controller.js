@@ -85,8 +85,8 @@ let AcademicController = class AcademicController {
     async getCohortAttendance(cohortId, moduleId, date) {
         return this.academicService.getCohortAttendance(cohortId, moduleId, date);
     }
-    async findGradeTypes(programId, moduleId) {
-        return this.academicService.findGradeTypes(programId, moduleId);
+    async findGradeTypes(programId, moduleId, studentId) {
+        return this.academicService.findGradeTypes(programId, moduleId, studentId);
     }
     async createGradeType(data) {
         return this.academicService.createGradeType(data);
@@ -270,8 +270,9 @@ __decorate([
     (0, common_1.Get)('grade-types/:programId'),
     __param(0, (0, common_1.Param)('programId')),
     __param(1, (0, common_1.Query)('moduleId')),
+    __param(2, (0, common_1.Query)('studentId')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], AcademicController.prototype, "findGradeTypes", null);
 __decorate([

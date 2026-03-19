@@ -172,6 +172,44 @@ let ExamsService = class ExamsService {
             client.release();
         }
     }
+    async deleteExam(examId) {
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            await client.query(`
+                DELETE FROM exam_answers 
+                WHERE attempt_id IN (
+                    SELECT id FROM exam_attempts WHERE assignment_id IN (
+                        SELECT id FROM exam_assignments WHERE exam_id = $1
+                    )
+                )
+            `, [examId]);
+            await client.query(`
+                DELETE FROM exam_attempts 
+                WHERE assignment_id IN (
+                    SELECT id FROM exam_assignments WHERE exam_id = $1
+                )
+            `, [examId]);
+            await client.query('DELETE FROM exam_assignments WHERE exam_id = $1', [examId]);
+            await client.query(`
+                DELETE FROM exam_options 
+                WHERE question_id IN (
+                    SELECT id FROM exam_questions WHERE exam_id = $1
+                )
+            `, [examId]);
+            await client.query('DELETE FROM exam_questions WHERE exam_id = $1', [examId]);
+            await client.query('DELETE FROM exams WHERE id = $1', [examId]);
+            await client.query('COMMIT');
+            return { success: true };
+        }
+        catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        }
+        finally {
+            client.release();
+        }
+    }
     async deleteQuestion(questionId) {
         await this.pool.query('DELETE FROM exam_questions WHERE id = $1', [questionId]);
         return { success: true };
@@ -237,6 +275,29 @@ let ExamsService = class ExamsService {
          SET completed_at = NOW(), score = $1, status = 'COMPLETED'
          WHERE id = $2
          RETURNING *`, [totalScore, attemptId]);
+            const assignRes = await client.query(`SELECT ea.cohort_id, ea.module_id, at.student_id 
+                 FROM exam_assignments ea 
+                 JOIN exam_attempts at ON at.assignment_id = ea.id 
+                 WHERE at.id = $1`, [attemptId]);
+            if (assignRes.rows.length > 0) {
+                const { cohort_id, module_id, student_id } = assignRes.rows[0];
+                const gtRes = await client.query(`SELECT id, weight FROM grade_types 
+                     WHERE (module_id = $1 OR (module_id IS NULL AND program_id = (SELECT program_id FROM academic_modules WHERE id = $1)))
+                     AND name ILIKE '%Examen%'
+                     LIMIT 1`, [module_id]);
+                if (gtRes.rows.length > 0) {
+                    const gradeTypeId = gtRes.rows[0].id;
+                    const weight = parseFloat(gtRes.rows[0].weight) || 0;
+                    let finalValue = totalScore;
+                    if (weight > 1 && totalScore > weight) {
+                        finalValue = (totalScore / 100) * weight;
+                    }
+                    await client.query(`INSERT INTO grades (student_id, cohort_id, module_id, grade_type_id, value)
+                         VALUES ($1, $2, $3, $4, $5)
+                         ON CONFLICT (student_id, cohort_id, module_id, grade_type_id)
+                         DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`, [student_id, cohort_id, module_id, gradeTypeId, finalValue]);
+                }
+            }
             await client.query('COMMIT');
             return attemptRes.rows[0];
         }

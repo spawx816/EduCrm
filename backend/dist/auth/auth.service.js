@@ -126,9 +126,39 @@ let AuthService = class AuthService {
         const res = await this.pool.query('SELECT id, name, display_name FROM roles ORDER BY display_name ASC');
         return res.rows;
     }
-    async updateUser(id, updateData) {
-        const { roleId, isActive } = updateData;
-        const res = await this.pool.query('UPDATE users SET role_id = $1, is_active = $2, updated_at = NOW() WHERE id = $3 RETURNING id, email', [roleId, isActive, id]);
+    async updateUser(id, updateData, isProfileUpdate = false) {
+        const { roleId, isActive, first_name, last_name, phone, address, avatar_url, email, password } = updateData;
+        if (isProfileUpdate) {
+            const res = await this.pool.query(`UPDATE users 
+                 SET first_name = COALESCE($1, first_name), 
+                     last_name = COALESCE($2, last_name),
+                     phone = COALESCE($3, phone),
+                     address = COALESCE($4, address),
+                     avatar_url = COALESCE($5, avatar_url),
+                     updated_at = NOW() 
+                 WHERE id = $6 RETURNING id, email, first_name, last_name, phone, address, avatar_url`, [first_name, last_name, phone, address, avatar_url, id]);
+            return res.rows[0];
+        }
+        if (email) {
+            const emailCheck = await this.pool.query('SELECT id FROM users WHERE email = $1 AND id != $2', [email, id]);
+            if (emailCheck.rows.length > 0) {
+                throw new common_1.ConflictException('Email already in use by another user');
+            }
+        }
+        let passwordHash = undefined;
+        if (password) {
+            const salt = await bcrypt.genSalt();
+            passwordHash = await bcrypt.hash(password, salt);
+        }
+        const res = await this.pool.query(`UPDATE users 
+             SET role_id = COALESCE($1, role_id), 
+                 is_active = COALESCE($2, is_active),
+                 email = COALESCE($3, email),
+                 first_name = COALESCE($4, first_name),
+                 last_name = COALESCE($5, last_name),
+                 password_hash = COALESCE($6, password_hash),
+                 updated_at = NOW() 
+             WHERE id = $7 RETURNING id, email, first_name, last_name`, [roleId, isActive, email, first_name, last_name, passwordHash, id]);
         return res.rows[0];
     }
 };

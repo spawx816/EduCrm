@@ -40,6 +40,9 @@ let ExamsController = class ExamsController {
     async updateExam(id, data) {
         return this.examsService.updateExam(id, data);
     }
+    async deleteExam(id) {
+        return this.examsService.deleteExam(id);
+    }
     async updateQuestion(id, data) {
         return this.examsService.updateQuestion(id, data);
     }
@@ -117,6 +120,14 @@ __decorate([
     __metadata("design:paramtypes", [String, Object]),
     __metadata("design:returntype", Promise)
 ], ExamsController.prototype, "updateExam", null);
+__decorate([
+    (0, roles_decorator_1.Roles)('admin', 'director'),
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ExamsController.prototype, "deleteExam", null);
 __decorate([
     (0, roles_decorator_1.Roles)('admin', 'director'),
     (0, common_1.Put)('questions/:id'),

@@ -1,0 +1,105 @@
+[TAILING] Tailing last 50 lines for [educrm-api] process (change the value with --lines option)
+/home/deploy/.pm2/logs/educrm-api-out.log last 50 lines:
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: POST /exams/e3d2c461-f1f3-4140-8e0e-e2edd7e67fa9/questions
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: POST /exams/e3d2c461-f1f3-4140-8e0e-e2edd7e67fa9/questions
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /stats/dashboard
+18|educrm- | DEBUG: GET /settings
+18|educrm- | DEBUG: GET /settings
+18|educrm- | DEBUG: GET /billing/scholarships
+18|educrm- | DEBUG: GET /academic/cohorts?programId=
+18|educrm- | DEBUG: GET /academic/programs
+18|educrm- | DEBUG: GET /academic/sedes
+18|educrm- | DEBUG: GET /students?search=&status=&sede_id=
+18|educrm- | DEBUG: GET /billing/invoices?studentId=a92dc848-726a-4d28-9383-c0390d648cec
+18|educrm- | DEBUG: GET /students/a92dc848-726a-4d28-9383-c0390d648cec
+18|educrm- | DEBUG: GET /students/a92dc848-726a-4d28-9383-c0390d648cec/full-history
+18|educrm- | DEBUG: GET /students/a92dc848-726a-4d28-9383-c0390d648cec/full-history
+18|educrm- | DEBUG: GET /academic/programs
+18|educrm- | DEBUG: GET /academic/cohorts?programId=3deb445e-6209-45f2-ac46-9a2f3819dd77
+18|educrm- | DEBUG: GET /academic/programs
+18|educrm- | DEBUG: GET /academic/cohorts/b24f8a95-80db-4cb5-9800-3f4cced2b40d/modules
+18|educrm- | DEBUG: GET /exams/module/5755e35b-e104-40e5-9fc8-e15ef8cca775
+18|educrm- | DEBUG: GET /exams/cohort/b24f8a95-80db-4cb5-9800-3f4cced2b40d/assignments
+18|educrm- | DEBUG: GET /exams/e3d2c461-f1f3-4140-8e0e-e2edd7e67fa9
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /students/a92dc848-726a-4d28-9383-c0390d648cec/full-history
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: GET /leads
+18|educrm- | DEBUG: POST /exams/e3d2c461-f1f3-4140-8e0e-e2edd7e67fa9/questions
+18|educrm- | DEBUG: GET /students/a92dc848-726a-4d28-9383-c0390d648cec/full-history
+
+/home/deploy/.pm2/logs/educrm-api-error.log last 50 lines:
+18|educrm- |   routine: [32m'errorMissingColumn'[39m
+18|educrm- | }
+18|educrm- | [31m[Nest] 1123337  - [39m03/19/2026, 12:16:20 AM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column gt.is_individual does not exist
+18|educrm- |     at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg-pool[24m/index.js:45:11
+18|educrm- | [90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+18|educrm- |     at StudentsService.getFullHistory [90m(/home/deploy/apps/EduCrm/backend/[39msrc/students/students.service.ts:319:17[90m)[39m
+18|educrm- |     at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
+18|educrm- |     at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
+18|educrm- |   length: [33m115[39m,
+18|educrm- |   severity: [32m'ERROR'[39m,
+18|educrm- |   code: [32m'42703'[39m,
+18|educrm- |   detail: [90mundefined[39m,
+18|educrm- |   hint: [90mundefined[39m,
+18|educrm- |   position: [32m'299'[39m,
+18|educrm- |   internalPosition: [90mundefined[39m,
+18|educrm- |   internalQuery: [90mundefined[39m,
+18|educrm- |   where: [90mundefined[39m,
+18|educrm- |   schema: [90mundefined[39m,
+18|educrm- |   table: [90mundefined[39m,
+18|educrm- |   column: [90mundefined[39m,
+18|educrm- |   dataType: [90mundefined[39m,
+18|educrm- |   constraint: [90mundefined[39m,
+18|educrm- |   file: [32m'parse_relation.c'[39m,
+18|educrm- |   line: [32m'3722'[39m,
+18|educrm- |   routine: [32m'errorMissingColumn'[39m
+18|educrm- | }
+18|educrm- | [31m[Nest] 1123337  - [39m03/19/2026, 12:17:12 AM [31m  ERROR[39m [38;5;3m[ExceptionsHandler] [39merror: column gt.is_individual does not exist
+18|educrm- |     at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4mpg-pool[24m/index.js:45:11
+18|educrm- | [90m    at processTicksAndRejections (node:internal/process/task_queues:95:5)[39m
+18|educrm- |     at StudentsService.getFullHistory [90m(/home/deploy/apps/EduCrm/backend/[39msrc/students/students.service.ts:319:17[90m)[39m
+18|educrm- |     at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-execution-context.js:46:28
+18|educrm- |     at [90m/home/deploy/apps/EduCrm/backend/[39mnode_modules/[4m@nestjs/core[24m/router/router-proxy.js:9:17 {
+18|educrm- |   length: [33m115[39m,
+18|educrm- |   severity: [32m'ERROR'[39m,
+18|educrm- |   code: [32m'42703'[39m,
+18|educrm- |   detail: [90mundefined[39m,
+18|educrm- |   hint: [90mundefined[39m,
+18|educrm- |   position: [32m'299'[39m,
+18|educrm- |   internalPosition: [90mundefined[39m,
+18|educrm- |   internalQuery: [90mundefined[39m,
+18|educrm- |   where: [90mundefined[39m,
+18|educrm- |   schema: [90mundefined[39m,
+18|educrm- |   table: [90mundefined[39m,
+18|educrm- |   column: [90mundefined[39m,
+18|educrm- |   dataType: [90mundefined[39m,
+18|educrm- |   constraint: [90mundefined[39m,
+18|educrm- |   file: [32m'parse_relation.c'[39m,
+18|educrm- |   line: [32m'3722'[39m,
+18|educrm- |   routine: [32m'errorMissingColumn'[39m
+18|educrm- | }
+

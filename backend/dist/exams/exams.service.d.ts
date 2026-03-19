@@ -35,6 +35,9 @@ export declare class ExamsService {
         image_url?: string;
         options?: any[];
     }): Promise<any>;
+    deleteExam(examId: string): Promise<{
+        success: boolean;
+    }>;
     deleteQuestion(questionId: string): Promise<{
         success: boolean;
     }>;

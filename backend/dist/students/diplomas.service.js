@@ -24,9 +24,22 @@ let DiplomasService = class DiplomasService {
         this.pool = pool;
     }
     async findAll() {
-        const res = await this.pool.query(`SELECT d.*, s.matricula, s.first_name, s.last_name
+        const res = await this.pool.query(`SELECT 
+                d.*, 
+                s.matricula, s.first_name, s.last_name,
+                lat.id as cohort_id, lat.name as cohort_name,
+                lat.prog_name as program_name
              FROM diplomas d
              JOIN students s ON d.student_id = s.id
+             LEFT JOIN LATERAL (
+                SELECT c.id, c.name, p.name as prog_name
+                FROM enrollments e
+                JOIN academic_cohorts c ON e.cohort_id = c.id
+                JOIN academic_programs p ON c.program_id = p.id
+                WHERE e.student_id = s.id
+                ORDER BY e.created_at DESC
+                LIMIT 1
+             ) lat ON true
              ORDER BY d.created_at DESC`);
         return res.rows;
     }
@@ -35,15 +48,24 @@ let DiplomasService = class DiplomasService {
         return res.rows;
     }
     async generateDiploma(studentId, invoiceId) {
+        console.log(`Generating diploma for student ${studentId}, invoice ${invoiceId}`);
+        if (invoiceId) {
+            const existing = await this.pool.query('SELECT id FROM diplomas WHERE invoice_id = $1', [invoiceId]);
+            if (existing.rows.length > 0) {
+                console.log(`Diploma already exists for invoice ${invoiceId}`);
+                return existing.rows[0];
+            }
+        }
         const studentRes = await this.pool.query(`SELECT s.id, s.first_name, s.last_name, p.name as program_name 
              FROM students s
              JOIN enrollments e ON s.id = e.student_id
              JOIN academic_cohorts c ON e.cohort_id = c.id
              JOIN academic_programs p ON c.program_id = p.id
-             WHERE s.id = $1 AND p.name ILIKE '%AGENTES DE AEROLINEAS%'
+             WHERE s.id = $1
              ORDER BY e.created_at DESC
              LIMIT 1`, [studentId]);
         if (studentRes.rows.length === 0) {
+            console.log(`No active enrollment found for student ${studentId}`);
             return null;
         }
         const student = studentRes.rows[0];
@@ -51,6 +73,7 @@ let DiplomasService = class DiplomasService {
         const courseName = student.program_name;
         const res = await this.pool.query(`INSERT INTO diplomas (student_id, invoice_id, student_name, course_name)
              VALUES ($1, $2, $3, $4) RETURNING *`, [studentId, invoiceId || null, studentName, courseName]);
+        console.log(`Successfully generated diploma ${res.rows[0].id}`);
         return res.rows[0];
     }
     async getDiplomaPdf(diplomaId) {
@@ -72,13 +95,19 @@ let DiplomasService = class DiplomasService {
             if ((0, fs_1.existsSync)(templatePath)) {
                 doc.image(templatePath, 0, 0, { width: 841.89, height: 595.28 });
             }
-            doc.font('Helvetica-Bold').fontSize(35).fillColor('#1e40af');
-            doc.text(diploma.student_name, 60, 275, {
+            let nameFontSize = 32;
+            doc.font('Times-Bold').fontSize(nameFontSize);
+            const maxNameWidth = 450;
+            while (doc.widthOfString(diploma.student_name) > maxNameWidth && nameFontSize > 18) {
+                nameFontSize -= 1;
+                doc.fontSize(nameFontSize);
+            }
+            doc.fillColor('#000000').text(diploma.student_name, 60, 288, {
                 width: 721.89,
                 align: 'center'
             });
-            doc.font('Helvetica-Bold').fontSize(26).fillColor('#1e3a8a');
-            doc.text(diploma.course_name, 60, 365, {
+            doc.font('Times-Bold').fontSize(28).fillColor('#000000');
+            doc.text(diploma.course_name, 60, 357, {
                 width: 721.89,
                 align: 'center'
             });

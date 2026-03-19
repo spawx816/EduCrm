@@ -16,4 +16,5 @@ export declare class AuthController {
     getUsers(): Promise<any[]>;
     getRoles(): Promise<any[]>;
     updateUser(id: string, updateData: any): Promise<any>;
+    updateProfile(req: any, updateData: any): Promise<any>;
 }

@@ -21,5 +21,5 @@ export declare class AuthService {
     }>;
     getUsers(): Promise<any[]>;
     getRoles(): Promise<any[]>;
-    updateUser(id: string, updateData: any): Promise<any>;
+    updateUser(id: string, updateData: any, isProfileUpdate?: boolean): Promise<any>;
 }

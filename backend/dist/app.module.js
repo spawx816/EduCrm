@@ -23,6 +23,7 @@ const integrations_module_1 = require("./integrations/integrations.module");
 const exams_module_1 = require("./exams/exams.module");
 const settings_module_1 = require("./settings/settings.module");
 const common_module_1 = require("./common/common.module");
+const calendar_module_1 = require("./calendar/calendar.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -42,6 +43,7 @@ exports.AppModule = AppModule = __decorate([
             integrations_module_1.IntegrationsModule,
             exams_module_1.ExamsModule,
             settings_module_1.SettingsModule,
+            calendar_module_1.CalendarModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

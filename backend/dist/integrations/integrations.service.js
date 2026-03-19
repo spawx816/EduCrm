@@ -359,6 +359,17 @@ let IntegrationsService = class IntegrationsService {
             ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMPTZ,
             ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT true;
         `);
+        await this.pool.query(`
+            CREATE TABLE IF NOT EXISTS diplomas (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                student_id UUID NOT NULL REFERENCES students(id),
+                invoice_id UUID REFERENCES invoice_payments(id),
+                student_name VARCHAR(255) NOT NULL,
+                course_name VARCHAR(255) NOT NULL,
+                issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+        `);
         await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_conversations_lead_id ON chat_conversations(lead_id);`);
         await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation_id ON chat_messages(conversation_id);`);
         await this.pool.query(`CREATE INDEX IF NOT EXISTS idx_lead_attachments_lead_id ON lead_attachments(lead_id);`);

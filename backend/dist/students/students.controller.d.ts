@@ -4,12 +4,6 @@ export declare class StudentsController {
     private readonly studentsService;
     private readonly diplomasService;
     constructor(studentsService: StudentsService, diplomasService: DiplomasService);
-    getStudentDiplomas(studentId: string): Promise<any[]>;
-    testStatus(): {
-        status: string;
-        message: string;
-    };
-    downloadDiplomaPdf(id: string, res: any): Promise<void>;
     findAll(search?: string, status?: string, sede_id?: string): Promise<any[]>;
     findOne(id: string): Promise<any>;
     create(data: any): Promise<any>;

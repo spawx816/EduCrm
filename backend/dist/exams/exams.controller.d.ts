@@ -8,6 +8,9 @@ export declare class ExamsController {
     getAttemptDetail(attemptId: string): Promise<any>;
     addQuestion(id: string, data: any): Promise<any>;
     updateExam(id: string, data: any): Promise<any>;
+    deleteExam(id: string): Promise<{
+        success: boolean;
+    }>;
     updateQuestion(id: string, data: any): Promise<any>;
     deleteQuestion(id: string): Promise<{
         success: boolean;

@@ -108,8 +108,33 @@ let AcademicService = class AcademicService {
     }
     async createModule(data) {
         const { program_id, name, description, order_index = 0, price = 0 } = data;
-        const res = await this.pool.query('INSERT INTO academic_modules (program_id, name, description, order_index, price) VALUES ($1, $2, $3, $4, $5) RETURNING *', [program_id, name, description, order_index, price]);
-        return res.rows[0];
+        const client = await this.pool.connect();
+        try {
+            await client.query('BEGIN');
+            const res = await client.query('INSERT INTO academic_modules (program_id, name, description, order_index, price) VALUES ($1, $2, $3, $4, $5) RETURNING *', [program_id, name, description, order_index, price]);
+            const module = res.rows[0];
+            const programRes = await client.query('SELECT name FROM academic_programs WHERE id = $1', [program_id]);
+            if (programRes.rows.length > 0 && (programRes.rows[0].name.toUpperCase().includes('AEROLINEAS') || programRes.rows[0].name.toUpperCase().includes('AEROLÍNEAS'))) {
+                const defaultTypes = [
+                    { name: 'Asistencia', weight: 10 },
+                    { name: 'Careo', weight: 25 },
+                    { name: 'Exposicion', weight: 25 },
+                    { name: 'Examenes', weight: 40 }
+                ];
+                for (const type of defaultTypes) {
+                    await client.query('INSERT INTO grade_types (program_id, module_id, name, weight, is_individual) VALUES ($1, $2, $3, $4, $5)', [program_id, module.id, type.name, type.weight, false]);
+                }
+            }
+            await client.query('COMMIT');
+            return module;
+        }
+        catch (e) {
+            await client.query('ROLLBACK');
+            throw e;
+        }
+        finally {
+            client.release();
+        }
     }
     async updateModule(id, data) {
         const { name, description, order_index, price } = data;
@@ -177,6 +202,29 @@ let AcademicService = class AcademicService {
            DO UPDATE SET status = EXCLUDED.status, remarks = EXCLUDED.remarks, updated_at = NOW()`, [record.student_id, cohort_id, module_id, date, record.status, record.remarks]);
             }
             await client.query('COMMIT');
+            const moduleRes = await this.pool.query(`SELECT p.name as program_name, p.id as program_id 
+         FROM academic_modules m 
+         JOIN academic_programs p ON m.program_id = p.id 
+         WHERE m.id = $1`, [module_id]);
+            const progName = moduleRes.rows[0]?.program_name || '';
+            if (progName.toUpperCase().includes('AEROLINEAS') || progName.toUpperCase().includes('AEROLÍNEAS')) {
+                const program_id = moduleRes.rows[0].program_id;
+                const gtRes = await this.pool.query('SELECT id, weight FROM grade_types WHERE module_id = $1 AND name ILIKE $2', [module_id, '%Asistencia%']);
+                if (gtRes.rows.length > 0) {
+                    const gradeTypeId = gtRes.rows[0].id;
+                    for (const record of records) {
+                        const countRes = await this.pool.query("SELECT COUNT(*) as count FROM attendance WHERE cohort_id = $1 AND module_id = $2 AND student_id = $3 AND status = 'PRESENT'", [cohort_id, module_id, record.student_id]);
+                        const presentDays = parseInt(countRes.rows[0].count);
+                        const weight = parseFloat(gtRes.rows[0].weight) || 0;
+                        const maxVal = weight > 1 ? weight : 100;
+                        const attendanceGradeValue = Math.min(maxVal, (presentDays / 4) * maxVal);
+                        await this.pool.query(`INSERT INTO grades (student_id, cohort_id, module_id, grade_type_id, value)
+               VALUES ($1, $2, $3, $4, $5)
+               ON CONFLICT (student_id, cohort_id, module_id, grade_type_id)
+               DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`, [record.student_id, cohort_id, module_id, gradeTypeId, attendanceGradeValue]);
+                    }
+                }
+            }
             return { success: true, count: records.length };
         }
         catch (e) {
@@ -202,20 +250,27 @@ let AcademicService = class AcademicService {
         const res = await this.pool.query(query, params);
         return res.rows;
     }
-    async findGradeTypes(programId, module_id) {
+    async findGradeTypes(programId, module_id, studentId) {
         let query = 'SELECT * FROM grade_types WHERE program_id = $1';
         const params = [programId];
         if (module_id) {
             params.push(module_id);
             query += ` AND module_id = $${params.length}`;
         }
+        if (studentId) {
+            params.push(studentId);
+            query += ` AND (is_individual = FALSE OR student_id = $${params.length})`;
+        }
+        else {
+            query += ' AND is_individual = FALSE';
+        }
         query += ' ORDER BY created_at ASC';
         const res = await this.pool.query(query, params);
         return res.rows;
     }
     async createGradeType(data) {
-        const { program_id, module_id, name, weight = 1.0 } = data;
-        const res = await this.pool.query('INSERT INTO grade_types (program_id, module_id, name, weight) VALUES ($1, $2, $3, $4) RETURNING *', [program_id, module_id, name, weight]);
+        const { program_id, module_id, name, weight = 1.0, is_individual = false, student_id = null } = data;
+        const res = await this.pool.query('INSERT INTO grade_types (program_id, module_id, name, weight, is_individual, student_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *', [program_id, module_id, name, weight, is_individual, student_id]);
         return res.rows[0];
     }
     async registerGrades(data) {
@@ -243,7 +298,7 @@ let AcademicService = class AcademicService {
     }
     async getCohortGrades(cohortId, module_id) {
         let query = `
-       SELECT g.*, s.first_name, s.last_name, gt.name as grade_type_name
+       SELECT g.*, s.first_name, s.last_name, gt.name as grade_type_name, gt.weight
        FROM grades g
        JOIN students s ON g.student_id = s.id
        JOIN grade_types gt ON g.grade_type_id = gt.id

@@ -121,7 +121,8 @@ let BillingService = class BillingService {
                         console.error('Failed to automatically generate carnet:', cardError);
                     }
                 }
-                if (item.description.toUpperCase().includes('DERECHO A GRADUACION')) {
+                const desc = item.description.toUpperCase();
+                if (desc.includes('GRADUA') || desc.includes('DERECHO A GRADU')) {
                     try {
                         await this.diplomasService.generateDiploma(data.studentId, invoiceId);
                     }
@@ -157,6 +158,20 @@ let BillingService = class BillingService {
             await client.query('INSERT INTO invoice_payments (invoice_id, amount, payment_method, reference) VALUES ($1, $2, $3, $4)', [data.invoiceId, data.amount, data.paymentMethod, data.reference]);
             const updatedInvoice = await client.query('UPDATE invoices SET paid_amount = $1, status = $2 WHERE id = $3 RETURNING *', [newPaidAmount, status, data.invoiceId]);
             await client.query('COMMIT');
+            if (status === 'PAID') {
+                try {
+                    const details = await this.getInvoiceItems(data.invoiceId);
+                    for (const item of details) {
+                        const desc = item.description.toUpperCase();
+                        if (desc.includes('GRADUA') || desc.includes('DERECHO A GRADU')) {
+                            await this.diplomasService.generateDiploma(updatedInvoice.rows[0].student_id, data.invoiceId);
+                        }
+                    }
+                }
+                catch (sideEffectError) {
+                    console.error('Failed to process post-payment side effects:', sideEffectError);
+                }
+            }
             return updatedInvoice.rows[0];
         }
         catch (error) {
@@ -427,8 +442,9 @@ let BillingService = class BillingService {
         return res.rows;
     }
     async registerInstructorPayment(data) {
-        const res = await this.pool.query(`INSERT INTO instructor_payments (teacher_id, amount, payment_method, reference_number, notes)
-             VALUES ($1, $2, $3, $4, $5) RETURNING *`, [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes]);
+        const paymentDate = data.date || null;
+        const res = await this.pool.query(`INSERT INTO instructor_payments (teacher_id, amount, payment_method, reference_number, notes, payment_date)
+             VALUES ($1, $2, $3, $4, $5, COALESCE($6, NOW())) RETURNING *`, [data.teacherId, data.amount, data.paymentMethod, data.referenceNumber, data.notes, paymentDate]);
         return res.rows[0];
     }
     async deleteInstructorPayment(id) {

@@ -29,7 +29,7 @@ export declare class AcademicController {
         count: number;
     }>;
     getCohortAttendance(cohortId: string, moduleId?: string, date?: string): Promise<any[]>;
-    findGradeTypes(programId: string, moduleId?: string): Promise<any[]>;
+    findGradeTypes(programId: string, moduleId?: string, studentId?: string): Promise<any[]>;
     createGradeType(data: any): Promise<any>;
     registerGrades(data: any): Promise<{
         success: boolean;
