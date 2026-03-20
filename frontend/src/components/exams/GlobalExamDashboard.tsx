@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAllExams, useAllAssignments, useDeleteExam, useAssignExam } from '../../hooks/useExams.ts';
-import { usePrograms, useCohorts } from '../../hooks/useAcademic.ts';
+import { usePrograms, useCohorts, useModules } from '../../hooks/useAcademic.ts';
 import { ClipboardList, Plus, Search, Calendar, Users, CheckCircle2, AlertCircle, Trash2, Edit3, Globe, ExternalLink, ArrowRight, Loader2, X, Clock } from 'lucide-react';
 import { ExamBuilder } from './ExamBuilder.tsx';
 import { ConfirmModal } from '../shared/ConfirmModal.tsx';
@@ -307,7 +307,9 @@ function BatchAssignModal({ exam, onClose }: any) {
     const { data: programs } = usePrograms();
     const [selectedProgramId, setSelectedProgramId] = useState('');
     const { data: cohorts, isLoading: loadingCohorts } = useCohorts(selectedProgramId);
+    const { data: modules, isLoading: loadingModules } = useModules(selectedProgramId);
     const [selectedCohorts, setSelectedCohorts] = useState<string[]>([]);
+    const [selectedModuleId, setSelectedModuleId] = useState(exam.module_id || '');
     const [dates, setDates] = useState({ start: '', end: '' });
     const [isAssigning, setIsAssigning] = useState(false);
     
@@ -319,13 +321,18 @@ function BatchAssignModal({ exam, onClose }: any) {
             return;
         }
 
+        if (!selectedModuleId) {
+            toast.error('Debes seleccionar un módulo');
+            return;
+        }
+
         setIsAssigning(true);
         try {
             for (const cohortId of selectedCohorts) {
                 await assignMutation.mutateAsync({
                     exam_id: exam.id,
                     cohort_id: cohortId,
-                    module_id: exam.module_id,
+                    module_id: selectedModuleId,
                     start_date: dates.start || undefined,
                     end_date: dates.end || undefined
                 });
@@ -373,8 +380,26 @@ function BatchAssignModal({ exam, onClose }: any) {
                     </div>
 
                     <div className="space-y-4">
+                        <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest pl-1">2. Seleccionar Módulo</label>
+                        <select 
+                            className="w-full bg-slate-950 border border-slate-800 rounded-2xl p-5 text-white outline-none focus:border-blue-500 transition-all font-bold"
+                            value={selectedModuleId}
+                            onChange={(e) => setSelectedModuleId(e.target.value)}
+                            disabled={!selectedProgramId || loadingModules}
+                        >
+                            <option value="">{loadingModules ? 'Cargando módulos...' : 'Selección de Módulo...'}</option>
+                            {Array.isArray(modules) && modules.map((m: any) => (
+                                <option key={m.id} value={m.id}>{m.name}</option>
+                            ))}
+                        </select>
+                        {!selectedModuleId && selectedProgramId && !loadingModules && (
+                            <p className="text-[9px] text-amber-500 font-bold uppercase tracking-widest px-1">Es obligatorio elegir un módulo para registrar la calificación</p>
+                        )}
+                    </div>
+
+                    <div className="space-y-4">
                         <div className="flex items-center justify-between pl-1">
-                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">2. Seleccionar Grupos destino</label>
+                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest">3. Seleccionar Grupos destino</label>
                             {selectedCohorts.length > 0 && (
                                 <button onClick={() => setSelectedCohorts([])} className="text-[9px] font-black text-rose-500 uppercase tracking-widest">Limpiar todo</button>
                             )}
