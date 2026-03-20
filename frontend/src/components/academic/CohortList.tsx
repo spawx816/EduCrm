@@ -17,9 +17,10 @@ interface CohortListProps {
     onBack: () => void;
     initialCohortId?: string;
     initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report' | 'students';
+    onSelectStudent: (id: string) => void;
 }
 
-export function CohortList({ program, onBack, initialCohortId, initialMode }: CohortListProps) {
+export function CohortList({ program, onBack, initialCohortId, initialMode, onSelectStudent }: CohortListProps) {
     const { data: cohorts, isLoading } = useCohorts(program.id);
     const deleteCohort = useDeleteCohort();
 
@@ -131,6 +132,7 @@ export function CohortList({ program, onBack, initialCohortId, initialMode }: Co
                 cohortId={viewMode.cohort.id}
                 cohortName={viewMode.cohort.name}
                 onBack={() => setViewMode({ mode: 'list' })}
+                onSelectStudent={onSelectStudent}
             />
         );
     }

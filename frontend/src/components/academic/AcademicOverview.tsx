@@ -5,7 +5,7 @@ import { ProgramList } from './ProgramList.tsx';
 import { CohortList } from './CohortList.tsx';
 import type { AcademicProgram } from '../../types';
 
-export function AcademicOverview() {
+export function AcademicOverview({ onSelectStudent }: { onSelectStudent: (id: string) => void }) {
     const [view, setView] = useState<'overview' | 'program_detail' | 'all_programs'>('overview');
     const [selectedProgram, setSelectedProgram] = useState<AcademicProgram | null>(null);
     const [jumpInfo, setJumpInfo] = useState<{ cohortId: string; mode: any } | null>(null);
@@ -22,6 +22,7 @@ export function AcademicOverview() {
             <CohortList 
                 program={selectedProgram} 
                 onBack={() => { setView('overview'); setJumpInfo(null); }} 
+                onSelectStudent={onSelectStudent}
                 initialCohortId={jumpInfo?.cohortId}
                 initialMode={jumpInfo?.mode}
             />

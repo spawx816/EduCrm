@@ -7,9 +7,10 @@ interface CohortStudentListProps {
     cohortId: string;
     cohortName: string;
     onBack: () => void;
+    onSelectStudent: (id: string) => void;
 }
 
-export function CohortStudentList({ cohortId, cohortName, onBack }: CohortStudentListProps) {
+export function CohortStudentList({ cohortId, cohortName, onBack, onSelectStudent }: CohortStudentListProps) {
     const [searchTerm, setSearchTerm] = useState('');
     const { data: students, isLoading } = useCohortStudents(cohortId);
 
@@ -125,10 +126,18 @@ export function CohortStudentList({ cohortId, cohortName, onBack }: CohortStuden
                                         </td>
                                         <td className="px-8 py-5 text-right">
                                             <div className="flex items-center justify-end space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button className="p-2 bg-slate-800 hover:bg-blue-600 text-slate-400 hover:text-white rounded-xl transition-all shadow-xl" title="Ver Perfil 360°">
+                                                <button 
+                                                    onClick={() => onSelectStudent(student.id)}
+                                                    className="p-2 bg-slate-800 hover:bg-blue-600 text-slate-400 hover:text-white rounded-xl transition-all shadow-xl" 
+                                                    title="Ver Perfil 360°"
+                                                >
                                                     <BadgeCheck className="w-4 h-4" />
                                                 </button>
-                                                <button className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-all" title="Ver Expediente">
+                                                <button 
+                                                    onClick={() => onSelectStudent(student.id)}
+                                                    className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded-xl transition-all" 
+                                                    title="Ver Expediente"
+                                                >
                                                     <FileText className="w-4 h-4" />
                                                 </button>
                                             </div>

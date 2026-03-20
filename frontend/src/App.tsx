@@ -136,7 +136,7 @@ function DashboardLayout() {
             <h1 className="text-lg font-black text-white tracking-widest uppercase italic shadow-sm shadow-blue-500/10">Centro Académico</h1>
           </header>
           <div className="flex-1 overflow-y-auto p-10 text-white font-sans scrollbar-hide">
-            <AcademicOverview />
+            <AcademicOverview onSelectStudent={handleStudentSelect} />
           </div>
         </div>
       );
