@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useCohortStudents } from '../../hooks/useAcademic.ts';
-import { Search, User, Mail, Phone, ArrowLeft, MoreVertical, BadgeCheck, FileText, X } from 'lucide-react';
+import { Search, User, Mail, Phone, ArrowLeft, BadgeCheck, FileText, X } from 'lucide-react';
 import { EmptyState } from '../shared/EmptyState.tsx';
 
 interface CohortStudentListProps {
