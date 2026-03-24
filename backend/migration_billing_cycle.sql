@@ -1,0 +1,1 @@
+ALTER TABLE academic_programs ADD COLUMN IF NOT EXISTS billing_cycle VARCHAR(20) DEFAULT 'MONTHLY';

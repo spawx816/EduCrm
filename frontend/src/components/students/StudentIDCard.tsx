@@ -16,7 +16,7 @@ export const StudentIDCard: React.FC<StudentCardProps> = ({ card }) => {
     const printRef = useRef<HTMLDivElement>(null);
 
     const handlePrint = () => {
-        const printContent = printRef.current?.innerHTML;
+        const printContent = printRef.current?.outerHTML;
 
         if (printContent) {
             const printWindow = window.open('', '_blank');
@@ -26,18 +26,47 @@ export const StudentIDCard: React.FC<StudentCardProps> = ({ card }) => {
                     <title>Carnet - ${card.student_name}</title>
                     <script src="https://cdn.tailwindcss.com"></script>
                     <style>
+                        /* Configuración estandar para impresoras de carnet (CR80) */
+                        @page {
+                            size: 2.125in 3.375in;
+                            margin: 0;
+                        }
+                        
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            -webkit-print-color-adjust: exact;
+                            print-color-adjust: exact;
+                            width: 2.125in;
+                            height: 3.375in;
+                            overflow: hidden;
+                            background-color: white;
+                        }
+
+                        /* Escalamos el diseño de 320x500 a las dimensiones físicas del carnet (CR80) */
+                        body > div {
+                            border-radius: 0 !important;
+                            border: none !important;
+                            box-shadow: none !important;
+                            transform: scale(0.6375) !important;
+                            transform-origin: top left !important;
+                            margin: 0 !important;
+                        }
+
                         @media print {
                             body { -webkit-print-color-adjust: exact; }
                             .no-print { display: none; }
                         }
                     </style>
                 </head>
-                <body class="bg-gray-100 flex items-center justify-center min-h-screen">
+                <body>
                     ${printContent}
                     <script>
                         window.onload = () => {
-                            window.print();
-                            window.close();
+                            setTimeout(() => {
+                                window.print();
+                                window.close();
+                            }, 500);
                         };
                     </script>
                 </body>

@@ -306,7 +306,8 @@ let BillingService = class BillingService {
         }
     }
     async getInvoiceSuggestions(studentId) {
-        const enrollmentsRes = await this.pool.query(`SELECT e.id as enrollment_id, e.cohort_id, e.status as enrollment_status, c.program_id, c.requires_enrollment, p.enrollment_price, p.name as program_name, p.billing_day,
+        const enrollmentsRes = await this.pool.query(`SELECT e.id as enrollment_id, e.cohort_id, e.status as enrollment_status, c.program_id, c.requires_enrollment, 
+                    p.enrollment_price, p.name as program_name, p.billing_day, p.billing_cycle,
                     s.id as scholarship_id, s.name as scholarship_name, s.type as scholarship_type, s.value as scholarship_value,
                     s.applies_to_enrollment, s.applies_to_monthly
              FROM enrollments e 
@@ -326,7 +327,7 @@ let BillingService = class BillingService {
         const formattedSuggestedDueDate = suggestedDueDate.toISOString().split('T')[0];
         const enrollmentSuggestions = [];
         for (const enrollment of enrollmentsRes.rows) {
-            const { enrollment_id, cohort_id, program_id, enrollment_price, program_name, scholarship_id, scholarship_name, scholarship_type, scholarship_value, requires_enrollment, applies_to_enrollment, applies_to_monthly } = enrollment;
+            const { enrollment_id, cohort_id, program_id, enrollment_price, program_name, billing_cycle, scholarship_id, scholarship_name, scholarship_type, scholarship_value, requires_enrollment, applies_to_enrollment, applies_to_monthly } = enrollment;
             const calculateDiscount = (basePrice, itemType) => {
                 if (!scholarship_id)
                     return 0;
@@ -375,11 +376,22 @@ let BillingService = class BillingService {
                     discount: moduleDiscount
                 };
             });
+            let suggestedModules = [];
+            if (uninvoicedModules.length > 0) {
+                if (billing_cycle === 'QUARTERLY') {
+                    suggestedModules = uninvoicedModules.slice(0, 3);
+                }
+                else {
+                    suggestedModules = [uninvoicedModules[0]];
+                }
+            }
             let currentSuggestion = {
                 enrollmentId: enrollment_id,
                 programName: program_name,
+                billingCycle: billing_cycle,
                 enrollmentFee: null,
-                suggestedModule: uninvoicedModules.length > 0 ? uninvoicedModules[0] : null,
+                suggestedModule: suggestedModules.length > 0 ? suggestedModules[0] : null,
+                suggestedModules: suggestedModules,
                 uninvoicedModules: uninvoicedModules,
                 addons: [],
                 allModules: allModulesRes.rows,

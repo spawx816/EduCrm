@@ -19,6 +19,7 @@ export function ModulePricingManager({ programId }: { programId: string }) {
     const [prices, setPrices] = useState<Record<string, string>>({});
     const [enrollmentPrice, setEnrollmentPrice] = useState<string>('');
     const [billingDay, setBillingDay] = useState<string>('');
+    const [billingCycle, setBillingCycle] = useState<string>('');
 
     if (isLoadingModules) return <div className="p-10 text-center animate-pulse text-slate-500 font-bold uppercase tracking-widest text-xs">Cargando Módulos...</div>;
 
@@ -39,7 +40,8 @@ export function ModulePricingManager({ programId }: { programId: string }) {
             await updateProgram.mutateAsync({
                 id: programId,
                 enrollment_price: enrollmentPrice ? parseFloat(enrollmentPrice) : undefined,
-                billing_day: billingDay ? parseInt(billingDay) : undefined
+                billing_day: billingDay ? parseInt(billingDay) : undefined,
+                billing_cycle: billingCycle || undefined
             });
             toast.success('Configuración actualizada');
         } catch (err) {
@@ -89,6 +91,18 @@ export function ModulePricingManager({ programId }: { programId: string }) {
                                     className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 w-20 text-white font-black text-sm focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all"
                                     placeholder="5"
                                 />
+                            </div>
+                            <div className="flex flex-col space-y-1">
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest px-1">Frecuencia</label>
+                                <select
+                                    defaultValue={program?.billing_cycle || 'MONTHLY'}
+                                    onChange={(e) => setBillingCycle(e.target.value)}
+                                    className="bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 w-32 text-white font-black text-sm focus:ring-1 focus:ring-indigo-500/50 outline-none transition-all appearance-none"
+                                >
+                                    <option value="MONTHLY">Mensual</option>
+                                    <option value="QUARTERLY">Trimestral</option>
+                                    <option value="ANNUAL">Anual</option>
+                                </select>
                             </div>
                             <button
                                 onClick={handleSaveEnrollmentPrice}

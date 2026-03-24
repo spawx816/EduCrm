@@ -24,17 +24,17 @@ export class AcademicService {
     return res.rows[0];
   }
 
-  async createProgram(data: { name: string; description?: string; code?: string; enrollment_price?: number; billing_day?: number }) {
-    const { name, description, code, enrollment_price = 0, billing_day = 5 } = data;
+  async createProgram(data: { name: string; description?: string; code?: string; enrollment_price?: number; billing_day?: number; billing_cycle?: string }) {
+    const { name, description, code, enrollment_price = 0, billing_day = 5, billing_cycle = 'MONTHLY' } = data;
     const res = await this.pool.query(
-      'INSERT INTO academic_programs (name, description, code, enrollment_price, billing_day) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-      [name, description, code, enrollment_price, billing_day]
+      'INSERT INTO academic_programs (name, description, code, enrollment_price, billing_day, billing_cycle) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [name, description, code, enrollment_price, billing_day, billing_cycle]
     );
     return res.rows[0];
   }
 
-  async updateProgram(id: string, data: { name?: string; description?: string; code?: string; is_active?: boolean; enrollment_price?: number; billing_day?: number }) {
-    const { name, description, code, is_active, enrollment_price, billing_day } = data;
+  async updateProgram(id: string, data: { name?: string; description?: string; code?: string; is_active?: boolean; enrollment_price?: number; billing_day?: number; billing_cycle?: string }) {
+    const { name, description, code, is_active, enrollment_price, billing_day, billing_cycle } = data;
     const res = await this.pool.query(
       `UPDATE academic_programs 
        SET name = COALESCE($1, name), 
@@ -43,10 +43,11 @@ export class AcademicService {
            is_active = COALESCE($4, is_active),
            enrollment_price = COALESCE($5, enrollment_price),
            billing_day = COALESCE($6, billing_day),
+           billing_cycle = COALESCE($7, billing_cycle),
            updated_at = NOW() 
-       WHERE id = $7 AND deleted_at IS NULL 
+       WHERE id = $8 AND deleted_at IS NULL 
        RETURNING *`,
-      [name, description, code, is_active, enrollment_price, billing_day, id]
+      [name, description, code, is_active, enrollment_price, billing_day, billing_cycle, id]
     );
     if (res.rows.length === 0) throw new NotFoundException('Program not found');
     return res.rows[0];

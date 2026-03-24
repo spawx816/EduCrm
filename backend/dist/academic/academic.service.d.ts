@@ -11,6 +11,7 @@ export declare class AcademicService {
         code?: string;
         enrollment_price?: number;
         billing_day?: number;
+        billing_cycle?: string;
     }): Promise<any>;
     updateProgram(id: string, data: {
         name?: string;
@@ -19,6 +20,7 @@ export declare class AcademicService {
         is_active?: boolean;
         enrollment_price?: number;
         billing_day?: number;
+        billing_cycle?: string;
     }): Promise<any>;
     deleteProgram(id: string): Promise<any>;
     findAllCohorts(programId?: string): Promise<any[]>;

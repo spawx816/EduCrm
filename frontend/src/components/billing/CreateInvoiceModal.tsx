@@ -110,22 +110,24 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
                 }
             }
 
-            // Add module
-            if (enrollSeg.suggestedModule) {
-                const moduleId = 'MOD-' + enrollSeg.suggestedModule.id;
+            // Add modules
+            const modulesToAdd = enrollSeg.suggestedModules || (enrollSeg.suggestedModule ? [enrollSeg.suggestedModule] : []);
+            
+            modulesToAdd.forEach((mod: any) => {
+                const moduleId = 'MOD-' + mod.id;
                 if (!newItems.find(i => i.itemId === moduleId && i.enrollmentId === enrollSeg.enrollmentId)) {
                     newItems.push({
                         itemId: moduleId,
-                        moduleId: enrollSeg.suggestedModule.id,
+                        moduleId: mod.id,
                         enrollmentId: enrollSeg.enrollmentId,
-                        description: `${enrollSeg.suggestedModule.name} (${enrollSeg.programName})`,
+                        description: `${mod.name} (${enrollSeg.programName})`,
                         quantity: 1,
-                        unitPrice: parseFloat(enrollSeg.suggestedModule.price),
-                        discount: parseFloat(enrollSeg.suggestedModule.discount) || 0
+                        unitPrice: parseFloat(mod.price),
+                        discount: parseFloat(mod.discount) || 0
                     });
                     addedCount++;
                 }
-            }
+            });
 
             // Add addons
             if (enrollSeg.addons) {
@@ -269,7 +271,14 @@ export function CreateInvoiceModal({ isOpen, onClose }: { isOpen: boolean; onClo
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center space-x-2 text-indigo-400">
                                     <Sparkles className="w-4 h-4 fill-current" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Sugerencias por Programa Académico</span>
+                                    <span className="text-[10px] font-black uppercase tracking-widest">
+                                        Sugerencias por Programa Académico
+                                    </span>
+                                    {suggestions.enrollmentSuggestions.some((s: any) => s.billingCycle === 'QUARTERLY') && (
+                                        <span className="text-[9px] font-black bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20 italic">
+                                            Modalidad Trimestral Detectada
+                                        </span>
+                                    )}
                                 </div>
                                 <button
                                     type="button"

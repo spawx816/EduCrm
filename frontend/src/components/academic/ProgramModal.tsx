@@ -18,7 +18,8 @@ export function ProgramModal({ isOpen, onClose, program }: ProgramModalProps) {
         name: '',
         code: '',
         description: '',
-        is_active: true
+        is_active: true,
+        billing_cycle: 'MONTHLY' as 'MONTHLY' | 'QUARTERLY' | 'ANNUAL'
     });
 
     useEffect(() => {
@@ -27,14 +28,16 @@ export function ProgramModal({ isOpen, onClose, program }: ProgramModalProps) {
                 name: program.name,
                 code: program.code,
                 description: program.description || '',
-                is_active: program.is_active
+                is_active: program.is_active,
+                billing_cycle: program.billing_cycle || 'MONTHLY'
             });
         } else {
             setFormData({
                 name: '',
                 code: '',
                 description: '',
-                is_active: true
+                is_active: true,
+                billing_cycle: 'MONTHLY'
             });
         }
     }, [program, isOpen]);
@@ -110,16 +113,29 @@ export function ProgramModal({ isOpen, onClose, program }: ProgramModalProps) {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <label className="text-[10px] uppercase font-black text-slate-500 tracking-widest pl-1">Estado</label>
+                            <label className="text-[10px] uppercase font-black text-slate-500 tracking-widest pl-1">Frecuencia de Cobro</label>
                             <select
-                                value={formData.is_active ? 'true' : 'false'}
-                                onChange={e => setFormData({ ...formData, is_active: e.target.value === 'true' })}
+                                value={formData.billing_cycle}
+                                onChange={e => setFormData({ ...formData, billing_cycle: e.target.value as 'MONTHLY' | 'QUARTERLY' | 'ANNUAL' })}
                                 className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:ring-2 focus:ring-blue-500/50 transition-all appearance-none"
                             >
-                                <option value="true">Activo</option>
-                                <option value="false">Inactivo</option>
+                                <option value="MONTHLY">Mensual</option>
+                                <option value="QUARTERLY">Trimestral</option>
+                                <option value="ANNUAL">Anual</option>
                             </select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] uppercase font-black text-slate-500 tracking-widest pl-1">Estado del Programa</label>
+                        <select
+                            value={formData.is_active ? 'true' : 'false'}
+                            onChange={e => setFormData({ ...formData, is_active: e.target.value === 'true' })}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-6 py-4 text-white text-sm outline-none focus:ring-2 focus:ring-blue-500/50 transition-all appearance-none"
+                        >
+                            <option value="true">Activo</option>
+                            <option value="false">Inactivo</option>
+                        </select>
                     </div>
 
                     <div className="space-y-2">

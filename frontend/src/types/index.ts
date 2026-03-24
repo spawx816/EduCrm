@@ -70,6 +70,7 @@ export interface AcademicProgram {
     is_active: boolean;
     enrollment_price: number;
     billing_day: number;
+    billing_cycle?: 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
 }
 
 export interface Cohort {
