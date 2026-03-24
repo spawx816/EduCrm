@@ -41,7 +41,7 @@ export function ModulePricingManager({ programId }: { programId: string }) {
                 id: programId,
                 enrollment_price: enrollmentPrice ? parseFloat(enrollmentPrice) : undefined,
                 billing_day: billingDay ? parseInt(billingDay) : undefined,
-                billing_cycle: billingCycle || undefined
+                billing_cycle: (billingCycle as 'MONTHLY' | 'QUARTERLY' | 'ANNUAL') || undefined
             });
             toast.success('Configuración actualizada');
         } catch (err) {
