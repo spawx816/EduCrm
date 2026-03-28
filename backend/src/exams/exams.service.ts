@@ -322,8 +322,8 @@ export class ExamsService {
         const res = await this.pool.query(
             `SELECT ea.*, e.title as exam_title, e.time_limit_minutes, am.name as module_name
        FROM exam_assignments ea
-       JOIN exams e ON ea.exam_id = e.id
-       JOIN academic_modules am ON ea.module_id = am.id
+       LEFT JOIN exams e ON ea.exam_id = e.id
+       LEFT JOIN academic_modules am ON ea.module_id = am.id
        WHERE ea.cohort_id = $1 AND ea.is_active = TRUE`,
             [cohortId]
         );
