@@ -6,7 +6,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 
 @Controller('library')
-@UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard)
 export class LibraryController {
   constructor(private readonly libraryService: LibraryService) {}
 
