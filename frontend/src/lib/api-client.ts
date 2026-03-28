@@ -20,7 +20,11 @@ apiClient.interceptors.response.use(
         if (error.response?.status === 401) {
             localStorage.removeItem('crm_token');
             localStorage.removeItem('crm_user');
-            window.location.href = '/login';
+            
+            // Avoid redirecting if the user is in the Student Portal
+            if (!window.location.pathname.includes('/portal')) {
+                window.location.href = '/login';
+            }
         }
         return Promise.reject(error);
     }
