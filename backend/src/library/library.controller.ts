@@ -20,6 +20,25 @@ export class LibraryController {
     return this.libraryService.findOne(id);
   }
 
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: diskStorage({
+      destination: './uploads/library',
+      filename: (req, file, cb) => {
+        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    }),
+  }))
+  uploadFile(@UploadedFile() file: any) {
+    return {
+      filename: file.filename,
+      originalname: file.originalname,
+      mimetype: file.mimetype,
+      size: file.size,
+    };
+  }
+
   @Post()
   create(@Body() data: any) {
     return this.libraryService.create(data);
@@ -48,24 +67,5 @@ export class LibraryController {
   @Delete(':id/permissions/:programId')
   removePermission(@Param('id') id: string, @Param('programId') programId: string) {
     return this.libraryService.removePermission(id, programId);
-  }
-
-  @Post('upload')
-  @UseInterceptors(FileInterceptor('file', {
-    storage: diskStorage({
-      destination: './uploads/library',
-      filename: (req, file, cb) => {
-        const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      },
-    }),
-  }))
-  uploadFile(@UploadedFile() file: any) {
-    return {
-      filename: file.filename,
-      originalname: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-    };
   }
 }
