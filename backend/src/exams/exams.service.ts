@@ -306,12 +306,12 @@ export class ExamsService {
 
     async getAllAssignments() {
         const res = await this.pool.query(
-            `SELECT ea.*, e.title as exam_title, c.name as cohort_name, am.name as module_name, p.name as program_name
+            `SELECT ea.*, e.title as exam_title, ac.name as cohort_name, am.name as module_name, p.name as program_name
              FROM exam_assignments ea
              JOIN exams e ON ea.exam_id = e.id
-             JOIN cohorts c ON ea.cohort_id = c.id
+             JOIN academic_cohorts ac ON ea.cohort_id = ac.id
              JOIN academic_modules am ON ea.module_id = am.id
-             JOIN academic_programs p ON c.program_id = p.id
+             JOIN academic_programs p ON ac.program_id = p.id
              WHERE ea.is_active = TRUE
              ORDER BY ea.created_at DESC`
         );
