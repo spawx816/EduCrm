@@ -7,7 +7,7 @@ import {
 import { useStudentAttachments, useUploadStudentAttachment, useDeleteStudentAttachment } from '../../hooks/useStudents';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../shared/ConfirmModal.tsx';
-import apiClient from '../../lib/api-client.ts';
+import { getStaticUrl } from '../../lib/api-client.ts';
 
 interface StudentAttachmentsProps {
     studentId: string;
@@ -142,7 +142,7 @@ export function StudentAttachments({ studentId }: StudentAttachmentsProps) {
                                 </div>
                                 <div className="flex items-center space-x-2 px-2">
                                     <a
-                                        href={`${apiClient.defaults.baseURL?.replace('/api', '') || ''}/uploads/students/${file.filename}`}
+                                        href={getStaticUrl(`/uploads/students/${file.filename}`)}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="p-2.5 bg-slate-800/50 text-slate-400 rounded-xl hover:bg-slate-700 hover:text-white transition-all"
