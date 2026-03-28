@@ -95,6 +95,7 @@ export class ExamsController {
 
     @Get('cohort/:cohortId/assignments')
     async getCohortAssignments(@Param('cohortId') cohortId: string) {
+        console.log(`[EXAMS] Fetching assignments for cohort: ${cohortId}`);
         return this.examsService.getCohortAssignments(cohortId);
     }
 
