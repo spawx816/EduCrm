@@ -4,17 +4,18 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 
-@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('exams')
 export class ExamsController {
     constructor(private readonly examsService: ExamsService) { }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Get()
     async getAllExams() {
         return this.examsService.getAllExams();
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Post()
     async createExam(@Body() data: any, @Request() req: any) {
@@ -36,48 +37,56 @@ export class ExamsController {
         return this.examsService.getAttemptDetail(attemptId);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Post(':id/questions')
     async addQuestion(@Param('id') id: string, @Body() data: any) {
         return this.examsService.addQuestion(id, data);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Put(':id')
     async updateExam(@Param('id') id: string, @Body() data: any) {
         return this.examsService.updateExam(id, data);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Delete(':id')
     async deleteExam(@Param('id') id: string) {
         return this.examsService.deleteExam(id);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Put('questions/:id')
     async updateQuestion(@Param('id') id: string, @Body() data: any) {
         return this.examsService.updateQuestion(id, data);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Delete('questions/:id')
     async deleteQuestion(@Param('id') id: string) {
         return this.examsService.deleteQuestion(id);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Post('assign')
     async assignExam(@Body() data: any) {
         return this.examsService.assignExam(data);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director', 'docente')
     @Patch('assignments/:id/schedule')
     async updateAssignmentSchedule(@Param('id') id: string, @Body() data: { start_date: string; end_date: string }) {
         return this.examsService.updateAssignmentSchedule(id, data.start_date, data.end_date);
     }
 
+    @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles('admin', 'director')
     @Get('assignments')
     async getAllAssignments() {
