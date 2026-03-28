@@ -5,8 +5,9 @@ import { StudentExams } from '../components/exams/StudentExams';
 import { toast } from 'react-hot-toast';
 import { PlatformTour } from '../components/common/PlatformTour.tsx';
 import { GlobalCalendar } from '../components/common/GlobalCalendar.tsx';
+import { LibraryDashboard } from '../components/library/LibraryDashboard.tsx';
 
-type ViewMode = 'DASHBOARD' | 'EXAMS' | 'DIPLOMAS' | 'PROFILE' | 'CALENDAR';
+type ViewMode = 'DASHBOARD' | 'EXAMS' | 'LIBRARY' | 'DIPLOMAS' | 'PROFILE' | 'CALENDAR';
 
 const CircularProgress = ({ value, label }: { value: number, label: string }) => {
     const radius = 36;
@@ -205,6 +206,12 @@ export function PortalMain() {
                                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'CALENDAR' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
                             >
                                 Calendario
+                            </button>
+                            <button
+                                onClick={() => setViewMode('LIBRARY')}
+                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'LIBRARY' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                Biblioteca
                             </button>
                             <button
                                 id="tour-student-profile"
@@ -733,6 +740,8 @@ export function PortalMain() {
                             </div>
                         </div>
                     </div>
+                ) : viewMode === 'LIBRARY' ? (
+                    <LibraryDashboard />
                 ) : viewMode === 'CALENDAR' ? (
                     <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
                         <GlobalCalendar isAdmin={false} />

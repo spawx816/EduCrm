@@ -15,7 +15,7 @@ import { LeadInboxList } from './components/students/LeadInboxList.tsx';
 import { useAuth, AuthProvider } from './hooks/useAuth.tsx';
 import { InstructorMain } from './pages/InstructorMain.tsx';
 import { Login } from './pages/Login.tsx';
-import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Wallet, Package, Settings as SettingsIcon, LogOut, Contact, ClipboardList, Layers, Search } from 'lucide-react';
+import { Users, GraduationCap, Menu, X, Receipt, BarChart3, Wallet, Package, Settings as SettingsIcon, LogOut, Contact, ClipboardList, Layers, Search, Book } from 'lucide-react';
 import { InstructorPayrollManager } from './components/academic/InstructorPayrollManager.tsx';
 import { ChatInbox } from './pages/ChatInbox.tsx';
 import { SettingsPage } from './pages/SettingsPage.tsx';
@@ -28,10 +28,11 @@ import { ExpenseManager } from './components/billing/ExpenseManager.tsx';
 import { StudentCardsManager } from './components/students/StudentCardsManager.tsx';
 import { DiplomasManager } from './components/students/DiplomasManager.tsx';
 import { GlobalExamDashboard } from './components/exams/GlobalExamDashboard.tsx';
+import { LibraryDashboard } from './components/library/LibraryDashboard.tsx';
 import apiClient, { getStaticUrl } from './lib/api-client';
 
 function DashboardLayout() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'exams' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets' | 'diplomas' | 'profile'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'prospects' | 'students' | 'academic' | 'exams' | 'library' | 'billing' | 'student_profile' | 'integrations' | 'payroll' | 'chat' | 'inventory' | 'expenses' | 'settings' | 'carnets' | 'diplomas' | 'profile'>('dashboard');
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuth();
@@ -61,6 +62,7 @@ function DashboardLayout() {
         { id: 'exams', label: 'Evaluaciones', icon: ClipboardList, adminOnly: true },
         { id: 'carnets', label: 'Carnetización', icon: Contact },
         { id: 'diplomas', label: 'Títulos & Certificados', icon: GraduationCap },
+        { id: 'library', label: 'Biblioteca Virtual', icon: Book },
       ]
     },
     {
@@ -141,6 +143,16 @@ function DashboardLayout() {
         </div>
       );
       case 'exams': return <GlobalExamDashboard />;
+      case 'library': return (
+        <div className="flex flex-col h-full bg-[#0f172a] overflow-hidden">
+          <header className="h-16 border-b border-white/5 flex items-center px-10 shrink-0 bg-[#0f172a]/80 backdrop-blur-md z-10 w-full">
+            <h1 className="text-lg font-black text-white tracking-widest uppercase italic">Biblioteca Virtual</h1>
+          </header>
+          <div className="flex-1 overflow-y-auto p-10 text-white font-sans scrollbar-hide">
+            <LibraryDashboard />
+          </div>
+        </div>
+      );
       case 'billing': return (
         <div className="flex flex-col h-full bg-[#0f172a] overflow-hidden">
           <header className="h-16 border-b border-slate-800 flex items-center px-6 shrink-0 bg-[#0f172a]/80 backdrop-blur-sm z-10 w-full">

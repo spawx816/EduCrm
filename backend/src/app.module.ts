@@ -15,6 +15,7 @@ import { ExamsModule } from './exams/exams.module';
 import { SettingsModule } from './settings/settings.module';
 import { CommonModule } from './common/common.module';
 import { CalendarModule } from './calendar/calendar.module';
+import { LibraryModule } from './library/library.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { CalendarModule } from './calendar/calendar.module';
     ExamsModule,
     SettingsModule,
     CalendarModule,
+    LibraryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
