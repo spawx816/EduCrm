@@ -71,7 +71,7 @@ export function LibraryResourceModal({ isOpen, onClose, resource }: LibraryResou
 
     try {
       const { data } = await apiClient.post('/library/upload', uploadData);
-      setFormData(prev => ({ ...prev, file_url: data.filename }));
+      setFormData(prev => ({ ...prev, file_url: data.url || data.filename }));
       if (!formData.title) {
         setFormData(prev => ({ ...prev, title: data.originalname.split('.')[0] }));
       }
