@@ -21,3 +21,11 @@ body {
   min-height: 100vh;
   @apply bg-[#0a0f1e];
 }
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

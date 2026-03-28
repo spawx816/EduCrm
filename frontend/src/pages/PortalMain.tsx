@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
-import { Layout, Receipt, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save } from 'lucide-react';
 import { StudentExams } from '../components/exams/StudentExams';
+import { Menu, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save, Layout, Receipt, ClipboardList } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { PlatformTour } from '../components/common/PlatformTour.tsx';
 import { GlobalCalendar } from '../components/common/GlobalCalendar.tsx';
@@ -55,6 +55,7 @@ export function PortalMain() {
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('DASHBOARD');
     const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Set initial enrollment
     if (!selectedEnrollmentId && academic.data?.length > 0) {
@@ -179,55 +180,34 @@ export function PortalMain() {
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-6">
-                        <div className="flex items-center bg-slate-800/50 p-1 rounded-xl border border-slate-700/50 mr-4">
-                            <button
-                                id="tour-student-progress"
-                                onClick={() => setViewMode('DASHBOARD')}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'DASHBOARD' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                Mi Progreso
-                            </button>
-                            <button
-                                onClick={() => setViewMode('EXAMS')}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'EXAMS' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                Exámenes
-                            </button>
-                            <button
-                                id="tour-student-diplomas"
-                                onClick={() => setViewMode('DIPLOMAS')}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'DIPLOMAS' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                Diplomas
-                            </button>
-                            <button
-                                onClick={() => setViewMode('CALENDAR')}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'CALENDAR' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                Calendario
-                            </button>
-                            <button
-                                onClick={() => setViewMode('LIBRARY')}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'LIBRARY' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                Biblioteca
-                            </button>
-                            <button
-                                id="tour-student-profile"
-                                onClick={() => {
-                                    setViewMode('PROFILE');
-                                    setProfileForm({
-                                        email: studentInfo.email,
-                                        phone: studentInfo.phone,
-                                        address: studentInfo.address
-                                    });
-                                }}
-                                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === 'PROFILE' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                            >
-                                Mi Perfil
-                            </button>
+                    <div className="flex items-center space-x-4 md:space-x-6">
+                        {/* Desktop Navigation */}
+                        <div className="hidden lg:flex items-center bg-slate-800/50 p-1 rounded-xl border border-slate-700/50">
+                            {[
+                                { id: 'DASHBOARD', label: 'Mi Progreso' },
+                                { id: 'EXAMS', label: 'Exámenes' },
+                                { id: 'DIPLOMAS', label: 'Diplomas' },
+                                { id: 'CALENDAR', label: 'Calendario' },
+                                { id: 'LIBRARY', label: 'Biblioteca' },
+                                { id: 'PROFILE', label: 'Mi Perfil' }
+                            ].map((tab) => (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setViewMode(tab.id as ViewMode)}
+                                    className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg transition-all ${viewMode === tab.id ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'}`}
+                                >
+                                    {tab.label}
+                                </button>
+                            ))}
                         </div>
+
+                        {/* Mobile Menu Button */}
+                        <button
+                            onClick={() => setIsMenuOpen(true)}
+                            className="lg:hidden p-2.5 bg-slate-800 text-slate-400 hover:text-white rounded-xl border border-slate-700/50"
+                        >
+                            <Menu className="w-5 h-5" />
+                        </button>
 
                         <div className="hidden md:flex flex-col items-end">
                             <span className="text-xs font-bold text-white leading-none">{student?.first_name} {student?.last_name}</span>
@@ -242,6 +222,52 @@ export function PortalMain() {
                     </div>
                 </div>
             </nav>
+
+            {/* Mobile Navigation Drawer */}
+            {isMenuOpen && (
+                <div className="fixed inset-0 z-[100] lg:hidden">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />
+                    <div className="absolute right-0 top-0 bottom-0 w-[280px] bg-[#0f172a] border-l border-slate-800 p-8 shadow-2xl animate-in slide-in-from-right duration-300">
+                        <div className="flex items-center justify-between mb-12">
+                            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-blue-500">Menú Portal</h3>
+                            <button onClick={() => setIsMenuOpen(false)} className="p-2 text-slate-500 hover:text-white">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+                        <div className="space-y-4">
+                            {[
+                                { id: 'DASHBOARD', label: 'Mi Progreso', icon: Trophy },
+                                { id: 'EXAMS', label: 'Exámenes', icon: ClipboardList },
+                                { id: 'DIPLOMAS', label: 'Diplomas', icon: Trophy },
+                                { id: 'CALENDAR', label: 'Calendario', icon: Calendar },
+                                { id: 'LIBRARY', label: 'Biblioteca', icon: GraduationCap },
+                                { id: 'PROFILE', label: 'Mi Perfil', icon: UserCircle }
+                            ].map((item: any) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => {
+                                        setViewMode(item.id);
+                                        setIsMenuOpen(false);
+                                    }}
+                                    className={`w-full flex items-center space-x-4 p-4 rounded-2xl transition-all ${viewMode === item.id ? 'bg-blue-600 text-white shadow-lg' : 'bg-slate-900/50 text-slate-400 hover:text-white'}`}
+                                >
+                                    <item.icon className="w-5 h-5" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="absolute bottom-12 left-8 right-8">
+                            <button
+                                onClick={logout}
+                                className="w-full flex items-center justify-center space-x-3 p-4 bg-rose-600/10 text-rose-500 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-rose-600 hover:text-white transition-all"
+                            >
+                                <LogOut className="w-4 h-4" />
+                                <span>Cerrar Sesión</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
                 {viewMode === 'DASHBOARD' ? (
@@ -271,8 +297,8 @@ export function PortalMain() {
                         )}
 
                         {/* Section: Quick Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-7 rounded-[2rem] relative overflow-hidden group hover:-translate-y-1 hover:border-blue-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                            <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
                                 <Trophy className="absolute -right-6 -bottom-6 w-32 h-32 text-amber-500/5 -rotate-12 group-hover:scale-110 group-hover:text-amber-500/10 transition-all duration-500" />
                                 <div className="relative z-10">
                                     <p className="text-[10px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2 flex items-center">
@@ -288,7 +314,7 @@ export function PortalMain() {
                                 </div>
                             </div>
 
-                            <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-7 rounded-[2rem] relative overflow-hidden group hover:-translate-y-1 hover:border-indigo-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
+                            <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] relative overflow-hidden group hover:border-indigo-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
                                 <UserCheck className="absolute -right-6 -bottom-6 w-32 h-32 text-indigo-500/5 -rotate-12 group-hover:scale-110 group-hover:text-indigo-500/10 transition-all duration-500" />
                                 <div className="relative z-10">
                                     <p className="text-[10px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2 flex items-center">
@@ -302,7 +328,7 @@ export function PortalMain() {
                                 </div>
                             </div>
 
-                            <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-7 rounded-[2rem] relative overflow-hidden group hover:-translate-y-1 hover:border-blue-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
+                            <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
                                 <Layout className="absolute -right-6 -bottom-6 w-32 h-32 text-blue-500/5 -rotate-12 group-hover:scale-110 group-hover:text-blue-500/10 transition-all duration-500" />
                                 <div className="relative z-10">
                                     <p className="text-[10px] font-bold uppercase text-slate-400 tracking-[0.2em] mb-2 flex items-center">
@@ -315,7 +341,7 @@ export function PortalMain() {
                                     </div>
                                 </div>
                             </div>
-                            <div className={`bg-gradient-to-br ${totalPending > 0 ? 'from-rose-900/20 to-slate-900 border-rose-500/30' : 'from-emerald-900/20 to-slate-900 border-emerald-500/30'} border p-7 rounded-[2rem] relative overflow-hidden group hover:-translate-y-1 transition-all duration-300 shadow-2xl shadow-black/50`}>
+                            <div className={`bg-gradient-to-br ${totalPending > 0 ? 'from-rose-900/20 to-slate-900 border-rose-500/30' : 'from-emerald-900/20 to-slate-900 border-emerald-500/30'} border p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] relative overflow-hidden group transition-all duration-300 shadow-2xl shadow-black/50`}>
                                 <Receipt className={`absolute -right-6 -bottom-6 w-32 h-32 ${totalPending > 0 ? 'text-rose-500/10' : 'text-emerald-500/10'} -rotate-12 group-hover:scale-110 transition-all duration-500`} />
                                 <div className="relative z-10">
                                     <p className={`text-[10px] font-bold uppercase tracking-[0.2em] mb-2 flex items-center ${totalPending > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>

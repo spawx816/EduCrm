@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCohortExamAssignments, useStudentAttempts, useStartAttempt } from '../../hooks/useExams';
 import { ClipboardList, Clock, Play, CheckCircle, AlertTriangle, Trophy } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -15,6 +15,10 @@ export function StudentExams({ studentId, cohortId }: StudentExamsProps) {
     const startAttemptMutation = useStartAttempt();
 
     const [activeAttempt, setActiveAttempt] = useState<any>(null);
+
+    useEffect(() => {
+        console.log('[EXAMS-UI] Component Mounted', { studentId, cohortId });
+    }, [studentId, cohortId]);
 
     const handleStartExam = async (assignmentId: string) => {
         try {
