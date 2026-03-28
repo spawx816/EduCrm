@@ -43,7 +43,10 @@ export function LibraryDashboard() {
   };
 
   const openViewer = (resource: any) => {
-    setViewerUrl(getStaticUrl(`/uploads/library/${resource.file_url}`));
+    const fileUrl = resource.file_url.startsWith('/') 
+      ? resource.file_url 
+      : `/uploads/library/${resource.file_url}`;
+    setViewerUrl(getStaticUrl(fileUrl));
     setViewerTitle(resource.title);
   };
 
