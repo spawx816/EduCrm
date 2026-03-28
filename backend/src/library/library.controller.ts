@@ -1,9 +1,8 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { LibraryService } from './library.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { extname, join } from 'path';
 
 @Controller('library')
 // @UseGuards(JwtAuthGuard)
@@ -23,19 +22,22 @@ export class LibraryController {
   @Post('upload')
   @UseInterceptors(FileInterceptor('file', {
     storage: diskStorage({
-      destination: './uploads/library',
+      destination: join(process.cwd(), 'uploads', 'library'),
       filename: (req, file, cb) => {
         const randomName = Array(32).fill(null).map(() => (Math.round(Math.random() * 16)).toString(16)).join('');
         cb(null, `${randomName}${extname(file.originalname)}`);
       },
     }),
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB
   }))
   uploadFile(@UploadedFile() file: any) {
+    if (!file) throw new BadRequestException('No file received');
     return {
       filename: file.filename,
       originalname: file.originalname,
       mimetype: file.mimetype,
       size: file.size,
+      url: `/uploads/library/${file.filename}`,
     };
   }
 
