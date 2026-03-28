@@ -10,9 +10,6 @@ import { extname } from 'path';
 export class LibraryController {
   constructor(private readonly libraryService: LibraryService) {}
 
-  @Get('hello')
-  hello() { return 'hello'; }
-
   @Get()
   findAll(@Query('studentId') studentId?: string) {
     return this.libraryService.findAll(studentId);
