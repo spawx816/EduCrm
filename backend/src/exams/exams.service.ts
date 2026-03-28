@@ -283,10 +283,10 @@ export class ExamsService {
 
     async assignExam(data: { exam_id: string; cohort_id: string; module_id: string; start_date?: string; end_date?: string }) {
         const res = await this.pool.query(
-            `INSERT INTO exam_assignments (exam_id, cohort_id, module_id, start_date, end_date)
-       VALUES ($1, $2, $3, $4, $5)
+            `INSERT INTO exam_assignments (exam_id, cohort_id, module_id, start_date, end_date, is_active)
+       VALUES ($1, $2, $3, $4, $5, TRUE)
        ON CONFLICT (exam_id, cohort_id, module_id)
-       DO UPDATE SET is_active = TRUE
+       DO UPDATE SET is_active = TRUE, start_date = $4, end_date = $5
        RETURNING *`,
             [data.exam_id, data.cohort_id, data.module_id, data.start_date || null, data.end_date || null]
         );
