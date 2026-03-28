@@ -10,7 +10,7 @@ import { ConfirmModal } from '../shared/ConfirmModal';
 
 export function LibraryDashboard() {
   const { user } = useAuth();
-  const isAdmin = user?.role_id === 'admin' || user?.role_id === 'superadmin';
+  const isAdmin = user?.role === 'admin' || user?.role === 'superadmin';
   const studentId = !isAdmin ? user?.id : undefined;
 
   const { data: resources, isLoading } = useLibraryResources(studentId);
