@@ -16,7 +16,7 @@ async function bootstrap() {
     next();
   });
 
-  // app.setGlobalPrefix('api');
+  app.setGlobalPrefix('api');
 
   app.useStaticAssets(join(__dirname, '..', 'uploads'), {
     prefix: '/uploads/',
