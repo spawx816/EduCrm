@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
+import { useCohortExamAssignments, useStudentAttempts, useStartAttempt } from '../hooks/useExams.ts';
 import { StudentExams } from '../components/exams/StudentExams';
-import { Menu, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save, Layout, Receipt, ClipboardList } from 'lucide-react';
+import { Menu, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save, Layout, Receipt, ClipboardList, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { PlatformTour } from '../components/common/PlatformTour.tsx';
 import { GlobalCalendar } from '../components/common/GlobalCalendar.tsx';
@@ -54,18 +55,41 @@ export function PortalMain() {
     const [profileForm, setProfileForm] = useState<any>({});
     const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('DASHBOARD');
-    const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(null);
+    const [selectedEnrollmentId, setSelectedEnrollmentId] = useState<string | null>(() => {
+        return localStorage.getItem('portal_selected_enrollment');
+    });
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-    // Set initial enrollment
-    useEffect(() => {
-        if (!selectedEnrollmentId && academic.data?.length > 0) {
-            setSelectedEnrollmentId(academic.data[0].id);
-        }
-    }, [academic.data, selectedEnrollmentId]);
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     const currentEnrollment = academic.data?.find((e: any) => e.id === selectedEnrollmentId) || academic.data?.[0];
     const currentCohortId = currentEnrollment?.cohort_id;
+
+    const { data: assignments, isLoading: loadingAssignments, refetch: refetchAssignments } = useCohortExamAssignments(currentCohortId);
+    const { data: attempts, isLoading: loadingAttempts, refetch: refetchAttempts } = useStudentAttempts(student?.id);
+    const startAttemptMutation = useStartAttempt();
+
+    const handleManualRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            await Promise.all([refetchAssignments(), refetchAttempts()]);
+            toast.success('Listado actualizado');
+        } catch (error) {
+            toast.error('Error al sincronizar');
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
+
+    // Persist and set initial enrollment
+    useEffect(() => {
+        if (!selectedEnrollmentId && academic.data?.length > 0) {
+            const firstId = academic.data[0].id;
+            setSelectedEnrollmentId(firstId);
+            localStorage.setItem('portal_selected_enrollment', firstId);
+        } else if (selectedEnrollmentId) {
+            localStorage.setItem('portal_selected_enrollment', selectedEnrollmentId);
+        }
+    }, [academic.data, selectedEnrollmentId]);
 
     if (profile.isLoading || academic.isLoading) return (
         <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center text-blue-500 font-black animate-pulse uppercase tracking-[0.3em]">
@@ -550,7 +574,28 @@ export function PortalMain() {
                         </div>
                     </>
                 ) : viewMode === 'EXAMS' ? (
-                    <StudentExams studentId={student?.id} cohortId={currentCohortId} />
+                    <div className="space-y-8 animate-in slide-in-from-bottom-5 duration-500">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-black text-white tracking-tight flex items-center">
+                                <Trophy className="w-6 h-6 mr-3 text-blue-500" />
+                                Mis Evaluaciones
+                            </h2>
+                            <div className="flex items-center space-x-4">
+                                <div className="hidden md:block text-right">
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Pruebas asignadas a tu programa</p>
+                                    <span className="text-[8px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded font-mono">ID: {currentCohortId?.slice(0, 8)}</span>
+                                </div>
+                                <button
+                                    onClick={handleManualRefresh}
+                                    disabled={isRefreshing}
+                                    className={`p-3 rounded-2xl bg-blue-600/10 border border-blue-500/20 text-blue-500 hover:bg-blue-600/20 transition-all ${isRefreshing ? 'animate-spin' : ''}`}
+                                >
+                                    <RefreshCw className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+                        <StudentExams studentId={student?.id} cohortId={currentCohortId} />
+                    </div>
                 ) : viewMode === 'PROFILE' ? (
                     <div className="max-w-4xl mx-auto space-y-8 animate-in slide-in-from-bottom-10 duration-700">
                         {/* Header Profile */}
