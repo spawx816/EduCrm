@@ -55,7 +55,10 @@ export function StudentExams({ studentId, cohortId }: StudentExamsProps) {
                         <Trophy className="w-6 h-6 mr-3 text-blue-500" />
                         Mis Evaluaciones
                     </h2>
-                    <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-1">Pruebas asignadas a tu programa académico</p>
+                    <div className="flex items-center space-x-2 mt-1">
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Pruebas asignadas a tu programa</p>
+                        <span className="text-[8px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded font-mono">ID: {cohortId?.slice(0, 8)}</span>
+                    </div>
                 </div>
             </div>
 

@@ -298,6 +298,21 @@ export function PortalMain() {
                             </div>
                         )}
 
+                        {/* Course Selector (If multiple enrollments) */}
+                        {academic.data && academic.data.length > 1 && (
+                            <div className="flex items-center space-x-3 overflow-x-auto no-scrollbar pb-2">
+                                {academic.data.map((enr: any) => (
+                                    <button
+                                        key={enr.id}
+                                        onClick={() => setSelectedEnrollmentId(enr.id)}
+                                        className={`flex-shrink-0 px-4 py-2 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ${selectedEnrollmentId === enr.id ? 'bg-blue-600/20 border-blue-500 text-blue-400 shadow-lg shadow-blue-500/10' : 'bg-slate-900 border-slate-800 text-slate-500 hover:border-slate-700'}`}
+                                    >
+                                        {enr.program_name} - {enr.cohort_name}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                         {/* Section: Quick Stats */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                             <div className="bg-gradient-to-br from-slate-900 to-[#0f172a] border border-slate-800 p-5 md:p-7 rounded-[1.5rem] md:rounded-[2rem] relative overflow-hidden group hover:border-blue-500/30 transition-all duration-300 shadow-2xl shadow-black/50">
