@@ -58,9 +58,11 @@ export function PortalMain() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     // Set initial enrollment
-    if (!selectedEnrollmentId && academic.data?.length > 0) {
-        setSelectedEnrollmentId(academic.data[0].id);
-    }
+    useEffect(() => {
+        if (!selectedEnrollmentId && academic.data?.length > 0) {
+            setSelectedEnrollmentId(academic.data[0].id);
+        }
+    }, [academic.data, selectedEnrollmentId]);
 
     const currentEnrollment = academic.data?.find((e: any) => e.id === selectedEnrollmentId) || academic.data?.[0];
     const currentCohortId = currentEnrollment?.cohort_id;

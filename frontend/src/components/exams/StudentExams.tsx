@@ -35,6 +35,16 @@ export function StudentExams({ studentId, cohortId }: StudentExamsProps) {
 
     if (loadingAssignments || loadingAttempts) return <div className="p-10 text-center animate-pulse text-blue-500 font-black uppercase tracking-widest text-[10px]">Cargando Banco de Evaluaciones...</div>;
 
+    if (!cohortId) {
+        return (
+            <div className="p-20 text-center bg-slate-900/20 border border-dashed border-slate-800 rounded-[3rem]">
+                <AlertTriangle className="w-16 h-16 text-amber-500/50 mx-auto mb-6" />
+                <h3 className="text-xl font-black text-slate-500 uppercase tracking-widest">Curso no identificado</h3>
+                <p className="text-slate-600 text-sm mt-2">No pudimos vincular tu sesión a un curso activo. Por favor, intenta recargar la página o contacta a soporte.</p>
+            </div>
+        );
+    }
+
     const attemptedAssignmentIds = new Set(attempts?.map((a: any) => a.assignment_id));
 
     return (

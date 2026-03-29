@@ -3,6 +3,11 @@ import { BillingService } from './billing.service';
 import { InvoicePdfService } from './invoice-pdf.service';
 import type { Response } from 'express';
 
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('billing')
 export class BillingController {
     constructor(
