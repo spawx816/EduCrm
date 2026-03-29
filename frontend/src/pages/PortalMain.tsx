@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
-import { useCohortExamAssignments, useStudentAttempts, useStartAttempt } from '../hooks/useExams.ts';
+import { useCohortExamAssignments, useStudentAttempts } from '../hooks/useExams.ts';
 import { StudentExams } from '../components/exams/StudentExams';
 import { Menu, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save, Layout, Receipt, ClipboardList, RefreshCw } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -64,9 +64,8 @@ export function PortalMain() {
     const currentEnrollment = academic.data?.find((e: any) => e.id === selectedEnrollmentId) || academic.data?.[0];
     const currentCohortId = currentEnrollment?.cohort_id;
 
-    const { data: assignments, isLoading: loadingAssignments, refetch: refetchAssignments } = useCohortExamAssignments(currentCohortId);
-    const { data: attempts, isLoading: loadingAttempts, refetch: refetchAttempts } = useStudentAttempts(student?.id);
-    const startAttemptMutation = useStartAttempt();
+    const { refetch: refetchAssignments } = useCohortExamAssignments(currentCohortId);
+    const { refetch: refetchAttempts } = useStudentAttempts(student?.id);
 
     const handleManualRefresh = async () => {
         setIsRefreshing(true);
