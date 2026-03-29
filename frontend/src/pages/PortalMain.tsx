@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { usePortalAuth, usePortalData } from '../hooks/usePortal.tsx';
 import { StudentExams } from '../components/exams/StudentExams';
 import { Menu, GraduationCap, LogOut, Clock, Calendar, Trophy, TrendingUp, UserCheck, X, User, Mail, Phone, MapPin, CreditCard, Download, Edit2, Check, ShieldCheck, UserCircle, Save, Layout, Receipt, ClipboardList } from 'lucide-react';
