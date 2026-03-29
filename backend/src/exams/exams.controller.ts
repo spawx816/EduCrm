@@ -96,6 +96,7 @@ export class ExamsController {
 
     @Get('cohort/:cohortId/assignments')
     async getCohortAssignments(@Param('cohortId') cohortId: string) {
+        console.log(`[EXAMS-API] [${new Date().toISOString()}] Cohort Request: ${cohortId}`);
         return this.examsService.getCohortAssignments(cohortId);
     }
 

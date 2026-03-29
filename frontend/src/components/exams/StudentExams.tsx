@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useCohortExamAssignments, useStudentAttempts, useStartAttempt } from '../../hooks/useExams';
-import { ClipboardList, Clock, Play, CheckCircle, AlertTriangle, Trophy } from 'lucide-react';
+import { ClipboardList, Clock, Play, CheckCircle, AlertTriangle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { ExamSession } from './ExamSession.tsx';
 
@@ -10,8 +10,8 @@ interface StudentExamsProps {
 }
 
 export function StudentExams({ studentId, cohortId }: StudentExamsProps) {
-    const { data: assignments, isLoading: loadingAssignments } = useCohortExamAssignments(cohortId);
-    const { data: attempts, isLoading: loadingAttempts } = useStudentAttempts(studentId);
+    const { data: assignments, isLoading: loadingAssignments, error: assignmentsError } = useCohortExamAssignments(cohortId);
+    const { data: attempts, isLoading: loadingAttempts, error: attemptsError } = useStudentAttempts(studentId);
     const startAttemptMutation = useStartAttempt();
 
     const [activeAttempt, setActiveAttempt] = useState<any>(null);
@@ -45,23 +45,22 @@ export function StudentExams({ studentId, cohortId }: StudentExamsProps) {
         );
     }
 
+    if (assignmentsError || attemptsError) {
+        return (
+            <div className="p-10 text-center bg-rose-500/10 border border-rose-500/20 rounded-[2rem]">
+                <AlertTriangle className="w-10 h-10 text-rose-500 mx-auto mb-4" />
+                <h3 className="text-sm font-black text-rose-500 uppercase tracking-widest">Error de Sincronización</h3>
+                <p className="text-rose-400/60 text-[10px] mt-2 font-mono">
+                    {String(assignmentsError || attemptsError)}
+                </p>
+            </div>
+        );
+    }
+
     const attemptedAssignmentIds = new Set(attempts?.map((a: any) => a.assignment_id));
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h2 className="text-xl font-black text-white tracking-tight flex items-center">
-                        <Trophy className="w-6 h-6 mr-3 text-blue-500" />
-                        Mis Evaluaciones
-                    </h2>
-                    <div className="flex items-center space-x-2 mt-1">
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Pruebas asignadas a tu programa</p>
-                        <span className="text-[8px] bg-slate-800 text-slate-500 px-2 py-0.5 rounded font-mono">ID: {cohortId?.slice(0, 8)}</span>
-                    </div>
-                </div>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {Array.isArray(assignments) && assignments.map((assign: any) => {
                     const isCompleted = attemptedAssignmentIds.has(assign.id);
