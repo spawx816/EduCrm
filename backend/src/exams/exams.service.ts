@@ -453,16 +453,45 @@ export class ExamsService {
     }
 
     async getStudentAttempts(studentId: string) {
+        // Try to fetch by UUID first, then by matricula if it looks like one
         const res = await this.pool.query(
             `SELECT at.*, e.title as exam_title, am.name as module_name, ea.cohort_id, am.order_index
        FROM exam_attempts at
        JOIN exam_assignments ea ON at.assignment_id = ea.id
        JOIN exams e ON ea.exam_id = e.id
        JOIN academic_modules am ON ea.module_id = am.id
-       WHERE at.student_id = $1
+       LEFT JOIN students s ON at.student_id = s.id
+       WHERE at.student_id::text = $1 OR s.matricula = $1
        ORDER BY at.completed_at DESC`,
             [studentId]
         );
         return res.rows;
+    }
+
+    async getCohortAssignments(cohortId: string) {
+        const res = await this.pool.query(
+            `SELECT ea.*, e.title as exam_title, e.description as exam_description, 
+                    e.time_limit_minutes as duration_minutes, e.passing_score as passing_grade
+             FROM exam_assignments ea
+             JOIN exams e ON ea.exam_id = e.id
+             WHERE ea.cohort_id = $1 AND ea.is_active = true
+             ORDER BY ea.created_at DESC`,
+            [cohortId]
+        );
+        
+        // Format to match frontend expected structure
+        return res.rows.map(row => ({
+            id: row.id,
+            exam: {
+                id: row.exam_id,
+                title: row.exam_title,
+                description: row.exam_description,
+                durationMinutes: row.duration_minutes,
+                passingGrade: row.passing_grade,
+                totalQuestions: 10 // Mock for now
+            },
+            startDate: row.start_date,
+            endDate: row.end_date
+        }));
     }
 }
