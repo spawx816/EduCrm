@@ -320,14 +320,29 @@ export class ExamsService {
 
     async getCohortAssignments(cohortId: string) {
         const res = await this.pool.query(
-            `SELECT ea.*, e.title as exam_title, e.time_limit_minutes, am.name as module_name
-       FROM exam_assignments ea
-       LEFT JOIN exams e ON ea.exam_id = e.id
-       LEFT JOIN academic_modules am ON ea.module_id = am.id
-       WHERE ea.cohort_id = $1 AND ea.is_active = TRUE`,
+            `SELECT ea.*, e.title as exam_title, e.description as exam_description, 
+                    e.time_limit_minutes as duration_minutes, e.passing_score as passing_grade
+             FROM exam_assignments ea
+             JOIN exams e ON ea.exam_id = e.id
+             WHERE ea.cohort_id = $1 AND ea.is_active = true
+             ORDER BY ea.created_at DESC`,
             [cohortId]
         );
-        return res.rows;
+        
+        // Format to match frontend expected structure
+        return res.rows.map(row => ({
+            id: row.id,
+            exam: {
+                id: row.exam_id,
+                title: row.exam_title,
+                description: row.exam_description,
+                durationMinutes: row.duration_minutes,
+                passingGrade: row.passing_grade,
+                totalQuestions: 10 // Mock for now
+            },
+            startDate: row.start_date,
+            endDate: row.end_date
+        }));
     }
 
     // --- Attempts & Grading ---

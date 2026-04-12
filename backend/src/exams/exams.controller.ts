@@ -94,12 +94,6 @@ export class ExamsController {
         return this.examsService.getAllAssignments();
     }
 
-    @Get('public-cohort/:cohortId/assignments')
-    async getCohortAssignments(@Param('cohortId') cohortId: string) {
-        console.log(`[EXAMS-API] [PUBLIC] Cohort Request: ${cohortId}`);
-        return this.examsService.getCohortAssignments(cohortId);
-    }
-
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Get('assignments/:assignmentId/results')
     async getAssignmentResults(@Param('assignmentId') assignmentId: string) {
@@ -116,8 +110,4 @@ export class ExamsController {
         return this.examsService.submitAttempt(attemptId, data.answers);
     }
 
-    @Get('public-student/:studentId/attempts')
-    async getStudentAttempts(@Param('studentId') studentId: string) {
-        return this.examsService.getStudentAttempts(studentId);
-    }
 }
