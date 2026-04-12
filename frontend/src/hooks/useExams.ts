@@ -163,7 +163,7 @@ export function useCohortExamAssignments(cohortId?: string) {
     return useQuery({
         queryKey: ['exams', 'cohort', cohortId],
         queryFn: async () => {
-            const { data } = await apiClient.get(`/exams/public-cohort/${cohortId}/assignments`);
+            const { data } = await apiClient.get(`/portal-exams/assignments/${cohortId}`);
             return data;
         },
         enabled: !!cohortId,
@@ -196,7 +196,7 @@ export function useStudentAttempts(studentId?: string) {
     return useQuery({
         queryKey: ['exams', 'attempts', 'student', studentId],
         queryFn: async () => {
-            const { data } = await apiClient.get(`/exams/public-student/${studentId}/attempts`);
+            const { data } = await apiClient.get(`/portal-exams/attempts/${studentId}`);
             return data;
         },
         enabled: !!studentId,

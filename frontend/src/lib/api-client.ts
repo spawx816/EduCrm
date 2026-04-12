@@ -7,9 +7,10 @@ const apiClient = axios.create({
 // Add a request interceptor to include the JWT token for admin routes only
 apiClient.interceptors.request.use((config) => {
     // Determine if this is a student portal or public route
-    // Bypass any route that has 'public-' in it or 'portal/'
+    // Bypass any route that has 'public-' in it, 'portal/' or 'portal-exams/'
     const isPublicRoute = config.url?.includes('public-') || 
-                          config.url?.includes('portal/');
+                          config.url?.includes('portal/') ||
+                          config.url?.includes('portal-exams/');
     
     // Only attach admin token if it's NOT a public route
     if (!isPublicRoute) {
