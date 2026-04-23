@@ -7,7 +7,7 @@ import { GradesManager } from './GradesManager.tsx';
 import { CohortModuleManager } from './CohortModuleManager.tsx';
 import { ModulePricingManager } from './ModulePricingManager.tsx';
 import { CohortGradesReport } from './CohortGradesReport.tsx';
-import { CohortStudentList } from './CohortStudentList.tsx';
+import { ModuleManager } from './ModuleManager.tsx';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../shared/ConfirmModal.tsx';
 import type { Cohort, AcademicProgram } from '../../types';
@@ -16,7 +16,7 @@ interface CohortListProps {
     program: AcademicProgram;
     onBack: () => void;
     initialCohortId?: string;
-    initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report' | 'students';
+    initialMode?: 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report' | 'students' | 'modules';
     onSelectStudent: (id: string) => void;
 }
 
@@ -26,7 +26,7 @@ export function CohortList({ program, onBack, initialCohortId, initialMode, onSe
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedCohort, setSelectedCohort] = useState<Cohort | null>(null);
-    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report' | 'students', cohort?: Cohort }>({ mode: 'list' });
+    const [viewMode, setViewMode] = useState<{ mode: 'list' | 'attendance' | 'grades' | 'instructors' | 'pricing' | 'report' | 'students' | 'modules', cohort?: Cohort }>({ mode: 'list' });
     
     // Auto-open if initial props are provided
     useState(() => {
@@ -115,6 +115,15 @@ export function CohortList({ program, onBack, initialCohortId, initialMode, onSe
         );
     }
 
+    if (viewMode.mode === 'modules') {
+        return (
+            <ModuleManager
+                programId={program.id}
+                onBack={() => setViewMode({ mode: 'list' })}
+            />
+        );
+    }
+
 
     if (viewMode.mode === 'report' && viewMode.cohort) {
         return (
@@ -175,6 +184,13 @@ export function CohortList({ program, onBack, initialCohortId, initialMode, onSe
                     </div>
                 </div>
                 <div className="flex items-center space-x-3">
+                    <button
+                        onClick={() => setViewMode({ mode: 'modules' })}
+                        className="bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 border border-blue-500/20 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center"
+                    >
+                        <Layers className="w-4 h-4 mr-2" />
+                        Módulos
+                    </button>
                     <button
                         onClick={() => setViewMode({ mode: 'pricing' })}
                         className="bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center"
@@ -266,6 +282,13 @@ export function CohortList({ program, onBack, initialCohortId, initialMode, onSe
                             >
                                 <UserPlus className="w-3.5 h-3.5" />
                                 <span className="text-[9px] font-black uppercase tracking-widest">Docentes Modular</span>
+                            </button>
+                            <button
+                                onClick={() => setViewMode({ mode: 'modules' })}
+                                className="flex items-center justify-center space-x-2 py-3 bg-slate-800 hover:bg-emerald-600/20 hover:text-emerald-400 rounded-xl transition-all border border-slate-700/50"
+                            >
+                                <Layers className="w-3.5 h-3.5" />
+                                <span className="text-[9px] font-black uppercase tracking-widest">Módulos</span>
                             </button>
                             <button
                                 onClick={() => setViewMode({ mode: 'report', cohort })}
