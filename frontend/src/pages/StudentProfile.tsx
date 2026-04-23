@@ -4,9 +4,10 @@ import { useInvoices } from '../hooks/useBilling';
 import {
     Mail, Phone, Calendar, BadgeCheck, Receipt,
     ArrowLeft, TrendingUp, Users, GraduationCap, BarChart3, Ticket, FolderKey,
-    Camera, Loader2, Edit, Award
+    Camera, Loader2, Edit, Award, Eye
 } from 'lucide-react';
 import { StudentDiplomas } from '../components/students/StudentDiplomas';
+import { InvoiceDetailsModal } from '../components/billing/InvoiceDetailsModal';
 import { getStaticUrl } from '../lib/api-client';
 import { EnrollStudentModal } from '../components/students/EnrollStudentModal';
 import { EditStudentModal } from '../components/students/EditStudentModal';
@@ -23,6 +24,8 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
     const [showEnrollModal, setShowEnrollModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [activeTab, setActiveTab] = useState<'academic' | 'billing' | 'docs' | 'diplomas'>('academic');
+    const [selectedInvoice, setSelectedInvoice] = useState<any>(null);
+    const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
     const { data: student, isLoading: loadingStudent } = useStudent(studentId);
     const { data: invoices, isLoading: loadingInvoices } = useInvoices({ studentId });
     const uploadAvatarMutation = useUploadStudentAvatar();
@@ -285,16 +288,24 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                                         <table className="w-full text-left text-sm text-slate-300">
                                             <thead className="bg-slate-800/50 text-[10px] font-black uppercase tracking-widest text-slate-600">
                                                 <tr>
-                                                    <th className="px-6 py-4">Nº Factura</th>
+                                                    <th className="px-6 py-4">Nº Factura / Conceptos</th>
                                                     <th className="px-6 py-4">Fecha de Emisión</th>
                                                     <th className="px-6 py-4 text-right">Monto Total</th>
                                                     <th className="px-6 py-4">Estado</th>
+                                                    <th className="px-6 py-4 text-right">Acciones</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-800">
                                                 {Array.isArray(invoices) && invoices.map((invoice: any) => (
                                                     <tr key={invoice.id} className="hover:bg-slate-800/30 transition-colors group">
-                                                        <td className="px-6 py-4 font-mono text-xs text-white group-hover:text-blue-400 transition-colors uppercase">{invoice.invoice_number}</td>
+                                                        <td className="px-6 py-4 transition-colors">
+                                                            <div className="font-mono text-xs text-white uppercase group-hover:text-blue-400 transition-colors">{invoice.invoice_number}</div>
+                                                            {invoice.concepts && (
+                                                                <div className="text-[10px] text-slate-500 font-sans mt-0.5 normal-case italic line-clamp-1" title={invoice.concepts}>
+                                                                    {invoice.concepts}
+                                                                </div>
+                                                            )}
+                                                        </td>
                                                         <td className="px-6 py-4 text-xs text-slate-500">{new Date(invoice.issue_date).toLocaleDateString()}</td>
                                                         <td className="px-6 py-4 text-right text-sm font-black group-hover:text-white transition-colors">RD${parseFloat(invoice.total_amount).toLocaleString()}</td>
                                                         <td className="px-6 py-4">
@@ -305,11 +316,23 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                                                                 {invoice.status}
                                                             </span>
                                                         </td>
+                                                        <td className="px-6 py-4 text-right">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setSelectedInvoice(invoice);
+                                                                    setIsDetailsModalOpen(true);
+                                                                }}
+                                                                className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-blue-400 transition-all"
+                                                                title="Ver Detalle Rápido"
+                                                            >
+                                                                <Eye className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
                                                     </tr>
                                                 ))}
                                                 {!invoices?.length && (
                                                     <tr>
-                                                        <td colSpan={4} className="px-6 py-12 text-center text-slate-600 italic text-xs font-bold uppercase tracking-widest">
+                                                        <td colSpan={5} className="px-6 py-12 text-center text-slate-600 italic text-xs font-bold uppercase tracking-widest">
                                                             No se han emitido facturas para este registro.
                                                         </td>
                                                     </tr>
@@ -331,6 +354,12 @@ export function StudentProfile({ studentId, onBack }: StudentProfileProps) {
                                     <StudentDiplomas studentId={studentId} />
                                 </div>
                             )}
+
+                            <InvoiceDetailsModal 
+                                isOpen={isDetailsModalOpen}
+                                onClose={() => setIsDetailsModalOpen(false)}
+                                invoice={selectedInvoice}
+                            />
                         </div>
                     </div>
                 </div>
