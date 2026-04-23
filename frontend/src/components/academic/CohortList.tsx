@@ -7,6 +7,7 @@ import { GradesManager } from './GradesManager.tsx';
 import { CohortModuleManager } from './CohortModuleManager.tsx';
 import { ModulePricingManager } from './ModulePricingManager.tsx';
 import { CohortGradesReport } from './CohortGradesReport.tsx';
+import { CohortStudentList } from './CohortStudentList.tsx';
 import { ModuleManager } from './ModuleManager.tsx';
 import { toast } from 'react-hot-toast';
 import { ConfirmModal } from '../shared/ConfirmModal.tsx';
